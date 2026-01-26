@@ -12,13 +12,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 const CLOUD_NAME = "df79cjkl";
 const UPLOAD_PRESET = "sistema_archivos"; 
 
 let sessionUser = JSON.parse(localStorage.getItem('user_session')) || null;
 
-// --- LOGIN DIRECTO ---
+// --- LOGIN MAESTRO ---
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const u = document.getElementById('login-user').value.trim();
@@ -34,7 +33,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     if(!snap.empty) {
         loginSuccess(snap.docs[0].data());
     } else {
-        alert("Acceso Denegado");
+        alert("Usuario o Contraseña incorrectos");
     }
 });
 
@@ -50,22 +49,18 @@ window.showSection = (id) => {
     document.querySelectorAll('.content-section').forEach(s => s.classList.add('d-none'));
     document.getElementById(id).classList.remove('d-none');
     if(id === 'dashboard') loadStats();
-    if(id === 'historial-general') loadRecords(true);
+    if(id === 'historial-maestro') loadRecords(true);
     if(id === 'consultas') loadRecords(false);
-    if(id === 'admin-panel') { loadUsers(); loadTemplates(); }
 };
 
-// --- GESTIÓN DE PLANTILLAS Y GRUPOS ---
+// --- GESTIÓN ADMIN ---
 window.saveTemplate = async () => {
     const name = document.getElementById('type-name').value;
     const group = document.getElementById('type-group').value;
     const fields = document.getElementById('type-fields').value.split(',').map(f => f.trim());
-    
-    if(!name || !fields.length) return alert("Complete los datos");
-
+    if(!name || fields.length < 1) return alert("Llena todos los campos");
     await setDoc(doc(db, "templates", name), { name, group, fields });
-    alert("Formulario creado para el grupo: " + group);
-    loadTemplates();
+    alert("Formulario creado"); loadTemplates();
 };
 
 async function loadTemplates() {
@@ -74,20 +69,20 @@ async function loadTemplates() {
     const filter = document.getElementById('filter-type');
     const list = document.getElementById('templates-list');
     
-    sel.innerHTML = '<option value="">-- Seleccione --</option>';
+    sel.innerHTML = '<option value="">-- Seleccionar --</option>';
     if(filter) filter.innerHTML = '<option value="All">Todos</option>';
     if(list) list.innerHTML = "";
 
     snap.forEach(d => {
         const t = d.data();
-        // Solo mostrar al usuario formularios de su grupo o si es admin
+        // Solo mostrar formularios del grupo del usuario o todos si es admin
         if(sessionUser.group === 'admin' || sessionUser.group === t.group) {
             sel.innerHTML += `<option value="${t.name}">${t.name}</option>`;
         }
         if(filter) filter.innerHTML += `<option value="${t.name}">${t.name}</option>`;
         if(list) list.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center">
-            <div><b>${t.name}</b> <span class="badge bg-info">${t.group}</span><br><small>${t.fields.join(', ')}</small></div>
-            <button class="btn btn-sm btn-danger" onclick="deleteDoc(doc(db,'templates','${t.name}')).then(loadTemplates)">Eliminar</button>
+            <span><b>${t.name}</b> (${t.group})</span>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteDoc(doc(db,'templates','${t.name}')).then(loadTemplates)">Eliminar</button>
         </div>`;
     });
 }
@@ -95,120 +90,88 @@ async function loadTemplates() {
 window.renderDynamicFields = async () => {
     const type = document.getElementById('reg-template-select').value;
     const cont = document.getElementById('dynamic-fields-container');
-    cont.innerHTML = "";
-    if(!type) return;
+    cont.innerHTML = ""; if(!type) return;
     const d = await getDoc(doc(db, "templates", type));
     d.data().fields.forEach(f => {
-        cont.innerHTML += `<div class="col-md-6"><label class="small fw-bold">${f}</label><input type="text" class="form-control dyn-input" data-f="${f}"></div>`;
+        cont.innerHTML += `<div class="col-md-6 mb-2"><label class="small fw-bold">${f}</label><input type="text" class="form-control dyn-input" data-f="${f}"></div>`;
     });
 };
 
-// --- GUARDAR Y LEER ---
+// --- REGISTRO Y ARCHIVOS ---
 document.getElementById('dynamic-upload-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = document.getElementById('btn-save');
-    btn.disabled = true;
-    
+    const btn = document.getElementById('btn-save'); btn.disabled = true;
     let fileUrl = "Sin archivo";
     const file = document.getElementById('reg-file').files[0];
     if(file) {
-        const formData = new FormData();
-        formData.append('file', file); formData.append('upload_preset', UPLOAD_PRESET);
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: formData });
-        const json = await res.json();
-        fileUrl = json.secure_url;
+        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: fd });
+        const json = await res.json(); fileUrl = json.secure_url;
     }
-
     const dynData = {};
     document.querySelectorAll('.dyn-input').forEach(i => { dynData[i.dataset.f] = i.value; });
 
     await addDoc(collection(db, "records"), {
         type: document.getElementById('reg-template-select').value,
-        data: dynData,
-        fileUrl,
-        user: sessionUser.username,
-        group: sessionUser.group,
-        timestamp: new Date()
+        data: dynData, fileUrl, user: sessionUser.username,
+        group: sessionUser.group, timestamp: new Date()
     });
-
-    alert("Registro Exitoso!");
-    location.reload();
+    alert("Guardado correctamente"); location.reload();
 });
 
+// --- LECTURA DE REGISTROS ---
 async function loadRecords(isHistory) {
     const tb = isHistory ? document.getElementById('historial-table-body') : document.getElementById('records-table-body');
     const filter = document.getElementById('filter-type')?.value;
-    
     let q = query(collection(db, "records"), orderBy("timestamp", "desc"));
-    
-    // Si no es admin, solo ve su grupo
-    if(sessionUser.group !== 'admin' && !isHistory) {
-        q = query(collection(db, "records"), where("group", "==", sessionUser.group), orderBy("timestamp", "desc"));
-    }
+    if(!isHistory) q = query(collection(db, "records"), where("user", "==", sessionUser.username), orderBy("timestamp", "desc"));
 
-    const snap = await getDocs(q);
-    tb.innerHTML = "";
-
+    const snap = await getDocs(q); tb.innerHTML = "";
     snap.forEach(d => {
         const r = d.data();
         if(isHistory && filter !== "All" && r.type !== filter) return;
-
-        let detailStr = "";
-        for(let k in r.data) detailStr += `${k}: ${r.data[k]} | `;
-
+        let details = ""; for(let k in r.data) details += `<b>${k}:</b> ${r.data[k]} | `;
         tb.innerHTML += `<tr>
             <td>${r.timestamp.toDate().toLocaleDateString()}</td>
             ${isHistory ? `<td>${r.user}</td><td>${r.group}</td>` : ''}
-            <td><span class="badge bg-secondary">${r.type}</span></td>
-            <td><small>${detailStr}</small></td>
-            <td><a href="${r.fileUrl}" target="_blank" class="bi bi-file-earmark-text"></a></td>
+            <td><span class="badge bg-primary">${r.type}</span></td>
+            <td><small>${details}</small></td>
+            <td><a href="${r.fileUrl}" target="_blank" class="bi bi-file-earmark-arrow-down"></a></td>
         </tr>`;
     });
 }
 
-// --- DASHBOARD AVANZADO ---
+// --- DASHBOARD Y EXCEL ---
 async function loadStats() {
-    const snap = await getDocs(collection(db, "records"));
+    const rSnap = await getDocs(collection(db, "records"));
     const uSnap = await getDocs(collection(db, "users"));
     const tSnap = await getDocs(collection(db, "templates"));
 
-    const container = document.getElementById('stats-container');
-    container.innerHTML = `
-        <div class="col-4"><div class="card p-3 shadow-sm border-0 bg-primary text-white"><h5>${snap.size}</h5><small>Archivos</small></div></div>
-        <div class="col-4"><div class="card p-3 shadow-sm border-0 bg-dark text-white"><h5>${tSnap.size}</h5><small>Tipos</small></div></div>
-        <div class="col-4"><div class="card p-3 shadow-sm border-0 bg-info text-white"><h5>${uSnap.size + 1}</h5><small>Usuarios</small></div></div>
+    document.getElementById('stats-summary').innerHTML = `
+        <div class="col-4"><div class="card p-3 text-center bg-primary text-white"><h3>${rSnap.size}</h3><small>Archivos</small></div></div>
+        <div class="col-4"><div class="card p-3 text-center bg-dark text-white"><h3>${tSnap.size}</h3><small>Formularios</small></div></div>
+        <div class="col-4"><div class="card p-3 text-center bg-info text-white"><h3>${uSnap.size + 1}</h3><small>Usuarios</small></div></div>
     `;
 
-    const counts = {};
-    snap.forEach(d => { counts[d.data().type] = (counts[d.data().type] || 0) + 1; });
-
-    const chart = document.getElementById('chart-list');
-    chart.innerHTML = "";
+    const counts = {}; rSnap.forEach(d => { counts[d.data().type] = (counts[d.data().type] || 0) + 1; });
+    const chart = document.getElementById('distribution-chart'); chart.innerHTML = "";
     for(let type in counts) {
-        let pct = Math.round((counts[type] / snap.size) * 100);
-        chart.innerHTML += `
-            <label class="small">${type} (${counts[type]})</label>
-            <div class="progress mb-2" style="height: 10px;">
-                <div class="progress-bar bg-success" style="width: ${pct}%"></div>
-            </div>
-        `;
+        let pct = Math.round((counts[type] / rSnap.size) * 100);
+        chart.innerHTML += `<label class="small">${type} (${pct}%)</label><div class="progress mb-2" style="height: 12px;"><div class="progress-bar" style="width: ${pct}%"></div></div>`;
     }
 }
 
-// --- DESCARGA CSV ---
 window.downloadData = async () => {
     const snap = await getDocs(collection(db, "records"));
-    let csv = "Fecha,Usuario,Grupo,Tipo,Datos\n";
+    let csv = "Fecha,Usuario,Grupo,Tipo,Detalles\n";
     snap.forEach(d => {
         const r = d.data();
-        let fields = JSON.stringify(r.data).replace(/,/g, ';');
-        csv += `${r.timestamp.toDate().toLocaleDateString()},${r.user},${r.group},${r.type},${fields}\n`;
+        let details = JSON.stringify(r.data).replace(/,/g, ';');
+        csv += `${r.timestamp.toDate().toLocaleDateString()},${r.user},${r.group},${r.type},${details}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'Historial_Archivos.csv';
-    a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'Reporte_General.csv'; a.click();
 };
 
 // --- GESTIÓN USUARIOS ---
@@ -218,14 +181,12 @@ document.getElementById('create-user-form').addEventListener('submit', async (e)
     const password = document.getElementById('new-password').value;
     const group = document.getElementById('new-group').value;
     await addDoc(collection(db, "users"), { username, password, group });
-    alert("Usuario Creado en grupo " + group);
-    loadUsers();
+    alert("Usuario creado"); loadUsers();
 });
 
 async function loadUsers() {
     const snap = await getDocs(collection(db, "users"));
-    const list = document.getElementById('users-list');
-    list.innerHTML = "";
+    const list = document.getElementById('users-list'); list.innerHTML = "";
     snap.forEach(d => {
         const u = d.data();
         list.innerHTML += `<div class="list-group-item d-flex justify-content-between">
@@ -235,12 +196,14 @@ async function loadUsers() {
     });
 }
 
-// INICIO
+// INICIO DE SESIÓN
 if(sessionUser) {
     document.getElementById('login-screen').classList.add('d-none');
     document.getElementById('app-screen').classList.remove('d-none');
-    document.getElementById('user-display').innerText = `${sessionUser.username} [${sessionUser.group}]`;
-    if(sessionUser.group !== 'admin') document.querySelectorAll('.admin-only').forEach(e => e.remove());
-    loadTemplates();
-    loadStats();
+    document.getElementById('user-display').innerText = `${sessionUser.username} (${sessionUser.group})`;
+    if(sessionUser.group === 'admin') {
+        document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('d-none'));
+        loadUsers();
+    }
+    loadTemplates(); loadStats();
 }
