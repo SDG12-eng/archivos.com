@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Integrado de Archivos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+
+    <div id="login-screen" class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="card shadow p-4" style="width: 400px;">
+            <div class="text-center mb-3">
+                <h2 class="text-primary"><i class="bi bi-archive-fill"></i> Acceso</h2>
+                <p class="text-muted">Sistema de Gestión Documental</p>
+            </div>
+            <form id="login-form">
+                <div class="mb-3">
+                    <label class="form-label">Usuario</label>
+                    <input type="text" id="login-user" class="form-control" required placeholder="Ej: Admin">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" id="login-pass" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                <div id="login-error" class="text-danger mt-2 text-center" style="display:none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-screen" class="d-none">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#"><i class="bi bi-archive"></i> ArchiveMaster</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showSection('dashboard')">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('consultas')">Consultas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('nuevo-registro')" id="nav-nuevo">Nuevo Registro</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('usuarios')" id="nav-usuarios">Usuarios</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('logs')" id="nav-logs">Historial</a>
+                        </li>
+                    </ul>
+                    <span class="navbar-text me-3 text-white" id="user-display"></span>
+                    <button class="btn btn-outline-danger btn-sm" onclick="logout()">Salir</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-4">
+            
+            <div id="dashboard" class="content-section">
+                <h3>📊 Panel General</h3>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card text-white bg-primary mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Registros</h5>
+                                <p class="card-text display-4" id="stat-total">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-success mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Categorías</h5>
+                                <p class="card-text display-4" id="stat-cats">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-info mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Usuarios Activos</h5>
+                                <p class="card-text display-4" id="stat-users">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="consultas" class="content-section d-none">
+                <h3>🗂 Consultar Archivos</h3>
+                <input type="text" id="search-input" class="form-control mb-3" placeholder="Buscar por título o categoría..." onkeyup="filterTable()">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered bg-white">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Categoría</th>
+                                <th>Título</th>
+                                <th>Usuario</th>
+                                <th>Extras</th>
+                                <th>Archivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="nuevo-registro" class="content-section d-none">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">Nuevo Registro</div>
+                    <div class="card-body">
+                        <form id="upload-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label>Categoría</label>
+                                    <select id="reg-category" class="form-select">
+                                        <option>Legal</option>
+                                        <option>Finanzas</option>
+                                        <option>Recursos Humanos</option>
+                                        <option>Operaciones</option>
+                                        <option>Otro</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Título del Documento</label>
+                                    <input type="text" id="reg-title" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <hr>
+                            <h6>Campos Dinámicos</h6>
+                            <div class="row">
+                                <div class="col-md-3 mb-2">
+                                    <input type="text" id="field1-key" class="form-control" placeholder="Nombre Campo 1">
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <input type="text" id="field1-val" class="form-control" placeholder="Valor Campo 1">
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <input type="text" id="field2-key" class="form-control" placeholder="Nombre Campo 2">
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <input type="text" id="field2-val" class="form-control" placeholder="Valor Campo 2">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 mt-3">
+                                <label>Adjuntar Archivo (PDF/Imagen)</label>
+                                <input type="file" id="reg-file" class="form-control">
+                            </div>
+
+                            <button type="submit" class="btn btn-success" id="btn-save">Guardar Registro</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="usuarios" class="content-section d-none">
+                <h3>👥 Gestión de Usuarios</h3>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5>Crear Nuevo Usuario</h5>
+                        <form id="create-user-form" class="row g-3">
+                            <div class="col-auto">
+                                <input type="text" class="form-control" id="new-username" placeholder="Usuario" required>
+                            </div>
+                            <div class="col-auto">
+                                <input type="password" class="form-control" id="new-password" placeholder="Contraseña" required>
+                            </div>
+                            <div class="col-auto">
+                                <select class="form-select" id="new-role">
+                                    <option value="applicant">Solicitante (Applicant)</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary">Crear</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <table class="table table-striped">
+                    <thead><tr><th>Usuario</th><th>Rol</th><th>Fecha Creación</th></tr></thead>
+                    <tbody id="users-table-body"></tbody>
+                </table>
+            </div>
+
+            <div id="logs" class="content-section d-none">
+                <h3>🛡 Historial de Actividad</h3>
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead>
+                    <tbody id="logs-table-body"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script type="module" src="app.js"></script>
+</body>
+</html>
