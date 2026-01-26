@@ -25,8 +25,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow">
             <div class="container-fluid">
                 <span class="navbar-brand fw-bold"><i class="bi bi-box-seam"></i> ArchiveMaster</span>
-                
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -35,14 +34,12 @@
                         <li class="nav-item"><a class="nav-link pointer" onclick="showSection('dashboard')">Dashboard</a></li>
                         <li class="nav-item"><a class="nav-link pointer" onclick="showSection('nuevo-registro')">Registrar</a></li>
                         <li class="nav-item"><a class="nav-link pointer" onclick="showSection('consultas')">Consultas</a></li>
-                        <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold pointer" onclick="showSection('panel-admin')">⚙️ Panel Admin</a></li>
+                        <li class="nav-item admin-only d-none"><a class="nav-link text-warning pointer fw-bold" onclick="showSection('panel-admin')">Panel Admin</a></li>
                         <li class="nav-item admin-only d-none"><a class="nav-link text-warning pointer" onclick="showSection('historial-maestro')">Historial Gral.</a></li>
                     </ul>
-                    <div class="d-flex align-items-center border-top border-light pt-2 pt-lg-0 mt-2 mt-lg-0">
-                        <span id="user-display" class="badge bg-light text-dark me-3 p-2"></span>
-                        <button class="btn btn-danger btn-sm w-100 w-lg-auto" onclick="logout()">
-                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                        </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="user-display" class="badge bg-light text-dark p-2"></span>
+                        <button class="btn btn-danger btn-sm" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Salir</button>
                     </div>
                 </div>
             </div>
@@ -50,24 +47,23 @@
 
         <div class="container mt-4 pb-5">
             <div id="dashboard" class="content-section">
-                <h4 class="fw-bold mb-4">📊 Análisis de Datos y Estadísticas</h4>
                 <div class="row g-3 mb-4" id="stats-summary"></div>
                 <div class="card p-3 shadow-sm">
-                    <h6>Distribución de Registros por Tipo</h6>
+                    <h6>Distribución de Registros</h6>
                     <div id="distribution-chart" class="mt-3"></div>
                 </div>
             </div>
 
             <div id="nuevo-registro" class="content-section d-none">
                 <div class="card shadow-sm mx-auto" style="max-width: 600px;">
-                    <div class="card-header bg-primary text-white">Nuevo Documento</div>
+                    <div class="card-header bg-primary text-white">Llenar Formulario</div>
                     <div class="card-body">
-                        <label class="small fw-bold">Tipo de Formulario</label>
+                        <label class="fw-bold small">Tipo de Formulario</label>
                         <select id="reg-template-select" class="form-select mb-3" onchange="renderDynamicFields()"></select>
                         <form id="dynamic-upload-form">
                             <div id="dynamic-fields-container" class="row g-2"></div>
                             <div class="mt-3">
-                                <label class="small fw-bold">Adjunto (Imagen/PDF)</label>
+                                <label class="fw-bold small">Adjunto (PDF/Imagen)</label>
                                 <input type="file" id="reg-file" class="form-control">
                             </div>
                             <button type="submit" class="btn btn-success mt-4 w-100" id="btn-save">Guardar Registro</button>
@@ -77,54 +73,51 @@
             </div>
 
             <div id="consultas" class="content-section d-none">
-                <h4 class="fw-bold">Mis Registros</h4>
-                <div class="table-responsive">
-                    <table class="table table-hover mt-3"><thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Datos</th><th>Archivo</th></tr></thead><tbody id="records-table-body"></tbody></table>
+                <h4>Mis Registros</h4>
+                <div class="table-responsive mt-3">
+                    <table class="table table-hover border"><thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Detalles</th><th>Archivo</th></tr></thead><tbody id="records-table-body"></tbody></table>
                 </div>
             </div>
 
             <div id="panel-admin" class="content-section d-none">
-                <div class="row">
+                <div class="row g-3">
                     <div class="col-md-7">
-                        <div class="card p-3 shadow-sm mb-4">
-                            <h5>⚙️ Configurar Formularios</h5>
-                            <input type="text" id="type-name" class="form-control mb-2" placeholder="Nombre (Ej: EPP)">
-                            <select id="type-group" class="form-select mb-2">
-                                <option value="General">Grupo: General</option>
-                                <option value="SST">Grupo: SST</option>
-                                <option value="Operaciones">Grupo: Operaciones</option>
-                            </select>
-                            <textarea id="type-fields" class="form-control mb-2" placeholder="Campos separados por coma"></textarea>
-                            <button class="btn btn-dark w-100" onclick="saveTemplate()">Crear Formulario</button>
-                            <div id="templates-list" class="mt-3"></div>
+                        <div class="card p-3 shadow-sm">
+                            <h5 class="fw-bold">Gestión de Tipos y Campos</h5>
+                            <input type="text" id="type-name" class="form-control mb-2" placeholder="Nombre (Ej: Inventario)">
+                            <textarea id="type-fields" class="form-control mb-2" placeholder="Campos (Ej: Producto, Cantidad, Estado)"></textarea>
+                            <button class="btn btn-dark w-100" onclick="saveTemplate()">Guardar Formulario</button>
+                            <hr><div id="templates-list" class="list-group small"></div>
                         </div>
                     </div>
                     <div class="col-md-5">
                         <div class="card p-3 shadow-sm">
-                            <h5>👥 Usuarios</h5>
+                            <h5>Gestión de Usuarios</h5>
                             <form id="create-user-form">
                                 <input type="text" id="new-username" class="form-control mb-2" placeholder="Usuario" required>
                                 <input type="password" id="new-password" class="form-control mb-2" placeholder="Contraseña" required>
-                                <select id="new-group" class="form-select mb-2">
-                                    <option value="General">General</option>
-                                    <option value="SST">SST</option>
-                                    <option value="admin">Admin Maestro</option>
-                                </select>
+                                <select id="new-group" class="form-select mb-2"><option value="admin">Admin</option><option value="general">General</option></select>
                                 <button class="btn btn-primary w-100">Crear</button>
                             </form>
-                            <div id="users-list" class="mt-3"></div>
+                            <hr><div id="users-list" class="list-group small"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="historial-maestro" class="content-section d-none">
-                <div class="d-flex justify-content-between mb-3">
-                    <h4>Historial General</h4>
-                    <button class="btn btn-success btn-sm" onclick="downloadData()">Descargar CSV</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-sm"><thead class="table-dark"><tr><th>Fecha</th><th>Usuario</th><th>Grupo</th><th>Tipo</th><th>Info</th></tr></thead><tbody id="historial-table-body"></tbody></table>
+                <div class="card p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold">Historial Maestro</h5>
+                        <button class="btn btn-success btn-sm" onclick="downloadData()"><i class="bi bi-download"></i> Descargar</button>
+                    </div>
+                    <div class="row mb-3 g-2">
+                        <div class="col-6"><select id="filter-type" class="form-select" onchange="loadRecords(true)"><option value="All">Todos los tipos</option></select></div>
+                        <div class="col-6"><input type="text" id="filter-search" class="form-control" placeholder="Buscar..." onkeyup="loadRecords(true)"></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered"><thead class="table-dark"><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Detalles</th><th>Doc</th></tr></thead><tbody id="historial-table-body"></tbody></table>
+                    </div>
                 </div>
             </div>
         </div>
