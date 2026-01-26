@@ -3,127 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArchiveMaster Pro</title>
+    <title>ArchiveMaster Premium</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="login-screen" class="container-fluid d-flex justify-content-center align-items-center vh-100">
-        <div class="card shadow p-4" style="width: 380px; border-radius: 15px;">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold text-primary"><i class="bi bi-shield-lock"></i> ARCHIVOS</h2>
-                <small class="text-muted">Gestión de Registros Legales y Básicos</small>
-            </div>
+    <div id="login-screen" class="container-fluid d-flex justify-content-center align-items-center vh-100 bg-dark">
+        <div class="card p-4 shadow-lg" style="width: 350px;">
+            <h3 class="text-center fw-bold text-primary mb-4">SISTEMA INTEGRAL</h3>
             <form id="login-form">
-                <div class="mb-3">
-                    <label class="form-label">Usuario</label>
-                    <input type="text" id="login-user" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Contraseña</label>
-                    <input type="password" id="login-pass" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 py-2">Entrar al Sistema</button>
+                <input type="text" id="login-user" class="form-control mb-2" placeholder="Usuario" required>
+                <input type="password" id="login-pass" class="form-control mb-3" placeholder="Contraseña" required>
+                <button class="btn btn-primary w-100">Iniciar Sesión</button>
             </form>
         </div>
     </div>
 
     <div id="app-screen" class="d-none">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow">
             <div class="container-fluid">
-                <span class="navbar-brand fw-bold"><i class="bi bi-archive"></i> ArchiveMaster</span>
-                <div class="collapse navbar-collapse" id="navbarNav">
+                <a class="navbar-brand fw-bold" href="#"><i class="bi bi-box-seam"></i> ArchiveMaster</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navMain">
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('dashboard')">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('consultas')">Consultas</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('nuevo-registro')">Nuevo Registro</a></li>
-                        <li class="nav-item admin-only"><a class="nav-link" href="#" onclick="showSection('gestionar-tipos')">Configurar Tipos</a></li>
-                        <li class="nav-item admin-only"><a class="nav-link" href="#" onclick="showSection('usuarios')">Usuarios</a></li>
+                        <li class="nav-item"><a class="nav-link active" onclick="showSection('dashboard')">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" onclick="showSection('nuevo-registro')">Registrar</a></li>
+                        <li class="nav-item"><a class="nav-link" onclick="showSection('consultas')">Consultas</a></li>
+                        <li class="nav-item admin-only"><a class="nav-link text-warning" onclick="showSection('admin-panel')">Panel Admin</a></li>
+                        <li class="nav-item admin-only"><a class="nav-link" onclick="showSection('historial-general')">Historial</a></li>
                     </ul>
-                    <div class="d-flex align-items-center text-white">
-                        <span id="user-display" class="me-3 badge bg-primary"></span>
-                        <button class="btn btn-sm btn-outline-danger" onclick="logout()">Salir</button>
+                    <div class="d-flex align-items-center">
+                        <span id="user-display" class="badge bg-light text-dark me-2"></span>
+                        <button class="btn btn-outline-light btn-sm" onclick="logout()">Salir</button>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <div class="container mt-4">
+        <div class="container mt-4 pb-5">
             <div id="dashboard" class="content-section">
-                <h3 class="mb-4">📊 Dashboard de Gestión</h3>
-                <div class="row g-3">
-                    <div class="col-md-4"><div class="card p-3 bg-primary text-white text-center"><h5>Total Archivos</h5><h2 id="stat-total">0</h2></div></div>
-                    <div class="col-md-4"><div class="card p-3 bg-success text-white text-center"><h5>Tipos Activos</h5><h2 id="stat-types">0</h2></div></div>
-                    <div class="col-md-4"><div class="card p-3 bg-info text-white text-center"><h5>Usuarios</h5><h2 id="stat-users">0</h2></div></div>
-                </div>
-            </div>
-
-            <div id="consultas" class="content-section d-none">
-                <div class="d-flex justify-content-between mb-3">
-                    <h3>🗂 Consultar Registros</h3>
-                    <input type="text" id="search-input" class="form-control w-25" placeholder="Filtrar..." onkeyup="filterTable()">
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover bg-white border">
-                        <thead class="table-light">
-                            <tr><th>Fecha</th><th>Tipo</th><th>Usuario</th><th>Detalles</th><th>Archivo</th></tr>
-                        </thead>
-                        <tbody id="records-table-body"></tbody>
-                    </table>
+                <h4 class="fw-bold mb-3">📊 Análisis de Datos</h4>
+                <div class="row g-3" id="stats-container">
+                    </div>
+                <div class="mt-4 card p-3 shadow-sm">
+                    <h6>Distribución por Tipos</h6>
+                    <div id="chart-list" class="mt-2"></div>
                 </div>
             </div>
 
             <div id="nuevo-registro" class="content-section d-none">
-                <div class="card shadow-sm mx-auto" style="max-width: 800px;">
-                    <div class="card-header bg-primary text-white"><h5>Llenar Nuevo Registro</h5></div>
+                <div class="card shadow">
+                    <div class="card-header bg-white fw-bold">Nuevo Registro de Documento</div>
                     <div class="card-body">
-                        <label class="fw-bold">1. Seleccione el Tipo</label>
-                        <select id="reg-template-select" class="form-select mb-4" onchange="renderDynamicFields()"></select>
-                        <hr>
+                        <label>Seleccionar Tipo de Formulario (Según tu acceso)</label>
+                        <select id="reg-template-select" class="form-select mb-3" onchange="renderDynamicFields()"></select>
                         <form id="dynamic-upload-form">
-                            <div id="dynamic-fields-container" class="row"></div>
+                            <div id="dynamic-fields-container" class="row g-2"></div>
                             <div class="mt-3">
-                                <label class="fw-bold">Evidencia (Opcional)</label>
+                                <label>Evidencia / Adjunto</label>
                                 <input type="file" id="reg-file" class="form-control">
                             </div>
-                            <button type="submit" class="btn btn-success mt-4 w-100" id="btn-save">Guardar Registro</button>
+                            <button type="submit" class="btn btn-primary mt-4 w-100" id="btn-save">Guardar Registro</button>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div id="gestionar-tipos" class="content-section d-none admin-only">
-                <h3>⚙️ Configurar Tipos y Campos</h3>
-                <div class="card p-3 mb-4">
-                    <div class="row g-2">
-                        <div class="col-md-4"><input type="text" id="type-name" class="form-control" placeholder="Nombre (Ej: EPP)"></div>
-                        <div class="col-md-6"><input type="text" id="type-fields" class="form-control" placeholder="Campos (Ej: Casco, Botas, Guantes)"></div>
-                        <div class="col-md-2"><button class="btn btn-primary w-100" onclick="saveTemplate()">Guardar</button></div>
-                    </div>
+            <div id="consultas" class="content-section d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold">Mis Registros</h4>
+                    <input type="text" id="search-input" class="form-control w-25" placeholder="Buscar..." onkeyup="filterTable()">
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-sm"><thead class="table-dark"><tr><th>Tipo</th><th>Campos</th><th>Acción</th></tr></thead><tbody id="templates-table-body"></tbody></table>
+                    <table class="table table-hover align-middle border">
+                        <thead class="bg-light"><tr><th>Fecha</th><th>Tipo</th><th>Campos</th><th>Archivo</th></tr></thead>
+                        <tbody id="records-table-body"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <div id="usuarios" class="content-section d-none admin-only">
-                <h3>👥 Gestión de Usuarios</h3>
-                <div class="card p-3 mb-3">
-                    <form id="create-user-form" class="row g-2">
-                        <div class="col-md-4"><input type="text" id="new-username" class="form-control" placeholder="Usuario" required></div>
-                        <div class="col-md-4"><input type="password" id="new-password" class="form-control" placeholder="Contraseña" required></div>
-                        <div class="col-md-2"><select id="new-role" class="form-select"><option value="applicant">Applicant</option><option value="admin">Admin</option></select></div>
-                        <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Crear</button></div>
-                    </form>
+            <div id="admin-panel" class="content-section d-none admin-only">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="card p-3 mb-4 shadow-sm">
+                            <h5 class="fw-bold"><i class="bi bi-gear"></i> Configurar Tipos de Formulario</h5>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6"><input type="text" id="type-name" class="form-control" placeholder="Nombre (Ej: EPP)"></div>
+                                <div class="col-6">
+                                    <select id="type-group" class="form-select">
+                                        <option value="General">Grupo: General</option>
+                                        <option value="SST">Grupo: SST</option>
+                                        <option value="Operaciones">Grupo: Operaciones</option>
+                                        <option value="RRHH">Grupo: RRHH</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <textarea id="type-fields" class="form-control" placeholder="Campos separados por coma (Ej: Casco, Bota, Talla, Fecha Vencimiento)"></textarea>
+                                </div>
+                                <button class="btn btn-dark" onclick="saveTemplate()">Crear Formulario</button>
+                            </div>
+                            <div id="templates-list" class="list-group"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card p-3 shadow-sm">
+                            <h5 class="fw-bold"><i class="bi bi-people"></i> Gestión de Usuarios</h5>
+                            <form id="create-user-form">
+                                <input type="text" id="new-username" class="form-control mb-2" placeholder="Usuario" required>
+                                <input type="password" id="new-password" class="form-control mb-2" placeholder="Contraseña" required>
+                                <select id="new-group" class="form-select mb-3">
+                                    <option value="General">Grupo: General</option>
+                                    <option value="SST">Grupo: SST</option>
+                                    <option value="Operaciones">Grupo: Operaciones</option>
+                                    <option value="RRHH">Grupo: RRHH</option>
+                                    <option value="admin">Administrador Maestro</option>
+                                </select>
+                                <button class="btn btn-primary w-100">Crear Acceso</button>
+                            </form>
+                            <hr>
+                            <div id="users-list" class="list-group small"></div>
+                        </div>
+                    </div>
                 </div>
-                <table class="table border"><thead class="table-light"><tr><th>Usuario</th><th>Rol</th><th>Acción</th></tr></thead><tbody id="users-table-body"></tbody></table>
             </div>
+
+            <div id="historial-general" class="content-section d-none admin-only">
+                <div class="card p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold">Historial Maestro</h4>
+                        <button class="btn btn-success" onclick="downloadData()"><i class="bi bi-file-earmark-excel"></i> Descargar CSV</button>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <select id="filter-type" class="form-select" onchange="loadRecords(true)">
+                                <option value="All">Todos los Tipos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-dark"><tr><th>Fecha</th><th>Usuario</th><th>Grupo</th><th>Tipo</th><th>Datos</th></tr></thead>
+                            <tbody id="historial-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>
