@@ -12,12 +12,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const CLOUD_NAME = "df79cjkl";
-const UPLOAD_PRESET = "sistema_archivos"; 
-
 let sessionUser = JSON.parse(localStorage.getItem('user_session')) || null;
 
-// --- NAVEGACIÓN Y CONTROL GLOBAL ---
+// --- SOLUCIÓN AL REFERENCE ERROR ---
 window.showSection = (id) => {
     document.querySelectorAll('.content-section').forEach(s => s.classList.add('d-none'));
     const target = document.getElementById(id);
@@ -29,86 +26,56 @@ window.showSection = (id) => {
     if(id === 'historial-maestro') loadRecords(true);
 };
 
-// --- GESTIÓN DE CAMPOS DINÁMICOS (MOSTRAR AL SELECCIONAR) ---
+// --- RENDER DE CAMPOS DINÁMICOS AL SELECCIONAR FORMULARIO ---
 window.renderDynamicFields = async () => {
     const type = document.getElementById('reg-template-select').value;
     const cont = document.getElementById('dynamic-fields-container');
-    cont.innerHTML = "<p class='text-muted small'>Cargando campos...</p>"; 
+    cont.innerHTML = ""; 
     
-    if(!type) {
-        cont.innerHTML = "";
-        return;
-    }
+    if(!type) return;
 
-    try {
-        const d = await getDoc(doc(db, "templates", type));
-        if (d.exists()) {
-            cont.innerHTML = ""; // Limpiar cargando
-            const fields = d.data().fields;
-            fields.forEach(f => {
-                const col = document.createElement('div');
-                col.className = "col-md-6 mb-3";
-                
-                let inputHtml = "";
-                if(f.type === 'signature') {
-                    inputHtml = `<input type="text" class="form-control dyn-input border-primary" data-f="${f.label}" placeholder="Escriba su nombre completo">`;
-                } else {
-                    inputHtml = `<input type="${f.type}" class="form-control dyn-input" data-f="${f.label}">`;
-                }
-
-                col.innerHTML = `<label class="form-label small fw-bold">${f.label}</label>${inputHtml}`;
-                cont.appendChild(col);
-            });
-        }
-    } catch (error) {
-        console.error("Error al cargar campos:", error);
-        cont.innerHTML = "<span class='text-danger'>Error al cargar el formulario.</span>";
+    const d = await getDoc(doc(db, "templates", type));
+    if (d.exists()) {
+        const fields = d.data().fields;
+        fields.forEach(f => {
+            const div = document.createElement('div');
+            div.className = "col-md-6 mb-3";
+            div.innerHTML = `
+                <label class="form-label small fw-bold">${f.label}</label>
+                <input type="${f.type === 'signature' ? 'text' : f.type}" 
+                       class="form-control dyn-input" 
+                       data-f="${f.label}" 
+                       placeholder="${f.type === 'signature' ? 'Firma digital (Nombre)' : ''}">
+            `;
+            cont.appendChild(div);
+        });
     }
 };
 
-// --- GESTIÓN DE USUARIOS (LISTAR Y ELIMINAR) ---
+// --- GESTIÓN DE USUARIOS (HISTORIAL Y ELIMINAR) ---
 window.loadUsers = async () => {
     const list = document.getElementById('users-list');
     if(!list) return;
-    list.innerHTML = "<li class='list-group-item text-center'>Cargando usuarios...</li>";
-
-    try {
-        const snap = await getDocs(collection(db, "users"));
-        list.innerHTML = "";
-        
-        if(snap.empty) {
-            list.innerHTML = "<li class='list-group-item text-muted italic'>No hay usuarios creados</li>";
-        }
-
-        snap.forEach(d => {
-            const u = d.data();
-            const li = document.createElement('li');
-            li.className = "list-group-item d-flex justify-content-between align-items-center shadow-sm mb-1 rounded";
-            li.innerHTML = `
-                <div>
-                    <strong class="text-primary">${u.username}</strong> 
-                    <span class="badge bg-light text-dark ms-2 border">${u.userGroup || 'Sin Grupo'}</span>
-                    <small class="text-muted d-block">${u.group === 'admin' ? 'Administrador' : 'Usuario Estándar'}</small>
-                </div>
-                <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteUser('${d.id}')">
-                    <i class="bi bi-trash"></i> Eliminar
-                </button>
-            `;
-            list.appendChild(li);
-        });
-    } catch (e) {
-        list.innerHTML = "<li class='list-group-item text-danger'>Error al cargar usuarios</li>";
-    }
+    const snap = await getDocs(collection(db, "users"));
+    list.innerHTML = "";
+    snap.forEach(d => {
+        const u = d.data();
+        list.innerHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><strong>${u.username}</strong> (${u.userGroup})</span>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${d.id}')">Eliminar</button>
+            </li>`;
+    });
 };
 
 window.deleteUser = async (id) => {
-    if(confirm("¿Estás seguro de eliminar este usuario? Perderá el acceso de inmediato.")) {
+    if(confirm("¿Eliminar usuario?")) {
         await deleteDoc(doc(db, "users", id));
-        loadUsers(); // Recargar lista
+        loadUsers();
     }
 };
 
-// --- OTRAS FUNCIONES ADMIN ---
+// --- PANEL ADMIN: GRUPOS Y FORMULARIOS ---
 window.saveGroup = async () => {
     const name = document.getElementById('group-name-input').value.trim();
     if(!name) return;
@@ -121,32 +88,85 @@ async function loadGroups() {
     const snap = await getDocs(collection(db, "groups"));
     const list = document.getElementById('groups-list');
     const dropdowns = document.querySelectorAll('.group-dropdown-source');
+    if(!list) return;
     list.innerHTML = "";
     let opts = '<option value="">-- Seleccionar Grupo --</option>';
     snap.forEach(d => {
         const g = d.data().name;
-        list.innerHTML += `<span class="badge bg-secondary p-2 me-1 mb-1">${g} <i class="bi bi-x pointer ms-1" onclick="deleteGroup('${g}')"></i></span>`;
+        list.innerHTML += `<span class="badge bg-secondary p-2 me-1">${g}</span>`;
         opts += `<option value="${g}">${g}</option>`;
     });
     dropdowns.forEach(dd => dd.innerHTML = opts);
 }
 
-window.deleteGroup = async (name) => {
-    if(confirm(`¿Eliminar grupo ${name}?`)) { await deleteDoc(doc(db, "groups", name)); loadGroups(); }
+window.addBuilderField = () => {
+    const cont = document.getElementById('admin-fields-builder');
+    const div = document.createElement('div');
+    div.className = "d-flex gap-1 mb-2";
+    div.innerHTML = `
+        <input type="text" class="form-control form-control-sm f-label" placeholder="Nombre campo">
+        <select class="form-select form-select-sm f-type">
+            <option value="text">Texto</option>
+            <option value="number">Número</option>
+            <option value="date">Fecha</option>
+            <option value="signature">Firma</option>
+        </select>
+        <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">X</button>`;
+    cont.appendChild(div);
 };
 
-// --- LOGIN ---
+window.saveTemplate = async () => {
+    const name = document.getElementById('type-name').value.trim();
+    const group = document.getElementById('type-group-select').value;
+    const rows = document.querySelectorAll('#admin-fields-builder > div');
+    let fields = [];
+    rows.forEach(r => {
+        fields.push({ label: r.querySelector('.f-label').value, type: r.querySelector('.f-type').value });
+    });
+    if(!name || fields.length === 0) return alert("Completa el formulario");
+    await setDoc(doc(db, "templates", name), { name, group, fields });
+    alert("Publicado!");
+    loadTemplates();
+};
+
+async function loadTemplates() {
+    const snap = await getDocs(collection(db, "templates"));
+    const sel = document.getElementById('reg-template-select');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+    snap.forEach(d => {
+        const t = d.data();
+        if(sessionUser.group === 'admin' || sessionUser.userGroup === t.group)
+            sel.innerHTML += `<option value="${t.name}">${t.name}</option>`;
+    });
+}
+
+// --- LOGIN Y SESIÓN ---
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const u = document.getElementById('login-user').value.trim();
     const p = document.getElementById('login-pass').value.trim();
+    
     if(u === "Admin" && p === "1130") {
         loginSuccess({ username: "Admin", group: "admin", userGroup: "Soporte" });
         return;
     }
+
     const q = query(collection(db, "users"), where("username", "==", u), where("password", "==", p));
     const snap = await getDocs(q);
-    if(!snap.empty) loginSuccess(snap.docs[0].data()); else alert("Credenciales incorrectas");
+    if(!snap.empty) loginSuccess(snap.docs[0].data());
+    else alert("Error de acceso");
+});
+
+document.getElementById('create-user-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('new-username').value;
+    const password = document.getElementById('new-password').value;
+    const userGroup = document.getElementById('new-user-group-select').value;
+    const group = document.getElementById('new-role').value;
+    await addDoc(collection(db, "users"), { username, password, userGroup, group });
+    alert("Usuario Creado");
+    loadUsers();
 });
 
 function loginSuccess(data) {
@@ -156,11 +176,12 @@ function loginSuccess(data) {
 
 window.logout = () => { localStorage.removeItem('user_session'); location.reload(); };
 
-// --- INICIO DE APP ---
+// --- INICIO ---
 if(sessionUser) {
     document.getElementById('login-screen').classList.add('d-none');
     document.getElementById('app-screen').classList.remove('d-none');
-    document.getElementById('user-display').innerText = `Usuario: ${sessionUser.username}`;
+    document.getElementById('user-display').innerText = sessionUser.username;
     if(sessionUser.group === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('d-none'));
     loadGroups();
+    loadTemplates();
 }
