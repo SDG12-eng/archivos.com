@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, setDoc, deleteDoc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- CONFIGURACIÓN ---
 const firebaseConfig = {
     apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
     authDomain: "archivos-351d3.firebaseapp.com",
@@ -14,35 +13,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 let sessionUser = JSON.parse(localStorage.getItem('user_session')) || null;
+// Variable para guardar el Modal de Bootstrap
+let detailsModal; 
 
-// --- 1. NAVEGACIÓN Y CARGA INICIAL ---
 window.showSection = (id) => {
-    // Ocultar todo
     document.querySelectorAll('.content-section').forEach(s => s.classList.add('d-none'));
-    // Mostrar objetivo
     const target = document.getElementById(id);
     if(target) target.classList.remove('d-none');
 
-    // Cargas específicas según la sección
     if (id === 'panel-admin') { loadGroups(); loadTemplates(); loadUsers(); }
-    if (id === 'nuevo-registro') { loadTemplates(); } // CORRECCIÓN: Cargar formularios al entrar aquí
-    if (id === 'historial-maestro') { loadHistory(); }
+    if (id === 'nuevo-registro') { loadTemplates(); }
+    if (id === 'historial-maestro') { loadHistory(true); } // true = admin mode
+    if (id === 'mis-registros') { loadHistory(false); } // false = user mode
     if (id === 'dashboard') { loadStats(); }
 };
 
-// --- 2. SISTEMA DE REGISTROS DINÁMICOS ---
+// --- GESTIÓN DE FORMULARIOS DINÁMICOS Y CANVAS ---
 
-// A. Cargar lista de Formularios (Templates)
 async function loadTemplates() {
     const snap = await getDocs(collection(db, "templates"));
-    
-    // 1. Rellenar Dropdown de Registro (Usuario)
     const regSelect = document.getElementById('reg-template-select');
+    const adminList = document.getElementById('templates-list');
+
     if (regSelect) {
         let options = '<option value="">-- Seleccionar Formulario --</option>';
         snap.forEach(d => {
             const t = d.data();
-            // Mostrar si es admin o si el usuario pertenece al grupo
             if (sessionUser.group === 'admin' || sessionUser.userGroup === t.group || !t.group) {
                 options += `<option value="${d.id}">${t.name}</option>`;
             }
@@ -50,8 +46,6 @@ async function loadTemplates() {
         regSelect.innerHTML = options;
     }
 
-    // 2. Rellenar Lista del Panel Admin
-    const adminList = document.getElementById('templates-list');
     if (adminList) {
         adminList.innerHTML = "";
         snap.forEach(d => {
@@ -65,118 +59,252 @@ async function loadTemplates() {
     }
 }
 
-// B. Dibujar campos al seleccionar
+// DIBUJAR CAMPOS (Incluye Lógica del Canvas)
 window.renderDynamicFields = async () => {
     const id = document.getElementById('reg-template-select').value;
     const container = document.getElementById('dynamic-fields-container');
     container.innerHTML = "";
-
     if (!id) return;
 
-    try {
-        const docRef = await getDoc(doc(db, "templates", id));
-        if (docRef.exists()) {
-            const fields = docRef.data().fields || [];
-            fields.forEach(f => {
-                const div = document.createElement('div');
+    const docRef = await getDoc(doc(db, "templates", id));
+    if (docRef.exists()) {
+        const fields = docRef.data().fields || [];
+        fields.forEach((f, index) => {
+            const div = document.createElement('div');
+            div.className = "col-md-12"; // Ocupar todo el ancho para firmas
+            
+            if (f.type === 'signature') {
+                // LOGICA ESPECIAL PARA FIRMA
+                div.innerHTML = `
+                    <label class="form-label fw-bold">${f.label}</label>
+                    <canvas id="sig-canvas-${index}" class="signature-pad"></canvas>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearCanvas(${index})">Borrar Firma</button>
+                    <input type="hidden" class="dyn-input" data-type="signature" data-label="${f.label}" id="sig-input-${index}">
+                `;
+                container.appendChild(div);
+                initCanvas(index); // Iniciar dibujo
+            } else {
+                // CAMPOS NORMALES
                 div.className = "col-md-6";
                 div.innerHTML = `
                     <label class="form-label small fw-bold">${f.label}</label>
-                    <input type="${f.type === 'signature' ? 'text' : f.type}" 
-                           class="form-control dyn-input" 
-                           data-label="${f.label}" 
-                           placeholder="${f.type === 'signature' ? 'Escriba nombre para firmar' : ''}" required>
+                    <input type="${f.type}" class="form-control dyn-input" data-type="text" data-label="${f.label}" required>
                 `;
                 container.appendChild(div);
-            });
-        }
-    } catch (e) {
-        console.error("Error cargando campos", e);
+            }
+        });
     }
 };
 
-// C. GUARDAR EL REGISTRO (CORREGIDO)
+// INICIALIZAR EL DIBUJO EN CANVAS
+function initCanvas(index) {
+    const canvas = document.getElementById(`sig-canvas-${index}`);
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    // Ajustar resolución del canvas
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000";
+
+    const startDraw = (e) => { isDrawing = true; ctx.beginPath(); ctx.moveTo(getX(e), getY(e)); };
+    const draw = (e) => { if(!isDrawing) return; ctx.lineTo(getX(e), getY(e)); ctx.stroke(); };
+    const stopDraw = () => { isDrawing = false; };
+
+    const getX = (e) => (e.touches ? e.touches[0].clientX : e.clientX) - canvas.getBoundingClientRect().left;
+    const getY = (e) => (e.touches ? e.touches[0].clientY : e.clientY) - canvas.getBoundingClientRect().top;
+
+    // Mouse
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseout', stopDraw);
+    // Touch (Celulares)
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+    canvas.addEventListener('touchend', stopDraw);
+}
+
+window.clearCanvas = (index) => {
+    const canvas = document.getElementById(`sig-canvas-${index}`);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+// GUARDAR REGISTRO
 const formUpload = document.getElementById('dynamic-upload-form');
 if (formUpload) {
     formUpload.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const templateId = document.getElementById('reg-template-select').value;
         const templateName = document.getElementById('reg-template-select').options[document.getElementById('reg-template-select').selectedIndex].text;
         
         if (!templateId) return alert("Selecciona un formulario");
 
-        // 1. Recolectar datos de inputs dinámicos
-        const inputs = document.querySelectorAll('.dyn-input');
+        // Recolectar datos
+        const inputs = document.querySelectorAll('.dyn-input'); // Inputs normales y ocultos de firma
         let detailsObj = {};
-        let detailsString = "";
-
+        
+        // Procesar campos
         inputs.forEach(input => {
             const label = input.getAttribute('data-label');
-            const value = input.value;
-            detailsObj[label] = value;
-            detailsString += `${label}: ${value} | `;
+            const type = input.getAttribute('data-type');
+            
+            if (type === 'signature') {
+                // Buscar el canvas asociado y convertir a imagen Base64
+                const canvasId = input.id.replace('sig-input-', 'sig-canvas-');
+                const canvas = document.getElementById(canvasId);
+                // Si el canvas está vacío (blanco), guardar string vacío o aviso
+                // (Para simplificar, guardamos lo que haya)
+                detailsObj[label] = { type: 'image', value: canvas.toDataURL() };
+            } else {
+                detailsObj[label] = { type: 'text', value: input.value };
+            }
         });
 
-        // 2. Guardar en Firebase
         try {
             await addDoc(collection(db, "records"), {
-                templateId: templateId,
-                templateName: templateName,
+                templateId, templateName,
                 user: sessionUser.username,
                 group: sessionUser.userGroup || 'General',
                 date: new Date().toLocaleString(),
                 timestamp: Date.now(),
-                details: detailsObj,
-                detailsPreview: detailsString // Para mostrar fácil en tabla
+                details: detailsObj
             });
             
             alert("✅ Registro guardado exitosamente");
             formUpload.reset();
-            document.getElementById('dynamic-fields-container').innerHTML = ""; // Limpiar campos
-            loadStats(); // Actualizar dashboard
+            document.getElementById('dynamic-fields-container').innerHTML = "";
+            loadStats();
         } catch (error) {
             console.error(error);
-            alert("Error al guardar: " + error.message);
+            alert("Error: " + error.message);
         }
     });
 }
 
-// --- 3. FUNCIONES DEL PANEL ADMIN ---
+// --- HISTORIAL Y VISUALIZACIÓN DE DETALLES ---
+
+async function loadHistory(isAdmin) {
+    const tableId = isAdmin ? 'historial-table-body' : 'user-history-body';
+    const tbody = document.getElementById(tableId);
+    if (!tbody) return;
+    tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Cargando...</td></tr>";
+    
+    // Consulta diferente según rol
+    let q;
+    if (isAdmin) {
+        q = query(collection(db, "records"), orderBy("timestamp", "desc"));
+    } else {
+        // Para usuario normal, filtrar por su username
+        // NOTA: Firebase puede pedirte crear un índice en la consola para esta consulta compuesta.
+        q = query(collection(db, "records"), where("user", "==", sessionUser.username), orderBy("timestamp", "desc"));
+    }
+
+    try {
+        const snap = await getDocs(q);
+        tbody.innerHTML = "";
+        
+        if(snap.empty) { 
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>No se encontraron registros.</td></tr>"; 
+            return; 
+        }
+
+        snap.forEach(d => {
+            const r = d.data();
+            // Convertir objeto de detalles a string JSON para pasar al botón
+            const safeData = encodeURIComponent(JSON.stringify(r.details));
+            
+            let rowHTML = `<tr>
+                <td>${r.date}</td>`;
+            
+            if(isAdmin) {
+                rowHTML += `<td>${r.user}</td>`;
+            }
+
+            rowHTML += `
+                <td class="fw-bold text-primary">${r.templateName}</td>`;
+            
+            if(isAdmin) {
+                rowHTML += `
+                <td><button class="btn btn-sm btn-info text-white" onclick="viewDetails('${safeData}')">👁️ Ver Datos</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteRecord('${d.id}')">🗑️</button></td>`;
+            } else {
+                // Vista usuario normal
+                rowHTML += `<td><button class="btn btn-sm btn-info text-white" onclick="viewDetails('${safeData}')">👁️ Ver Detalles</button></td>`;
+            }
+            
+            rowHTML += `</tr>`;
+            tbody.innerHTML += rowHTML;
+        });
+    } catch (error) {
+        console.error("Error historial:", error);
+        tbody.innerHTML = `<tr><td colspan='5' class='text-danger'>Error: Probablemente falta índice en Firebase.<br>Ver consola (F12).</td></tr>`;
+    }
+}
+
+// FUNCIÓN PARA ABRIR MODAL CON DETALLES
+window.viewDetails = (encodedData) => {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+    const modalBody = document.getElementById('modal-details-body');
+    
+    let htmlContent = '<ul class="list-group list-group-flush">';
+    
+    for (const [key, item] of Object.entries(data)) {
+        htmlContent += `<li class="list-group-item">
+            <h6 class="fw-bold mb-1">${key}</h6>`;
+        
+        if (item.type === 'image') {
+            // Mostrar imagen de firma
+            htmlContent += `<img src="${item.value}" class="img-fluid border rounded" style="max-height: 100px;">`;
+        } else {
+            // Mostrar texto normal
+            htmlContent += `<p class="mb-0 text-muted">${item.value}</p>`;
+        }
+        htmlContent += `</li>`;
+    }
+    htmlContent += '</ul>';
+    
+    modalBody.innerHTML = htmlContent;
+    
+    // Abrir Modal Bootstrap
+    if (!detailsModal) {
+        detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    }
+    detailsModal.show();
+};
+
+window.deleteRecord = async (id) => {
+    if(confirm("¿Borrar permanentemente?")) {
+        await deleteDoc(doc(db, "records", id));
+        // Recargar la vista actual (Admin)
+        loadHistory(true);
+    }
+}
+
+// --- RESTO DEL CÓDIGO (PANEL ADMIN, LOGIN, ETC) ---
 
 window.saveTemplate = async () => {
     const name = document.getElementById('type-name').value.trim();
     const group = document.getElementById('type-group-select').value;
     const rows = document.querySelectorAll('#admin-fields-builder > div');
     
-    if (!name) return alert("Ponle nombre al formulario");
-
+    if (!name) return alert("Falta nombre del formulario");
     let fields = [];
     rows.forEach(r => {
         const label = r.querySelector('.f-label').value;
         const type = r.querySelector('.f-type').value;
         if (label) fields.push({ label, type });
     });
-
-    // Usamos el nombre como ID para simplificar, o generamos uno auto
-    await setDoc(doc(db, "templates", name), { 
-        name, 
-        group, 
-        fields, 
-        createdAt: Date.now() 
-    });
-    
+    await setDoc(doc(db, "templates", name), { name, group, fields });
     alert("Formulario Publicado");
-    document.getElementById('type-name').value = "";
-    document.getElementById('admin-fields-builder').innerHTML = "";
     loadTemplates();
 };
 
 window.deleteTemplate = async (id) => {
-    if (confirm("¿Borrar este formulario?")) {
-        await deleteDoc(doc(db, "templates", id));
-        loadTemplates();
-    }
+    if (confirm("¿Borrar formulario?")) await deleteDoc(doc(db, "templates", id)); loadTemplates();
 };
 
 window.addBuilderField = () => {
@@ -184,25 +312,21 @@ window.addBuilderField = () => {
     const d = document.createElement('div');
     d.className = "d-flex gap-2 mb-2 align-items-center bg-white p-2 border rounded";
     d.innerHTML = `
-        <input type="text" class="form-control form-control-sm f-label" placeholder="Nombre del Campo (ej: Cantidad)">
-        <select class="form-select form-select-sm f-type" style="width: 100px;">
+        <input type="text" class="form-control form-control-sm f-label" placeholder="Etiqueta">
+        <select class="form-select form-select-sm f-type">
             <option value="text">Texto</option>
-            <option value="number">Núm</option>
+            <option value="number">Número</option>
             <option value="date">Fecha</option>
-            <option value="signature">Firma</option>
+            <option value="signature">Firma (Canvas)</option>
         </select>
-        <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">X</button>
-    `;
+        <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">X</button>`;
     c.appendChild(d);
 };
-
-// --- 4. GESTIÓN DE USUARIOS Y GRUPOS ---
 
 window.saveGroup = async () => {
     const n = document.getElementById('group-name-input').value.trim();
     if (!n) return;
     await setDoc(doc(db, "groups", n), { name: n });
-    document.getElementById('group-name-input').value = "";
     loadGroups();
 };
 
@@ -230,71 +354,27 @@ window.loadUsers = async () => {
 };
 
 window.deleteUser = async (id) => {
-    if (confirm("¿Eliminar usuario?")) {
-        await deleteDoc(doc(db, "users", id));
-        loadUsers();
-    }
+    if (confirm("¿Eliminar usuario?")) { await deleteDoc(doc(db, "users", id)); loadUsers(); }
 };
-
-// --- 5. HISTORIAL Y ESTADÍSTICAS ---
-
-async function loadHistory() {
-    const t = document.getElementById('historial-table-body');
-    if (!t) return;
-    t.innerHTML = "<tr><td colspan='5'>Cargando...</td></tr>";
-    
-    const q = query(collection(db, "records"), orderBy("timestamp", "desc"));
-    const s = await getDocs(q);
-    
-    t.innerHTML = "";
-    if(s.empty) { t.innerHTML = "<tr><td colspan='5'>Sin registros</td></tr>"; return; }
-
-    s.forEach(d => {
-        const r = d.data();
-        t.innerHTML += `
-            <tr>
-                <td>${r.date}</td>
-                <td>${r.user} <span class="badge bg-secondary">${r.group}</span></td>
-                <td class="fw-bold text-primary">${r.templateName}</td>
-                <td><small>${r.detailsPreview || 'Ver detalles'}</small></td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteRecord('${d.id}')">Borrar</button></td>
-            </tr>`;
-    });
-}
-
-window.deleteRecord = async (id) => {
-    if(confirm("¿Borrar este registro del historial?")) {
-        await deleteDoc(doc(db, "records", id));
-        loadHistory();
-    }
-}
 
 async function loadStats() {
     const s1 = await getDocs(collection(db, "records"));
     const s2 = await getDocs(collection(db, "templates"));
     const s3 = await getDocs(collection(db, "users"));
-    
     document.getElementById('dash-total').innerText = s1.size;
     document.getElementById('dash-forms').innerText = s2.size;
     document.getElementById('dash-users').innerText = s3.size;
 }
 
-// --- 6. LOGIN ---
-
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const u = document.getElementById('login-user').value.trim();
     const p = document.getElementById('login-pass').value.trim();
-
-    if (u === "Admin" && p === "1130") {
-        loginSuccess({ username: "Admin", group: "admin", userGroup: "Soporte" });
-        return;
-    }
-
+    if (u === "Admin" && p === "1130") { loginSuccess({ username: "Admin", group: "admin", userGroup: "Soporte" }); return; }
     const q = query(collection(db, "users"), where("username", "==", u), where("password", "==", p));
     const s = await getDocs(q);
     if (!s.empty) loginSuccess(s.docs[0].data());
-    else alert("Credenciales incorrectas");
+    else alert("Error login");
 });
 
 document.getElementById('create-user-form')?.addEventListener('submit', async (e) => {
@@ -303,29 +383,17 @@ document.getElementById('create-user-form')?.addEventListener('submit', async (e
     const password = document.getElementById('new-password').value;
     const userGroup = document.getElementById('new-user-group-select').value;
     const group = document.getElementById('new-role').value;
-    
     await addDoc(collection(db, "users"), { username, password, userGroup, group });
-    alert("Usuario Creado");
-    document.getElementById('create-user-form').reset();
-    loadUsers();
+    alert("Usuario Creado"); loadUsers();
 });
 
-function loginSuccess(u) {
-    localStorage.setItem('user_session', JSON.stringify(u));
-    location.reload();
-}
-
+function loginSuccess(u) { localStorage.setItem('user_session', JSON.stringify(u)); location.reload(); }
 window.logout = () => { localStorage.removeItem('user_session'); location.reload(); };
 
-// --- INICIALIZACIÓN ---
 if (sessionUser) {
     document.getElementById('login-screen').classList.add('d-none');
     document.getElementById('app-screen').classList.remove('d-none');
     document.getElementById('user-display').innerText = sessionUser.username;
-    
-    if (sessionUser.group === 'admin') {
-        document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('d-none'));
-    }
-    
-    loadStats(); // Cargar dashboard inicial
+    if (sessionUser.group === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('d-none'));
+    loadStats();
 }
