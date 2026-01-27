@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArchiveMaster Pro</title>
+    <title>ArchiveMaster Pro - Versión Final</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
@@ -28,12 +28,11 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
                 <div class="collapse navbar-collapse" id="navMain">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item"><a class="nav-link pointer" onclick="showSection('dashboard')">Dashboard</a></li>
                         <li class="nav-item"><a class="nav-link pointer" onclick="showSection('nuevo-registro')">Registrar</a></li>
-                        <li class="nav-item"><a class="nav-link pointer" onclick="showSection('consultas')">Consultas</a></li>
+                        <li class="nav-item"><a class="nav-link pointer" onclick="showSection('consultas')">Mis Consultas</a></li>
                         <li class="nav-item admin-only d-none"><a class="nav-link text-warning pointer fw-bold" onclick="showSection('panel-admin')">Panel Admin</a></li>
                         <li class="nav-item admin-only d-none"><a class="nav-link text-warning pointer" onclick="showSection('historial-maestro')">Historial Gral.</a></li>
                     </ul>
@@ -58,7 +57,7 @@
                 <div class="card shadow-sm mx-auto" style="max-width: 600px;">
                     <div class="card-header bg-primary text-white">Llenar Formulario</div>
                     <div class="card-body">
-                        <label class="fw-bold small">Tipo de Formulario</label>
+                        <label class="fw-bold small">Tipo de Formulario (Asignado a tu grupo)</label>
                         <select id="reg-template-select" class="form-select mb-3" onchange="renderDynamicFields()"></select>
                         <form id="dynamic-upload-form">
                             <div id="dynamic-fields-container" class="row g-2"></div>
@@ -75,7 +74,10 @@
             <div id="consultas" class="content-section d-none">
                 <h4>Mis Registros</h4>
                 <div class="table-responsive mt-3">
-                    <table class="table table-hover border"><thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Detalles</th><th>Archivo</th></tr></thead><tbody id="records-table-body"></tbody></table>
+                    <table class="table table-hover border">
+                        <thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Acciones</th></tr></thead>
+                        <tbody id="records-table-body"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -83,21 +85,26 @@
                 <div class="row g-3">
                     <div class="col-md-7">
                         <div class="card p-3 shadow-sm">
-                            <h5 class="fw-bold">Gestión de Tipos y Campos</h5>
-                            <input type="text" id="type-name" class="form-control mb-2" placeholder="Nombre (Ej: Inventario)">
-                            <textarea id="type-fields" class="form-control mb-2" placeholder="Campos (Ej: Producto, Cantidad, Estado)"></textarea>
-                            <button class="btn btn-dark w-100" onclick="saveTemplate()">Guardar Formulario</button>
+                            <h5 class="fw-bold">Gestión de Formularios</h5>
+                            <input type="text" id="type-name" class="form-control mb-2" placeholder="Nombre del Formulario">
+                            <input type="text" id="type-group-target" class="form-control mb-2" placeholder="Grupo con acceso (Ej: Archivos, SST)">
+                            <textarea id="type-fields" class="form-control mb-2" placeholder="Campos (Ej: Nombre, Cédula, Fecha)"></textarea>
+                            <button class="btn btn-dark w-100" onclick="saveTemplate()">Crear Formulario</button>
                             <hr><div id="templates-list" class="list-group small"></div>
                         </div>
                     </div>
                     <div class="col-md-5">
                         <div class="card p-3 shadow-sm">
-                            <h5>Gestión de Usuarios</h5>
+                            <h5>Gestión de Usuarios y Grupos</h5>
                             <form id="create-user-form">
-                                <input type="text" id="new-username" class="form-control mb-2" placeholder="Usuario" required>
+                                <input type="text" id="new-username" class="form-control mb-2" placeholder="Nombre de Usuario" required>
                                 <input type="password" id="new-password" class="form-control mb-2" placeholder="Contraseña" required>
-                                <select id="new-group" class="form-select mb-2"><option value="admin">Admin</option><option value="general">General</option></select>
-                                <button class="btn btn-primary w-100">Crear</button>
+                                <input type="text" id="new-user-group" class="form-control mb-2" placeholder="Asignar Grupo (Ej: Archivos)" required>
+                                <select id="new-role" class="form-select mb-2">
+                                    <option value="user">Rol: Usuario Estándar</option>
+                                    <option value="admin">Rol: Administrador</option>
+                                </select>
+                                <button class="btn btn-primary w-100">Registrar Usuario</button>
                             </form>
                             <hr><div id="users-list" class="list-group small"></div>
                         </div>
@@ -108,16 +115,35 @@
             <div id="historial-maestro" class="content-section d-none">
                 <div class="card p-3 shadow-sm">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold">Historial Maestro</h5>
-                        <button class="btn btn-success btn-sm" onclick="downloadData()"><i class="bi bi-download"></i> Descargar</button>
+                        <h5 class="fw-bold">Historial General</h5>
+                        <button class="btn btn-success btn-sm" onclick="downloadData()"><i class="bi bi-download"></i> Descargar CSV</button>
                     </div>
                     <div class="row mb-3 g-2">
                         <div class="col-6"><select id="filter-type" class="form-select" onchange="loadRecords(true)"><option value="All">Todos los tipos</option></select></div>
-                        <div class="col-6"><input type="text" id="filter-search" class="form-control" placeholder="Buscar..." onkeyup="loadRecords(true)"></div>
+                        <div class="col-6"><input type="text" id="filter-search" class="form-control" placeholder="Buscar por contenido..." onkeyup="loadRecords(true)"></div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-sm table-bordered"><thead class="table-dark"><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Detalles</th><th>Doc</th></tr></thead><tbody id="historial-table-body"></tbody></table>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-dark"><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Acciones</th></tr></thead>
+                            <tbody id="historial-table-body"></tbody>
+                        </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Detalles del Registro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul id="details-list" class="list-group list-group-flush"></ul>
+                    <hr>
+                    <div id="file-link-container" class="text-center"></div>
                 </div>
             </div>
         </div>
