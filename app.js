@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, setDoc, deleteDoc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 1. CONFIGURACIÓN
 const firebaseConfig = {
     apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
     authDomain: "archivos-351d3.firebaseapp.com",
@@ -16,67 +15,100 @@ const db = getFirestore(app);
 const CLOUD_NAME = "df79cjkl";
 const UPLOAD_PRESET = "sistema_archivos"; 
 
-// 2. FUNCIONES GLOBALES (DEFINIDAS INMEDIATAMENTE)
+let sessionUser = JSON.parse(localStorage.getItem('user_session')) || null;
+
+// --- NAVEGACIÓN Y CONTROL GLOBAL ---
 window.showSection = (id) => {
-    console.log("Cambiando a sección:", id);
-    const sections = document.querySelectorAll('.content-section');
-    sections.forEach(s => s.classList.add('d-none'));
-    
+    document.querySelectorAll('.content-section').forEach(s => s.classList.add('d-none'));
     const target = document.getElementById(id);
     if(target) target.classList.remove('d-none');
 
-    // Cargas específicas
-    if(id === 'dashboard') loadStats();
     if(id === 'panel-admin') { loadGroups(); loadTemplates(); loadUsers(); }
-    if(id === 'historial-maestro') loadRecords(true);
+    if(id === 'dashboard') loadStats();
     if(id === 'consultas') loadRecords(false);
+    if(id === 'historial-maestro') loadRecords(true);
 };
 
-window.logout = () => {
-    localStorage.removeItem('user_session');
-    location.reload();
+// --- GESTIÓN DE CAMPOS DINÁMICOS (MOSTRAR AL SELECCIONAR) ---
+window.renderDynamicFields = async () => {
+    const type = document.getElementById('reg-template-select').value;
+    const cont = document.getElementById('dynamic-fields-container');
+    cont.innerHTML = "<p class='text-muted small'>Cargando campos...</p>"; 
+    
+    if(!type) {
+        cont.innerHTML = "";
+        return;
+    }
+
+    try {
+        const d = await getDoc(doc(db, "templates", type));
+        if (d.exists()) {
+            cont.innerHTML = ""; // Limpiar cargando
+            const fields = d.data().fields;
+            fields.forEach(f => {
+                const col = document.createElement('div');
+                col.className = "col-md-6 mb-3";
+                
+                let inputHtml = "";
+                if(f.type === 'signature') {
+                    inputHtml = `<input type="text" class="form-control dyn-input border-primary" data-f="${f.label}" placeholder="Escriba su nombre completo">`;
+                } else {
+                    inputHtml = `<input type="${f.type}" class="form-control dyn-input" data-f="${f.label}">`;
+                }
+
+                col.innerHTML = `<label class="form-label small fw-bold">${f.label}</label>${inputHtml}`;
+                cont.appendChild(col);
+            });
+        }
+    } catch (error) {
+        console.error("Error al cargar campos:", error);
+        cont.innerHTML = "<span class='text-danger'>Error al cargar el formulario.</span>";
+    }
 };
 
-// --- LOGIN (CORREGIDO PARA ADMIN 1130) ---
-const loginForm = document.getElementById('login-form');
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const u = document.getElementById('login-user').value.trim();
-        const p = document.getElementById('login-pass').value.trim();
+// --- GESTIÓN DE USUARIOS (LISTAR Y ELIMINAR) ---
+window.loadUsers = async () => {
+    const list = document.getElementById('users-list');
+    if(!list) return;
+    list.innerHTML = "<li class='list-group-item text-center'>Cargando usuarios...</li>";
 
-        console.log("Intento de login:", u);
-
-        // Validación inmediata de Admin
-        if(u === "Admin" && p === "1130") {
-            console.log("Acceso Admin detectado");
-            loginSuccess({ username: "Admin", group: "admin", userGroup: "Soporte Técnico" });
-            return;
+    try {
+        const snap = await getDocs(collection(db, "users"));
+        list.innerHTML = "";
+        
+        if(snap.empty) {
+            list.innerHTML = "<li class='list-group-item text-muted italic'>No hay usuarios creados</li>";
         }
 
-        // Validación en Firebase para otros usuarios
-        try {
-            const q = query(collection(db, "users"), where("username", "==", u), where("password", "==", p));
-            const snap = await getDocs(q);
-            if(!snap.empty) {
-                loginSuccess(snap.docs[0].data());
-            } else {
-                alert("Usuario o contraseña incorrectos");
-            }
-        } catch (error) {
-            console.error("Error en login:", error);
-            alert("Error de conexión con la base de datos");
-        }
-    });
-}
+        snap.forEach(d => {
+            const u = d.data();
+            const li = document.createElement('li');
+            li.className = "list-group-item d-flex justify-content-between align-items-center shadow-sm mb-1 rounded";
+            li.innerHTML = `
+                <div>
+                    <strong class="text-primary">${u.username}</strong> 
+                    <span class="badge bg-light text-dark ms-2 border">${u.userGroup || 'Sin Grupo'}</span>
+                    <small class="text-muted d-block">${u.group === 'admin' ? 'Administrador' : 'Usuario Estándar'}</small>
+                </div>
+                <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteUser('${d.id}')">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            `;
+            list.appendChild(li);
+        });
+    } catch (e) {
+        list.innerHTML = "<li class='list-group-item text-danger'>Error al cargar usuarios</li>";
+    }
+};
 
-function loginSuccess(data) {
-    localStorage.setItem('user_session', JSON.stringify(data));
-    location.reload();
-}
+window.deleteUser = async (id) => {
+    if(confirm("¿Estás seguro de eliminar este usuario? Perderá el acceso de inmediato.")) {
+        await deleteDoc(doc(db, "users", id));
+        loadUsers(); // Recargar lista
+    }
+};
 
-// --- RESTO DE FUNCIONES (VINCULADAS A WINDOW) ---
-
+// --- OTRAS FUNCIONES ADMIN ---
 window.saveGroup = async () => {
     const name = document.getElementById('group-name-input').value.trim();
     if(!name) return;
@@ -85,105 +117,50 @@ window.saveGroup = async () => {
     loadGroups();
 };
 
-window.deleteGroup = async (name) => {
-    if(confirm(`¿Eliminar grupo ${name}?`)) {
-        await deleteDoc(doc(db, "groups", name));
-        loadGroups();
-    }
-};
-
-window.addBuilderField = () => {
-    const cont = document.getElementById('admin-fields-builder');
-    const div = document.createElement('div');
-    div.className = "d-flex gap-1 mb-2 builder-row";
-    div.innerHTML = `
-        <input type="text" class="form-control form-control-sm field-label" placeholder="Nombre">
-        <select class="form-select form-select-sm field-type">
-            <option value="text">Texto</option>
-            <option value="number">Número</option>
-            <option value="date">Fecha</option>
-            <option value="signature">Firma</option>
-        </select>
-        <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">X</button>
-    `;
-    cont.appendChild(div);
-};
-
-window.saveTemplate = async () => {
-    const name = document.getElementById('type-name').value.trim();
-    const group = document.getElementById('type-group-select').value;
-    const rows = document.querySelectorAll('.builder-row');
-    let fields = [];
-    rows.forEach(r => {
-        fields.push({ label: r.querySelector('.field-label').value, type: r.querySelector('.field-type').value });
-    });
-    if(!name || !group || fields.length === 0) return alert("Faltan datos del formulario");
-    await setDoc(doc(db, "templates", name), { name, group, fields });
-    alert("Formulario Guardado");
-    loadTemplates();
-};
-
-window.deleteTemplate = async (id) => {
-    if(confirm("¿Eliminar formulario?")) { await deleteDoc(doc(db, "templates", id)); loadTemplates(); }
-};
-
-window.deleteUser = async (id) => {
-    if(confirm("¿Eliminar usuario?")) { await deleteDoc(doc(db, "users", id)); loadUsers(); }
-};
-
-// --- CARGAS AUTOMÁTICAS ---
-
 async function loadGroups() {
     const snap = await getDocs(collection(db, "groups"));
     const list = document.getElementById('groups-list');
-    const dds = document.querySelectorAll('.group-dropdown-source');
-    if(!list) return;
+    const dropdowns = document.querySelectorAll('.group-dropdown-source');
     list.innerHTML = "";
     let opts = '<option value="">-- Seleccionar Grupo --</option>';
     snap.forEach(d => {
         const g = d.data().name;
-        list.innerHTML += `<span class="badge bg-secondary p-2">${g} <i class="bi bi-x pointer" onclick="deleteGroup('${g}')"></i></span>`;
+        list.innerHTML += `<span class="badge bg-secondary p-2 me-1 mb-1">${g} <i class="bi bi-x pointer ms-1" onclick="deleteGroup('${g}')"></i></span>`;
         opts += `<option value="${g}">${g}</option>`;
     });
-    dds.forEach(d => d.innerHTML = opts);
+    dropdowns.forEach(dd => dd.innerHTML = opts);
 }
 
-async function loadTemplates() {
-    const snap = await getDocs(collection(db, "templates"));
-    const sel = document.getElementById('reg-template-select');
-    const list = document.getElementById('templates-list');
-    if(!sel) return;
-    sel.innerHTML = '<option value="">-- Seleccionar Formulario --</option>';
-    list.innerHTML = "";
-    snap.forEach(d => {
-        const t = d.data();
-        if(sessionUser.group === 'admin' || sessionUser.userGroup === t.group) 
-            sel.innerHTML += `<option value="${t.name}">${t.name}</option>`;
-        list.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center">
-            <span>${t.name}</span>
-            <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.name}')">X</button>
-        </div>`;
-    });
+window.deleteGroup = async (name) => {
+    if(confirm(`¿Eliminar grupo ${name}?`)) { await deleteDoc(doc(db, "groups", name)); loadGroups(); }
+};
+
+// --- LOGIN ---
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const u = document.getElementById('login-user').value.trim();
+    const p = document.getElementById('login-pass').value.trim();
+    if(u === "Admin" && p === "1130") {
+        loginSuccess({ username: "Admin", group: "admin", userGroup: "Soporte" });
+        return;
+    }
+    const q = query(collection(db, "users"), where("username", "==", u), where("password", "==", p));
+    const snap = await getDocs(q);
+    if(!snap.empty) loginSuccess(snap.docs[0].data()); else alert("Credenciales incorrectas");
+});
+
+function loginSuccess(data) {
+    localStorage.setItem('user_session', JSON.stringify(data));
+    location.reload();
 }
 
-// Inicialización de sesión
-let sessionUser = JSON.parse(localStorage.getItem('user_session')) || null;
+window.logout = () => { localStorage.removeItem('user_session'); location.reload(); };
 
+// --- INICIO DE APP ---
 if(sessionUser) {
     document.getElementById('login-screen').classList.add('d-none');
     document.getElementById('app-screen').classList.remove('d-none');
-    document.getElementById('user-display').innerText = sessionUser.username;
-    
-    if(sessionUser.group === 'admin') {
-        document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('d-none'));
-    }
-    
-    // Cargar datos iniciales
+    document.getElementById('user-display').innerText = `Usuario: ${sessionUser.username}`;
+    if(sessionUser.group === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('d-none'));
     loadGroups();
-    loadTemplates();
-    loadStats();
 }
-
-// --- OTRAS FUNCIONES REQUERIDAS ---
-// (Aquí irían loadStats, loadRecords, renderDynamicFields, viewDetails, loadUsers)
-// Asegúrate de incluirlas como estaban antes pero dentro de este flujo.
