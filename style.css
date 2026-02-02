@@ -1,160 +1,34 @@
-/* --- CONFIGURACIÓN GLOBAL --- */
-:root {
-    --primary-color: #0d6efd;
-    --bg-color: #f0f2f5;
-    --card-radius: 12px;
-    --transition-speed: 0.3s;
-}
+/* GLOBAL */
+body { background-color: #f0f2f5; font-family: 'Segoe UI', system-ui, sans-serif; color: #343a40; }
+.pointer { cursor: pointer; }
+.scroll-area { max-height: 400px; overflow-y: auto; scrollbar-width: thin; }
+.scroll-area::-webkit-scrollbar { width: 6px; }
+.scroll-area::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
 
-body {
-    background-color: var(--bg-color);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    color: #343a40;
-    overflow-x: hidden; /* Evita scroll horizontal no deseado */
-}
+/* ANIMACIONES */
+.content-section { animation: fadeIn 0.4s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- UTILIDADES --- */
-.pointer {
-    cursor: pointer;
-}
+/* TARJETAS */
+.card { border-radius: 12px; transition: transform 0.2s; }
+#dashboard .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 
-.scroll-area {
-    max-height: 350px;
-    overflow-y: auto;
-    scrollbar-width: thin; /* Firefox */
-}
+/* FORMULARIOS */
+.dyn-input { border-left: 4px solid #0d6efd; background-color: #fff; }
+.builder-row { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 
-/* Scrollbar personalizado para Webkit (Chrome/Safari) */
-.scroll-area::-webkit-scrollbar {
-    width: 6px;
-}
-.scroll-area::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-    border-radius: 10px;
-}
-
-/* --- ANIMACIONES DE ENTRADA --- */
-.content-section {
-    animation: slideUpFade 0.4s ease-out forwards;
-}
-
-@keyframes slideUpFade {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* --- TARJETAS Y CONTENEDORES --- */
-.card {
-    border-radius: var(--card-radius);
-    border: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Efecto Hover solo en tarjetas interactivas (opcional) */
-.card:hover {
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
-
-/* Tarjetas de Dashboard (KPIs) con hover especial */
-#dashboard .card {
-    transition: transform 0.3s;
-}
-#dashboard .card:hover {
-    transform: translateY(-5px);
-}
-
-/* --- FORMULARIOS Y CAMPOS DINÁMICOS --- */
-.dyn-input {
-    border-left: 4px solid var(--primary-color);
-    background-color: #fff;
-}
-
-.dyn-input:focus {
-    background-color: #f8fbff;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-}
-
-/* Estilo para las filas del constructor de formularios (Admin) */
-.builder-row {
-    background-color: #fff;
-    padding: 8px;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    transition: background-color 0.2s;
-}
-
-.builder-row:hover {
-    background-color: #f8f9fa;
-}
-
-/* --- FIRMA DIGITAL (CANVAS) - CRÍTICO --- */
+/* FIRMA DIGITAL (Canvas) */
 canvas.signature-pad {
-    border: 2px dashed #adb5bd; /* Borde punteado para indicar zona de firma */
+    border: 2px dashed #adb5bd;
     border-radius: 8px;
-    background-color: #ffffff;
-    width: 100%;
-    height: 180px; /* Altura cómoda para firmar */
-    cursor: crosshair; /* Cursor de cruz */
-    touch-action: none; /* IMPORTANTE: Permite firmar en móviles sin mover la pantalla */
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
-}
-
-/* --- LISTAS (USUARIOS / FORMULARIOS) --- */
-.list-group-item {
-    border: none;
-    border-bottom: 1px solid #f0f0f0;
-    margin-bottom: 4px;
-    border-radius: 8px !important; /* Redondear cada item */
-    transition: background-color 0.2s;
-}
-
-.list-group-item:hover {
-    background-color: #f8f9fa;
-}
-
-/* Item de usuario con acciones */
-.user-item {
-    padding: 12px 15px;
-}
-
-/* --- MODAL DE DETALLES --- */
-.modal-content {
-    border-radius: 15px;
-    border: none;
-    overflow: hidden;
-}
-
-.modal-header {
-    border-bottom: 1px solid #eee;
-}
-
-/* Imágenes dentro de los detalles (Firmas/Adjuntos) */
-#modal-details-body img {
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     background-color: #fff;
-    padding: 5px;
+    width: 100%;
+    height: 160px;
+    cursor: crosshair;
+    touch-action: none;
 }
 
-/* --- RESPONSIVIDAD MOVIL --- */
-@media (max-width: 768px) {
-    .container {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    
-    /* En móviles, las tarjetas de KPI ocupan ancho completo y menos padding */
-    #dashboard .card h2 {
-        font-size: 1.8rem;
-    }
-    
-    .navbar-brand {
-        font-size: 1.2rem;
-    }
-}
+/* LISTAS Y PERMISOS */
+.list-group-item { border: none; border-bottom: 1px solid #f0f0f0; margin-bottom: 2px; }
+.perm-check { transform: scale(1.1); margin-right: 5px; }
+.modal-content { border-radius: 15px; border:none; }
