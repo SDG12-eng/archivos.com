@@ -47,11 +47,13 @@ function applyPermissions() {
 
     for (const [navId, permKey] of Object.entries(permMap)) {
         const el = document.getElementById(navId);
-        // Mostrar si es SuperAdmin O si el array de permisos incluye la clave
-        if(isSuper || (sessionUser.perms && sessionUser.perms.includes(permKey))) {
-            el.classList.remove('d-none');
-        } else {
-            el.classList.add('d-none');
+        if(el) {
+            // Mostrar si es SuperAdmin O si el array de permisos incluye la clave
+            if(isSuper || (sessionUser.perms && sessionUser.perms.includes(permKey))) {
+                el.classList.remove('d-none');
+            } else {
+                el.classList.add('d-none');
+            }
         }
     }
 }
@@ -69,7 +71,7 @@ window.loadTemplateFieldsForBI = async () => {
     const d = await getDoc(doc(db, "templates", templateId));
     if(d.exists()) {
         d.data().fields.forEach(f => {
-            // Solo permitir agrupar por campos de texto, select o checkbox
+            // Solo permitir agrupar por campos categóricos
             if(['text', 'select', 'checkbox', 'radio'].includes(f.type)) {
                 fieldSelect.innerHTML += `<option value="${f.label}">${f.label}</option>`;
             }
@@ -89,7 +91,7 @@ window.runCustomAnalysis = async () => {
     // Construir Query
     let q = query(collection(db, "records"), where("templateId", "==", templateId));
     
-    // Filtro de Grupo (Seguridad)
+    // Filtro de Grupo (Seguridad: Si no es Admin, solo ve su grupo)
     if(sessionUser.username !== "Admin") {
         q = query(q, where("group", "==", sessionUser.userGroup));
     }
@@ -101,8 +103,8 @@ window.runCustomAnalysis = async () => {
     snap.forEach(d => {
         const r = d.data();
         
-        // Filtro de Fecha (Manual porque Firestore range filters son complejos con índices)
-        const recDate = new Date(r.timestamp); // Asumiendo timestamp guardado
+        // Filtro de Fecha Manual
+        const recDate = new Date(r.timestamp);
         let inRange = true;
         if(startDate && recDate < new Date(startDate)) inRange = false;
         if(endDate && recDate > new Date(endDate + "T23:59:59")) inRange = false;
@@ -112,8 +114,8 @@ window.runCustomAnalysis = async () => {
             const detailItem = r.details[targetField];
             let val = detailItem ? detailItem.value : "Sin Dato";
             
-            // Normalizar
-            if(val === true) val = "Sí";
+            // Normalizar valores booleanos
+            if(val === true || val === 'on') val = "Sí";
             if(val === false) val = "No";
             
             dataCounts[val] = (dataCounts[val] || 0) + 1;
@@ -130,15 +132,13 @@ function renderBIChart(data, label) {
     if(biChart) biChart.destroy();
 
     biChart = new Chart(ctx, {
-        type: 'doughnut', // O 'bar'
+        type: 'doughnut',
         data: {
             labels: Object.keys(data),
             datasets: [{
                 label: 'Cantidad',
                 data: Object.values(data),
-                backgroundColor: [
-                    '#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0', '#6610f2'
-                ],
+                backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0', '#6610f2'],
                 borderWidth: 1
             }]
         },
@@ -157,7 +157,7 @@ function renderBIList(data, total) {
     cont.innerHTML = `<h6 class="text-center border-bottom pb-2">Total Muestra: ${total}</h6>`;
     
     Object.entries(data).forEach(([key, val]) => {
-        const pct = ((val/total)*100).toFixed(1);
+        const pct = total > 0 ? ((val/total)*100).toFixed(1) : 0;
         cont.innerHTML += `
             <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
                 <span>${key}</span>
@@ -175,20 +175,18 @@ document.getElementById('create-user-form').addEventListener('submit', async (e)
     e.preventDefault();
     const id = document.getElementById('edit-user-id').value;
     
-    // Recolectar datos básicos
     const userData = {
         username: document.getElementById('new-username').value,
         email: document.getElementById('new-email').value,
         userGroup: document.getElementById('new-user-group-select').value,
-        perms: [] // Array de permisos
+        group: document.getElementById('new-role') ? document.getElementById('new-role').value : 'user',
+        perms: [] 
     };
 
-    // Recolectar Password (solo si se escribe)
     const pass = document.getElementById('new-password').value;
     if(pass) userData.password = pass;
     else if(!id) return alert("Contraseña obligatoria para nuevos usuarios");
 
-    // Recolectar Checkboxes de Permisos
     if(document.getElementById('perm-dashboard').checked) userData.perms.push('dashboard');
     if(document.getElementById('perm-registrar').checked) userData.perms.push('registrar');
     if(document.getElementById('perm-misregistros').checked) userData.perms.push('misregistros');
@@ -203,7 +201,6 @@ document.getElementById('create-user-form').addEventListener('submit', async (e)
         await addDoc(collection(db, "users"), userData);
         alert("Usuario Creado");
         e.target.reset();
-        // Reset checkboxes
         document.querySelectorAll('.perm-check').forEach(c => c.checked = false);
     }
     loadUsers();
@@ -249,7 +246,6 @@ window.loadUsers = async () => {
         const u = d.data();
         if(term && !u.username.toLowerCase().includes(term)) return;
 
-        // Visualizar permisos como badges
         const permsBadges = u.perms ? u.perms.map(p => `<span class="badge bg-secondary p-1" style="font-size:0.6rem">${p}</span>`).join(' ') : '';
 
         list.innerHTML += `
@@ -267,12 +263,13 @@ window.loadUsers = async () => {
     });
 };
 
-// --- GESTIÓN DE FORMULARIOS (Igual que antes, añadiendo carga para BI) ---
+// --- GESTIÓN DE FORMULARIOS ---
+
 async function loadTemplates() {
     const snap = await getDocs(collection(db, "templates"));
     const regSelect = document.getElementById('reg-template-select');
     const adminList = document.getElementById('templates-list');
-    const biSelect = document.getElementById('bi-template-select'); // Select del Dashboard
+    const biSelect = document.getElementById('bi-template-select');
 
     let regOpts = '<option value="">-- Seleccionar --</option>';
     let biOpts = '<option value="">-- Seleccionar --</option>';
@@ -283,17 +280,11 @@ async function loadTemplates() {
         const isSuper = sessionUser.username === "Admin";
         const hasGroupAccess = sessionUser.userGroup === t.group || !t.group;
 
-        // Populate BI Select (Dashboard)
         if(isSuper || hasGroupAccess) {
             biOpts += `<option value="${d.id}">${t.name}</option>`;
-        }
-
-        // Populate Registrar Select
-        if(isSuper || hasGroupAccess) {
             regOpts += `<option value="${d.id}">${t.name}</option>`;
         }
 
-        // Populate Admin List
         adminHtml += `
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <span>${t.name} <small class="text-muted">(${t.group})</small></span>
@@ -306,8 +297,6 @@ async function loadTemplates() {
     if(biSelect) biSelect.innerHTML = biOpts;
 }
 
-// --- RENDERIZADO DINÁMICO (Igual que versión anterior) ---
-// (Incluye soporte para selects, checkbox, etc. Se mantiene idéntico al bloque del mensaje previo)
 window.addBuilderField = () => {
     const c = document.getElementById('admin-fields-builder');
     const d = document.createElement('div');
@@ -318,6 +307,7 @@ window.addBuilderField = () => {
             <option value="text">Texto</option>
             <option value="number">Número</option>
             <option value="select">Lista</option>
+            <option value="checkbox">Casilla</option>
             <option value="date">Fecha</option>
             <option value="signature">Firma</option>
         </select>
@@ -332,7 +322,165 @@ window.toggleOpts = (el) => {
     else inp.classList.add('d-none');
 };
 
-// --- LOGIN (Actualizado para guardar permisos) ---
+window.saveTemplate = async () => {
+    const name = document.getElementById('type-name').value.trim();
+    const group = document.getElementById('type-group-select').value;
+    const rows = document.querySelectorAll('.builder-row');
+    
+    if(!name) return alert("Nombre requerido");
+    
+    let fields = [];
+    rows.forEach(r => {
+        const label = r.querySelector('.f-label').value;
+        const type = r.querySelector('.f-type').value;
+        const options = r.querySelector('.f-opts').value;
+        if(label) fields.push({ label, type, options });
+    });
+
+    await setDoc(doc(db, "templates", name), { name, group, fields });
+    alert("Formulario Publicado");
+    loadTemplates();
+};
+
+// --- RENDERIZADO DINÁMICO (REGISTRO) ---
+
+window.renderDynamicFields = async () => {
+    const id = document.getElementById('reg-template-select').value;
+    const cont = document.getElementById('dynamic-fields-container');
+    cont.innerHTML = ""; 
+    if(!id) return;
+
+    const d = await getDoc(doc(db, "templates", id));
+    if (d.exists()) {
+        const fields = d.data().fields;
+        fields.forEach((f, idx) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = "col-md-6"; 
+            
+            let inputHtml = "";
+            
+            switch(f.type) {
+                case 'select':
+                    const opts = f.options ? f.options.split(',').map(o => `<option value="${o.trim()}">${o.trim()}</option>`).join('') : '';
+                    inputHtml = `<select class="form-select dyn-input" data-label="${f.label}"><option value="">-- Seleccionar --</option>${opts}</select>`;
+                    break;
+                case 'checkbox':
+                    inputHtml = `<div class="form-check pt-4"><input class="form-check-input dyn-input" type="checkbox" data-label="${f.label}"><label class="form-check-label">${f.label}</label></div>`;
+                    wrapper.innerHTML = inputHtml;
+                    cont.appendChild(wrapper);
+                    return; 
+                case 'signature':
+                    wrapper.className = "col-12";
+                    inputHtml = `<label class="form-label fw-bold">${f.label}</label><canvas id="sig-canvas-${idx}" class="signature-pad"></canvas>
+                                 <button type="button" class="btn btn-sm btn-light border mt-1" onclick="clearCanvas(${idx})">Limpiar</button>
+                                 <input type="hidden" class="dyn-input" data-type="signature" data-label="${f.label}" id="sig-input-${idx}">`;
+                    break;
+                default: 
+                    inputHtml = `<input type="${f.type}" class="form-control dyn-input" data-label="${f.label}">`;
+            }
+
+            if(f.type !== 'checkbox' && f.type !== 'signature') {
+                wrapper.innerHTML = `<label class="form-label fw-bold small">${f.label}</label>${inputHtml}`;
+            } else if (f.type === 'signature') {
+                wrapper.innerHTML = inputHtml;
+            }
+            
+            cont.appendChild(wrapper);
+            if(f.type === 'signature') initCanvas(idx);
+        });
+    }
+};
+
+// --- GUARDAR REGISTRO ---
+const formUpload = document.getElementById('dynamic-upload-form');
+if(formUpload) {
+    formUpload.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const templateId = document.getElementById('reg-template-select').value;
+        const templateName = document.getElementById('reg-template-select').options[document.getElementById('reg-template-select').selectedIndex].text;
+        
+        if(!templateId) return alert("Selecciona formulario");
+
+        const inputs = document.querySelectorAll('.dyn-input');
+        let detailsObj = {};
+        
+        inputs.forEach(input => {
+            const label = input.getAttribute('data-label');
+            let val = input.value;
+            let type = 'text';
+
+            if(input.type === 'checkbox') {
+                val = input.checked ? "Sí" : "No";
+            } else if (input.type === 'hidden' && input.getAttribute('data-type') === 'signature') {
+                 const idx = input.id.split('-')[2];
+                 const canvas = document.getElementById(`sig-canvas-${idx}`);
+                 val = canvas.toDataURL();
+                 type = 'image';
+            }
+            
+            detailsObj[label] = { type, value: val };
+        });
+
+        // Archivo
+        let fileUrl = "Sin archivo";
+        const file = document.getElementById('reg-file').files[0];
+        if(file) {
+            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET); // Recuerda definir CLOUD_NAME y UPLOAD_PRESET o importarlos
+            // Implementación simplificada, asumiendo configuración correcta de Cloudinary
+            // const res = await fetch(...) 
+            fileUrl = "Archivo Cargado (Demo)"; // Placeholder si no usas fetch real aquí
+        }
+
+        try {
+            await addDoc(collection(db, "records"), {
+                templateId, templateName,
+                user: sessionUser.username,
+                group: sessionUser.userGroup || 'General',
+                date: new Date().toLocaleString(),
+                timestamp: Date.now(),
+                details: detailsObj,
+                fileUrl
+            });
+            alert("Guardado!");
+            formUpload.reset();
+            document.getElementById('dynamic-fields-container').innerHTML = "";
+            loadStats();
+        } catch(err) { console.error(err); alert("Error al guardar"); }
+    });
+}
+
+// --- CANVAS ---
+function initCanvas(idx) {
+    const canvas = document.getElementById(`sig-canvas-${idx}`);
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    
+    // Resize
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const start = (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(getX(e), getY(e)); };
+    const move = (e) => { if(!drawing) return; ctx.lineTo(getX(e), getY(e)); ctx.stroke(); };
+    const end = () => drawing = false;
+
+    const getX = (e) => { const rect = canvas.getBoundingClientRect(); return (e.touches ? e.touches[0].clientX : e.clientX) - rect.left; };
+    const getY = (e) => { const rect = canvas.getBoundingClientRect(); return (e.touches ? e.touches[0].clientY : e.clientY) - rect.top; };
+
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', (e) => {e.preventDefault(); start(e)}); 
+    canvas.addEventListener('touchmove', (e) => {e.preventDefault(); move(e)});
+    window.addEventListener('touchend', end);
+}
+
+window.clearCanvas = (idx) => {
+    const c = document.getElementById(`sig-canvas-${idx}`);
+    c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+
+// --- FUNCIONES AUXILIARES (Login, Grupos, Borrar) ---
+
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const u = document.getElementById('login-user').value.trim();
@@ -354,26 +502,75 @@ function loginSuccess(u) {
     location.reload();
 }
 
-// --- INIT ---
+window.logout = () => { localStorage.removeItem('user_session'); location.reload(); };
+
+window.saveGroup = async () => { const n = document.getElementById('group-name-input').value; if(n) { await setDoc(doc(db,"groups",n),{name:n}); loadGroups(); }};
+window.deleteGroup = async (n) => { if(confirm("Borrar?")) { await deleteDoc(doc(db,"groups",n)); loadGroups(); }};
+async function loadGroups() { 
+    const s = await getDocs(collection(db,"groups")); 
+    let o = '<option value="">-- Grupo --</option>'; 
+    s.forEach(d=>{ o+=`<option value="${d.id}">${d.id}</option>`; });
+    document.querySelectorAll('.group-dropdown-source').forEach(e=>e.innerHTML=o);
+}
+
+window.deleteUser = async (id) => { if(confirm("Eliminar?")) { await deleteDoc(doc(db,"users",id)); loadUsers(); }};
+window.deleteTemplate = async (id) => { if(confirm("Eliminar?")) { await deleteDoc(doc(db,"templates",id)); loadTemplates(); }};
+window.deleteRecord = async (id) => { if(confirm("Borrar?")) { await deleteDoc(doc(db,"records",id)); loadHistory(true); }};
+
+async function loadHistory(isAdmin) {
+    const tb = document.getElementById(isAdmin ? 'historial-table-body' : 'user-history-body');
+    if(!tb) return;
+    let q = query(collection(db,"records"), orderBy("timestamp","desc"));
+    if(!isAdmin) q = query(collection(db,"records"), where("user","==",sessionUser.username), orderBy("timestamp","desc"));
+    
+    try {
+        const s = await getDocs(q);
+        tb.innerHTML = "";
+        s.forEach(d=>{
+            const r = d.data();
+            const safe = encodeURIComponent(JSON.stringify(r.details));
+            tb.innerHTML += `<tr><td>${r.date}</td>${isAdmin?`<td>${r.user}</td>`:''}<td>${r.templateName}</td>${isAdmin?'<td>...</td>':''}<td><button class="btn btn-sm btn-info text-white" onclick="viewDetails('${safe}')">Ver</button> ${isAdmin?`<button class="btn btn-sm btn-danger" onclick="deleteRecord('${d.id}')">X</button>`:''}</td></tr>`;
+        });
+    } catch (e) { console.error(e); tb.innerHTML="<tr><td colspan='5'>Error índices (Ver consola)</td></tr>"; }
+}
+
+window.viewDetails = (encodedData) => {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+    const mb = document.getElementById('modal-details-body');
+    let h = "<div class='row g-2'>";
+    Object.entries(data).forEach(([k,v]) => {
+        let val = v.value;
+        if(v.type==='image') val = `<img src="${val}" class="img-fluid border" style="max-height:100px">`;
+        h += `<div class="col-6"><div class="border p-2 rounded"><small class="fw-bold">${k}</small><div>${val}</div></div></div>`;
+    });
+    mb.innerHTML = h + "</div>";
+    if(!detailsModal) detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    detailsModal.show();
+}
+
+async function loadStats() {
+    const r = await getDocs(collection(db,"records"));
+    const t = await getDocs(collection(db,"templates"));
+    const u = await getDocs(collection(db,"users"));
+    document.getElementById('dash-total').innerText = r.size;
+    document.getElementById('dash-forms').innerText = t.size;
+    document.getElementById('dash-users').innerText = u.size;
+}
+
+window.downloadData = async () => {
+    const s = await getDocs(collection(db,"records"));
+    let c = "Fecha,Usuario,Formulario,Datos\n";
+    s.forEach(d=>{ const r=d.data(); c+=`${r.date},${r.user},${r.templateName},"${JSON.stringify(r.details).replace(/"/g,"'")}"\n`; });
+    const b = new Blob([c],{type:'text/csv'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download="data.csv"; a.click();
+};
+
+// INIT
 if(sessionUser) {
     document.getElementById('login-screen').classList.add('d-none');
     document.getElementById('app-screen').classList.remove('d-none');
     document.getElementById('user-display').innerText = sessionUser.username;
     document.getElementById('group-display').innerText = sessionUser.userGroup || "";
-    
-    // APLICAR PERMISOS
     applyPermissions();
-    
     loadGroups(); loadTemplates(); loadStats();
 }
-
-// ... Resto de funciones auxiliares (renderDynamicFields, saveTemplate, etc) se mantienen ...
-// IMPORTANTE: Asegúrate de incluir aquí las funciones:
-// window.renderDynamicFields
-// window.saveTemplate
-// window.saveGroup
-// window.deleteUser / Group / Template
-// window.logout
-// window.viewDetails (Modal)
-// window.downloadData
-// initCanvas / clearCanvas
