@@ -1,34 +1,140 @@
-/* GLOBAL */
-body { background-color: #f0f2f5; font-family: 'Segoe UI', system-ui, sans-serif; color: #343a40; }
-.pointer { cursor: pointer; }
-.scroll-area { max-height: 400px; overflow-y: auto; scrollbar-width: thin; }
-.scroll-area::-webkit-scrollbar { width: 6px; }
-.scroll-area::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
+/* --- CONFIGURACIÓN GLOBAL --- */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --bg-color: #f0f2f5;
+    --card-radius: 12px;
+}
 
-/* ANIMACIONES */
-.content-section { animation: fadeIn 0.4s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+body {
+    background-color: var(--bg-color);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #343a40;
+    overflow-x: hidden; /* Evita desplazamiento horizontal accidental */
+}
 
-/* TARJETAS */
-.card { border-radius: 12px; transition: transform 0.2s; }
-#dashboard .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+/* --- UTILIDADES --- */
+.pointer {
+    cursor: pointer;
+}
 
-/* FORMULARIOS */
-.dyn-input { border-left: 4px solid #0d6efd; background-color: #fff; }
-.builder-row { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+/* Scroll personalizado para listas largas (Dashboard/Admin) */
+.scroll-area {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin; /* Firefox */
+}
 
-/* FIRMA DIGITAL (Canvas) */
+.scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 10px;
+}
+
+/* --- ANIMACIONES --- */
+.content-section {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- TARJETAS Y CONTENEDORES --- */
+.card {
+    border-radius: var(--card-radius);
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto al pasar el mouse sobre tarjetas del Dashboard */
+#dashboard .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+/* --- FORMULARIOS Y CAMPOS DINÁMICOS --- */
+.dyn-input {
+    border-left: 4px solid var(--primary-color);
+    background-color: #fff;
+}
+
+.dyn-input:focus {
+    background-color: #f8fbff;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Filas del constructor de formularios (Panel Admin) */
+.builder-row {
+    background-color: #fff;
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: background-color 0.2s;
+}
+
+.builder-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* --- FIRMA DIGITAL (CANVAS) --- */
 canvas.signature-pad {
     border: 2px dashed #adb5bd;
     border-radius: 8px;
-    background-color: #fff;
+    background-color: #ffffff;
     width: 100%;
     height: 160px;
     cursor: crosshair;
-    touch-action: none;
+    touch-action: none; /* CRÍTICO: Permite firmar en móviles sin mover la pantalla */
 }
 
-/* LISTAS Y PERMISOS */
-.list-group-item { border: none; border-bottom: 1px solid #f0f0f0; margin-bottom: 2px; }
-.perm-check { transform: scale(1.1); margin-right: 5px; }
-.modal-content { border-radius: 15px; border:none; }
+/* --- LISTAS Y TABLAS --- */
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 2px;
+    border-radius: 6px;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Checkboxes de permisos en Admin */
+.perm-check {
+    transform: scale(1.2); /* Hace los checkboxes un poco más grandes */
+    margin-right: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* --- MODALES --- */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: 1px solid #eee;
+}
+
+/* Ajustes para imágenes dentro de los detalles (firmas, adjuntos) */
+#modal-details-body img {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 2px;
+    background: #fff;
+}
