@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, setDoc, deleteDoc, getDoc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- 1. CONFIGURACIÓN ---
 const firebaseConfig = {
     apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
     authDomain: "archivos-351d3.firebaseapp.com",
@@ -17,26 +16,24 @@ let sessionUser = JSON.parse(localStorage.getItem('user_session')) || null;
 let detailsModal;
 let biChart = null;
 
-// --- 2. DEFINICIÓN DE FUNCIONES GLOBALES (Window) ---
+// --- FUNCIONES GLOBALES (ACCESIBLES DESDE HTML) ---
 
-// Navegación
 window.showSection = (id) => {
     document.querySelectorAll('.content-section').forEach(s => s.classList.add('d-none'));
     const target = document.getElementById(id);
     if(target) target.classList.remove('d-none');
 
-    // Cargas perezosas
+    // Cargas dinámicas
     if(id === 'panel-admin') { window.loadGroups(); window.loadTemplates(); window.loadUsers(); }
     if(id === 'dashboard') window.loadStats();
     if(id === 'mis-registros') window.loadHistory(false);
     if(id === 'historial-maestro') window.loadHistory(true);
     if(id === 'nuevo-registro') window.loadTemplates();
     
-    // Cerrar menú móvil si existe
+    // Cerrar menú móvil
     const nav = document.getElementById('navMain');
     if(nav && nav.classList.contains('show')) {
-        const toggler = document.querySelector('.navbar-toggler');
-        if(toggler) toggler.click();
+        document.querySelector('.navbar-toggler').click();
     }
 };
 
@@ -45,16 +42,25 @@ window.logout = () => {
     location.reload();
 };
 
+// --- GESTIÓN DE PERMISOS (CRÍTICO) ---
 window.applyPermissions = () => {
     if(!sessionUser) return;
+    
     const permMap = {
-        'nav-dashboard': 'dashboard', 'nav-registrar': 'registrar',
-        'nav-misregistros': 'misregistros', 'nav-admin': 'admin', 'nav-historial': 'historial'
+        'nav-dashboard': 'dashboard',
+        'nav-registrar': 'registrar',
+        'nav-misregistros': 'misregistros',
+        'nav-admin': 'admin',
+        'nav-historial': 'historial'
     };
+
+    // SIEMPRE dar acceso total al usuario "Admin"
     const isSuper = (sessionUser.username === "Admin");
+
     for (const [navId, permKey] of Object.entries(permMap)) {
         const el = document.getElementById(navId);
         if(el) {
+            // Mostrar si es Admin O si tiene el permiso explícito
             if(isSuper || (sessionUser.perms && sessionUser.perms.includes(permKey))) {
                 el.classList.remove('d-none');
             } else {
@@ -64,7 +70,20 @@ window.applyPermissions = () => {
     }
 };
 
-// Cargas de Datos (Templates, Grupos, Usuarios)
+// --- CRUD Y DATOS ---
+
+window.loadGroups = async () => {
+    const s = await getDocs(collection(db,"groups")); 
+    let o = '<option value="">-- Seleccionar --</option>'; 
+    s.forEach(d=>{ o+=`<option value="${d.id}">${d.id}</option>`; });
+    document.querySelectorAll('.group-dropdown-source').forEach(e=>e.innerHTML=o);
+};
+
+window.saveGroup = async () => { 
+    const n = document.getElementById('group-name-input').value.trim(); 
+    if(n) { await setDoc(doc(db,"groups",n),{name:n}); window.loadGroups(); document.getElementById('group-name-input').value=""; }
+};
+
 window.loadTemplates = async () => {
     const snap = await getDocs(collection(db, "templates"));
     const regSelect = document.getElementById('reg-template-select');
@@ -84,12 +103,7 @@ window.loadTemplates = async () => {
             biOpts += `<option value="${d.id}">${t.name}</option>`;
             regOpts += `<option value="${d.id}">${t.name}</option>`;
         }
-        
-        adminHtml += `
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <span>${t.name} <small class="text-muted">(${t.group})</small></span>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate('${d.id}')">X</button>
-            </div>`;
+        adminHtml += `<div class="list-group-item d-flex justify-content-between p-2"><span>${t.name} <small class="text-muted">(${t.group})</small></span><button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate('${d.id}')">X</button></div>`;
     });
 
     if(regSelect) regSelect.innerHTML = regOpts;
@@ -97,18 +111,26 @@ window.loadTemplates = async () => {
     if(biSelect) biSelect.innerHTML = biOpts;
 };
 
-window.loadGroups = async () => {
-    const s = await getDocs(collection(db,"groups")); 
-    let o = '<option value="">-- Grupo --</option>'; 
-    let l = '';
-    s.forEach(d=>{ 
-        o+=`<option value="${d.id}">${d.id}</option>`; 
-        l+=`<span class="badge bg-secondary me-1 p-2">${d.id} <i class="bi bi-x pointer" onclick="deleteGroup('${d.id}')"></i></span>`;
+window.saveTemplate = async () => {
+    const name = document.getElementById('type-name').value.trim();
+    const group = document.getElementById('type-group-select').value;
+    const rows = document.querySelectorAll('.builder-row');
+    if(!name) return alert("Nombre requerido");
+    let fields = [];
+    rows.forEach(r => {
+        const label = r.querySelector('.f-label').value;
+        const type = r.querySelector('.f-type').value;
+        const options = r.querySelector('.f-opts') ? r.querySelector('.f-opts').value : "";
+        if(label) fields.push({ label, type, options });
     });
-    document.querySelectorAll('.group-dropdown-source').forEach(e=>e.innerHTML=o);
-    const grpList = document.getElementById('groups-list');
-    if(grpList) grpList.innerHTML = l;
+    await setDoc(doc(db, "templates", name), { name, group, fields });
+    alert("Publicado");
+    window.loadTemplates();
 };
+
+window.deleteTemplate = async (id) => { if(confirm("¿Eliminar?")) { await deleteDoc(doc(db,"templates",id)); window.loadTemplates(); }};
+
+// --- USUARIOS ---
 
 window.loadUsers = async () => {
     const term = document.getElementById('search-user') ? document.getElementById('search-user').value.toLowerCase() : "";
@@ -138,131 +160,55 @@ window.loadUsers = async () => {
     });
 };
 
-window.loadStats = async () => {
-    const r = await getDocs(collection(db,"records"));
-    const t = await getDocs(collection(db,"templates"));
-    const u = await getDocs(collection(db,"users"));
-    document.getElementById('dash-total').innerText = r.size;
-    document.getElementById('dash-forms').innerText = t.size;
-    document.getElementById('dash-users').innerText = u.size;
-};
-
-window.loadHistory = async (isAdmin) => {
-    const tb = document.getElementById(isAdmin ? 'historial-table-body' : 'user-history-body');
-    if(!tb) return;
-    
-    let q = query(collection(db,"records"), orderBy("timestamp","desc"));
-    if(!isAdmin) q = query(collection(db,"records"), where("user","==",sessionUser.username), orderBy("timestamp","desc"));
-    
-    try {
-        const s = await getDocs(q);
-        tb.innerHTML = "";
-        if(s.empty) { tb.innerHTML = "<tr><td colspan='5' class='text-center'>Sin datos</td></tr>"; return; }
-
-        s.forEach(d=>{
-            const r = d.data();
-            const safe = encodeURIComponent(JSON.stringify(r.details));
-            tb.innerHTML += `<tr><td>${r.date}</td>${isAdmin?`<td>${r.user}</td>`:''}<td>${r.templateName}</td>${isAdmin?'<td>...</td>':''}<td><button class="btn btn-sm btn-info text-white" onclick="viewDetails('${safe}')">Ver</button> ${isAdmin?`<button class="btn btn-sm btn-danger" onclick="deleteRecord('${d.id}')">X</button>`:''}</td></tr>`;
-        });
-    } catch (e) { console.error(e); tb.innerHTML="<tr><td colspan='5'>Error de índices en Firebase. Revisa la consola.</td></tr>"; }
-};
-
-// Acciones de Guardado y Borrado
-window.saveGroup = async () => { const n = document.getElementById('group-name-input').value.trim(); if(n) { await setDoc(doc(db,"groups",n),{name:n}); window.loadGroups(); document.getElementById('group-name-input').value=""; }};
-window.deleteGroup = async (n) => { if(confirm("Borrar?")) { await deleteDoc(doc(db,"groups",n)); window.loadGroups(); }};
-window.deleteTemplate = async (id) => { if(confirm("Eliminar?")) { await deleteDoc(doc(db,"templates",id)); window.loadTemplates(); }};
-window.deleteUser = async (id) => { if(confirm("Eliminar?")) { await deleteDoc(doc(db,"users",id)); window.loadUsers(); }};
-window.deleteRecord = async (id) => { if(confirm("Borrar?")) { await deleteDoc(doc(db,"records",id)); window.loadHistory(true); }};
-
-window.saveTemplate = async () => {
-    const name = document.getElementById('type-name').value.trim();
-    const group = document.getElementById('type-group-select').value;
-    const rows = document.querySelectorAll('.builder-row');
-    if(!name) return alert("Nombre requerido");
-    let fields = [];
-    rows.forEach(r => {
-        const label = r.querySelector('.f-label').value;
-        const type = r.querySelector('.f-type').value;
-        const options = r.querySelector('.f-opts') ? r.querySelector('.f-opts').value : "";
-        if(label) fields.push({ label, type, options });
+window.editUser = (id, uname, email, ugroup, permsString) => {
+    document.getElementById('edit-user-id').value = id;
+    document.getElementById('new-username').value = uname;
+    document.getElementById('new-email').value = email || '';
+    document.getElementById('new-user-group-select').value = ugroup;
+    const perms = permsString ? permsString.split(',') : [];
+    ['dashboard','registrar','misregistros','admin','historial'].forEach(p => {
+        document.getElementById('perm-'+p).checked = perms.includes(p);
     });
-    await setDoc(doc(db, "templates", name), { name, group, fields });
-    alert("Publicado");
-    window.loadTemplates();
+    const btn = document.getElementById('btn-user-submit');
+    btn.innerText = "Guardar Cambios"; btn.classList.replace('btn-primary', 'btn-warning');
+    document.getElementById('btn-cancel-edit').classList.remove('d-none');
 };
 
-// BI y Campos Dinámicos
-window.loadTemplateFieldsForBI = async () => {
-    const templateId = document.getElementById('bi-template-select').value;
-    const fieldSelect = document.getElementById('bi-field-select');
-    fieldSelect.innerHTML = '<option value="">-- Campo --</option>';
-    if(!templateId) return;
-    const d = await getDoc(doc(db, "templates", templateId));
-    if(d.exists()) {
-        d.data().fields.forEach(f => {
-            if(['text', 'select', 'checkbox', 'radio'].includes(f.type)) {
-                fieldSelect.innerHTML += `<option value="${f.label}">${f.label}</option>`;
-            }
-        });
-    }
+window.cancelEditUser = () => {
+    document.getElementById('create-user-form').reset();
+    document.getElementById('edit-user-id').value = "";
+    document.querySelectorAll('.perm-check').forEach(c => c.checked = false);
+    const btn = document.getElementById('btn-user-submit');
+    btn.innerText = "Guardar Usuario"; btn.classList.replace('btn-warning', 'btn-primary');
+    document.getElementById('btn-cancel-edit').classList.add('d-none');
 };
 
-window.runCustomAnalysis = async () => {
-    const templateId = document.getElementById('bi-template-select').value;
-    const targetField = document.getElementById('bi-field-select').value;
-    const startDate = document.getElementById('bi-date-start').value;
-    const endDate = document.getElementById('bi-date-end').value;
+window.deleteUser = async (id) => { if(confirm("¿Eliminar?")) { await deleteDoc(doc(db,"users",id)); window.loadUsers(); }};
 
-    if(!templateId || !targetField) return alert("Selecciona Formulario y Campo");
+document.getElementById('create-user-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('edit-user-id').value;
+    const userData = {
+        username: document.getElementById('new-username').value,
+        email: document.getElementById('new-email').value,
+        userGroup: document.getElementById('new-user-group-select').value,
+        perms: []
+    };
+    const pass = document.getElementById('new-password').value;
+    if(pass) userData.password = pass; else if(!id) return alert("Contraseña obligatoria");
 
-    let q = query(collection(db, "records"), where("templateId", "==", templateId));
-    if(sessionUser.username !== "Admin") q = query(q, where("group", "==", sessionUser.userGroup));
+    if(document.getElementById('perm-dashboard').checked) userData.perms.push('dashboard');
+    if(document.getElementById('perm-registrar').checked) userData.perms.push('registrar');
+    if(document.getElementById('perm-misregistros').checked) userData.perms.push('misregistros');
+    if(document.getElementById('perm-admin').checked) userData.perms.push('admin');
+    if(document.getElementById('perm-historial').checked) userData.perms.push('historial');
 
-    const snap = await getDocs(q);
-    const dataCounts = {};
-    let total = 0;
+    if(id) { await updateDoc(doc(db, "users", id), userData); alert("Actualizado"); window.cancelEditUser(); } 
+    else { await addDoc(collection(db, "users"), userData); alert("Creado"); e.target.reset(); }
+    window.loadUsers();
+});
 
-    snap.forEach(d => {
-        const r = d.data();
-        const recDate = new Date(r.timestamp);
-        let inRange = true;
-        if(startDate && recDate < new Date(startDate)) inRange = false;
-        if(endDate && recDate > new Date(endDate + "T23:59:59")) inRange = false;
-
-        if(inRange) {
-            const detailItem = r.details[targetField];
-            let val = detailItem ? detailItem.value : "Sin Dato";
-            if(val === true || val === 'on') val = "Sí";
-            if(val === false) val = "No";
-            dataCounts[val] = (dataCounts[val] || 0) + 1;
-            total++;
-        }
-    });
-    window.renderBIChart(dataCounts, targetField);
-    window.renderBIList(dataCounts, total);
-};
-
-window.renderBIChart = (data, label) => {
-    const ctx = document.getElementById('biChart');
-    if(biChart) biChart.destroy();
-    biChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(data),
-            datasets: [{ label: 'Cantidad', data: Object.values(data), borderWidth: 1, backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-};
-
-window.renderBIList = (data, total) => {
-    const cont = document.getElementById('bi-stats-container');
-    cont.innerHTML = `<h6 class="text-center pb-2">Total: ${total}</h6>`;
-    Object.entries(data).forEach(([key, val]) => {
-        const pct = total > 0 ? ((val/total)*100).toFixed(1) : 0;
-        cont.innerHTML += `<div class="d-flex justify-content-between p-2 border-bottom"><span>${key}</span><div><span class="fw-bold">${val}</span> <span class="badge bg-light text-dark">${pct}%</span></div></div>`;
-    });
-};
+// --- RENDERIZADO Y BI ---
 
 window.addBuilderField = () => {
     const c = document.getElementById('admin-fields-builder');
@@ -315,7 +261,6 @@ window.renderDynamicFields = async () => {
     }
 };
 
-// Canvas
 window.initCanvas = (idx) => {
     const c = document.getElementById(`sig-${idx}`);
     if(!c) return;
@@ -332,6 +277,117 @@ window.initCanvas = (idx) => {
 };
 window.clearCanvas = (idx) => { const c=document.getElementById(`sig-${idx}`); c.getContext('2d').clearRect(0,0,c.width,c.height); };
 
+window.loadTemplateFieldsForBI = async () => {
+    const id = document.getElementById('bi-template-select').value;
+    const sel = document.getElementById('bi-field-select');
+    sel.innerHTML = '<option value="">-- Campo --</option>';
+    if(!id) return;
+    const d = await getDoc(doc(db, "templates", id));
+    if(d.exists()) {
+        d.data().fields.forEach(f => {
+            if(['text', 'select', 'checkbox', 'radio'].includes(f.type)) {
+                sel.innerHTML += `<option value="${f.label}">${f.label}</option>`;
+            }
+        });
+    }
+};
+
+window.runCustomAnalysis = async () => {
+    const tid = document.getElementById('bi-template-select').value;
+    const fld = document.getElementById('bi-field-select').value;
+    const d1 = document.getElementById('bi-date-start').value;
+    const d2 = document.getElementById('bi-date-end').value;
+    if(!tid || !fld) return alert("Selecciona datos");
+
+    let q = query(collection(db, "records"), where("templateId", "==", tid));
+    if(sessionUser.username !== "Admin") q = query(q, where("group", "==", sessionUser.userGroup));
+
+    const snap = await getDocs(q);
+    const data = {};
+    let total = 0;
+
+    snap.forEach(d => {
+        const r = d.data();
+        const rd = new Date(r.timestamp);
+        let ok = true;
+        if(d1 && rd < new Date(d1)) ok = false;
+        if(d2 && rd > new Date(d2 + "T23:59:59")) ok = false;
+
+        if(ok) {
+            const item = r.details[fld];
+            let val = item ? item.value : "Sin Dato";
+            if(val===true || val==='on') val = "Sí";
+            if(val===false) val = "No";
+            data[val] = (data[val] || 0) + 1;
+            total++;
+        }
+    });
+    
+    // Render Chart
+    const ctx = document.getElementById('biChart');
+    if(biChart) biChart.destroy();
+    biChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0'] }] },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Render List
+    const cont = document.getElementById('bi-stats-container');
+    cont.innerHTML = `<h6 class="text-center pb-2">Total: ${total}</h6>`;
+    Object.entries(data).forEach(([k, v]) => {
+        const pct = total > 0 ? ((v/total)*100).toFixed(1) : 0;
+        cont.innerHTML += `<div class="d-flex justify-content-between p-2 border-bottom"><span>${k}</span><div><span class="fw-bold">${v}</span> <span class="badge bg-light text-dark">${pct}%</span></div></div>`;
+    });
+};
+
+window.loadStats = async () => {
+    const r = await getDocs(collection(db,"records"));
+    const t = await getDocs(collection(db,"templates"));
+    const u = await getDocs(collection(db,"users"));
+    document.getElementById('dash-total').innerText = r.size;
+    document.getElementById('dash-forms').innerText = t.size;
+    document.getElementById('dash-users').innerText = u.size;
+};
+
+// --- LOGIN & INICIO ---
+
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const u = document.getElementById('login-user').value.trim();
+    const p = document.getElementById('login-pass').value.trim();
+    
+    if(u==="Admin" && p==="1130") { 
+        loginSuccess({username:"Admin", group:"admin", userGroup:"IT", perms:[]}); 
+        return; 
+    }
+
+    const q = query(collection(db,"users"), where("username","==",u), where("password","==",p));
+    const s = await getDocs(q);
+    if(!s.empty) loginSuccess(s.docs[0].data()); else alert("Credenciales incorrectas");
+});
+
+function loginSuccess(u) { localStorage.setItem('user_session', JSON.stringify(u)); location.reload(); }
+
+// --- HISTORIAL ---
+window.loadHistory = async (isAdmin) => {
+    const tb = document.getElementById(isAdmin ? 'historial-table-body' : 'user-history-body');
+    if(!tb) return;
+    let q = query(collection(db,"records"), orderBy("timestamp","desc"));
+    if(!isAdmin) q = query(collection(db,"records"), where("user","==",sessionUser.username), orderBy("timestamp","desc"));
+    try {
+        const s = await getDocs(q);
+        tb.innerHTML = "";
+        s.forEach(d=>{
+            const r = d.data();
+            const safe = encodeURIComponent(JSON.stringify(r.details));
+            tb.innerHTML += `<tr><td>${r.date}</td>${isAdmin?`<td>${r.user}</td>`:''}<td>${r.templateName}</td>${isAdmin?'<td>...</td>':''}<td><button class="btn btn-sm btn-info text-white" onclick="viewDetails('${safe}')">Ver</button> ${isAdmin?`<button class="btn btn-sm btn-danger" onclick="deleteRecord('${d.id}')">X</button>`:''}</td></tr>`;
+        });
+    } catch (e) { console.error(e); tb.innerHTML="<tr><td colspan='5'>Error índices (Ver consola)</td></tr>"; }
+};
+
+window.deleteRecord = async (id) => { if(confirm("Borrar?")) { await deleteDoc(doc(db,"records",id)); window.loadHistory(true); }};
+
 window.viewDetails = (safe) => {
     const data = JSON.parse(decodeURIComponent(safe));
     const mb = document.getElementById('modal-details-body');
@@ -346,30 +402,6 @@ window.viewDetails = (safe) => {
     detailsModal.show();
 };
 
-window.editUser = (id, uname, email, ugroup, permsString) => {
-    document.getElementById('edit-user-id').value = id;
-    document.getElementById('new-username').value = uname;
-    document.getElementById('new-email').value = email || '';
-    document.getElementById('new-user-group-select').value = ugroup;
-    document.getElementById('new-password').placeholder = "Vacío para mantener actual";
-    const perms = permsString ? permsString.split(',') : [];
-    ['dashboard','registrar','misregistros','admin','historial'].forEach(p => {
-        document.getElementById('perm-'+p).checked = perms.includes(p);
-    });
-    const btn = document.getElementById('btn-user-submit');
-    btn.innerText = "Guardar Cambios"; btn.classList.replace('btn-primary', 'btn-warning');
-    document.getElementById('btn-cancel-edit').classList.remove('d-none');
-};
-
-window.cancelEditUser = () => {
-    document.getElementById('create-user-form').reset();
-    document.getElementById('edit-user-id').value = "";
-    document.querySelectorAll('.perm-check').forEach(c => c.checked = false);
-    const btn = document.getElementById('btn-user-submit');
-    btn.innerText = "Guardar Usuario"; btn.classList.replace('btn-warning', 'btn-primary');
-    document.getElementById('btn-cancel-edit').classList.add('d-none');
-};
-
 window.downloadData = async () => {
     const s = await getDocs(collection(db,"records"));
     let c = "Fecha,Usuario,Formulario,Datos\n";
@@ -378,61 +410,6 @@ window.downloadData = async () => {
     const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download="data.csv"; a.click();
 };
 
-// --- 3. EVENT LISTENERS & LOGICA DE INICIO ---
-
-// Login
-const loginForm = document.getElementById('login-form');
-if(loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const u = document.getElementById('login-user').value.trim();
-        const p = document.getElementById('login-pass').value.trim();
-        if(u==="Admin" && p==="1130") { 
-            loginSuccess({username:"Admin", group:"admin", userGroup:"IT", perms:['dashboard','registrar','misregistros','admin','historial']}); 
-            return; 
-        }
-        const q = query(collection(db,"users"), where("username","==",u), where("password","==",p));
-        const s = await getDocs(q);
-        if(!s.empty) loginSuccess(s.docs[0].data()); else alert("Credenciales incorrectas");
-    });
-}
-
-function loginSuccess(u) { localStorage.setItem('user_session', JSON.stringify(u)); location.reload(); }
-
-// Guardar Registro
-const dynForm = document.getElementById('dynamic-upload-form');
-if(dynForm) {
-    dynForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const tid = document.getElementById('reg-template-select').value;
-        const tname = document.getElementById('reg-template-select').options[document.getElementById('reg-template-select').selectedIndex].text;
-        if(!tid) return alert("Selecciona formulario");
-
-        let details = {};
-        document.querySelectorAll('.dyn-input').forEach(i => {
-            const lbl = i.getAttribute('data-label');
-            let val = i.value;
-            let type = 'text';
-            if(i.type==='checkbox') val = i.checked ? "Sí" : "No";
-            if(i.type==='hidden' && i.getAttribute('data-type')==='signature') {
-                const idx = i.id.split('-')[1];
-                const c = document.getElementById(`sig-${idx}`);
-                val = c.toDataURL(); type='image';
-            }
-            details[lbl] = {type, value: val};
-        });
-
-        await addDoc(collection(db, "records"), {
-            templateId: tid, templateName: tname,
-            user: sessionUser.username, group: sessionUser.userGroup || 'General',
-            date: new Date().toLocaleString(), timestamp: Date.now(), details
-        });
-        alert("Guardado"); dynForm.reset(); document.getElementById('dynamic-fields-container').innerHTML="";
-        window.loadStats();
-    });
-}
-
-// INICIO AUTOMÁTICO
 if(sessionUser) {
     document.getElementById('login-screen').classList.add('d-none');
     document.getElementById('app-screen').classList.remove('d-none');
