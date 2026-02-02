@@ -47,13 +47,11 @@ function applyPermissions() {
 
     for (const [navId, permKey] of Object.entries(permMap)) {
         const el = document.getElementById(navId);
-        if(el) {
-            // Mostrar si es SuperAdmin O si el array de permisos incluye la clave
-            if(isSuper || (sessionUser.perms && sessionUser.perms.includes(permKey))) {
-                el.classList.remove('d-none');
-            } else {
-                el.classList.add('d-none');
-            }
+        // Mostrar si es SuperAdmin O si el array de permisos incluye la clave
+        if(isSuper || (sessionUser.perms && sessionUser.perms.includes(permKey))) {
+            el.classList.remove('d-none');
+        } else {
+            el.classList.add('d-none');
         }
     }
 }
@@ -91,7 +89,7 @@ window.runCustomAnalysis = async () => {
     // Construir Query
     let q = query(collection(db, "records"), where("templateId", "==", templateId));
     
-    // Filtro de Grupo (Seguridad: Si no es Admin, solo ve su grupo)
+    // Filtro de Grupo (Seguridad)
     if(sessionUser.username !== "Admin") {
         q = query(q, where("group", "==", sessionUser.userGroup));
     }
@@ -103,7 +101,7 @@ window.runCustomAnalysis = async () => {
     snap.forEach(d => {
         const r = d.data();
         
-        // Filtro de Fecha Manual
+        // Filtro de Fecha (Manual)
         const recDate = new Date(r.timestamp);
         let inRange = true;
         if(startDate && recDate < new Date(startDate)) inRange = false;
@@ -114,7 +112,7 @@ window.runCustomAnalysis = async () => {
             const detailItem = r.details[targetField];
             let val = detailItem ? detailItem.value : "Sin Dato";
             
-            // Normalizar valores booleanos
+            // Normalizar
             if(val === true || val === 'on') val = "Sí";
             if(val === false) val = "No";
             
@@ -145,9 +143,7 @@ function renderBIChart(data, label) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                title: { display: true, text: `Distribución por: ${label}` }
-            }
+            plugins: { title: { display: true, text: `Distribución por: ${label}` } }
         }
     });
 }
@@ -179,7 +175,6 @@ document.getElementById('create-user-form').addEventListener('submit', async (e)
         username: document.getElementById('new-username').value,
         email: document.getElementById('new-email').value,
         userGroup: document.getElementById('new-user-group-select').value,
-        group: document.getElementById('new-role') ? document.getElementById('new-role').value : 'user',
         perms: [] 
     };
 
@@ -187,6 +182,7 @@ document.getElementById('create-user-form').addEventListener('submit', async (e)
     if(pass) userData.password = pass;
     else if(!id) return alert("Contraseña obligatoria para nuevos usuarios");
 
+    // Recolectar Permisos
     if(document.getElementById('perm-dashboard').checked) userData.perms.push('dashboard');
     if(document.getElementById('perm-registrar').checked) userData.perms.push('registrar');
     if(document.getElementById('perm-misregistros').checked) userData.perms.push('misregistros');
@@ -280,6 +276,7 @@ async function loadTemplates() {
         const isSuper = sessionUser.username === "Admin";
         const hasGroupAccess = sessionUser.userGroup === t.group || !t.group;
 
+        // Lógica: Todos los formularios disponibles para Admin en BI, y solo los propios para usuarios
         if(isSuper || hasGroupAccess) {
             biOpts += `<option value="${d.id}">${t.name}</option>`;
             regOpts += `<option value="${d.id}">${t.name}</option>`;
@@ -421,16 +418,10 @@ if(formUpload) {
             detailsObj[label] = { type, value: val };
         });
 
-        // Archivo
+        // Archivo (Cloudinary - Simplificado)
+        // Nota: Asegúrate de configurar Cloudinary real si lo usas.
         let fileUrl = "Sin archivo";
-        const file = document.getElementById('reg-file').files[0];
-        if(file) {
-            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET); // Recuerda definir CLOUD_NAME y UPLOAD_PRESET o importarlos
-            // Implementación simplificada, asumiendo configuración correcta de Cloudinary
-            // const res = await fetch(...) 
-            fileUrl = "Archivo Cargado (Demo)"; // Placeholder si no usas fetch real aquí
-        }
-
+        
         try {
             await addDoc(collection(db, "records"), {
                 templateId, templateName,
@@ -449,7 +440,7 @@ if(formUpload) {
     });
 }
 
-// --- CANVAS ---
+// --- CANVAS Y FIRMA ---
 function initCanvas(idx) {
     const canvas = document.getElementById(`sig-canvas-${idx}`);
     if(!canvas) return;
@@ -479,7 +470,7 @@ window.clearCanvas = (idx) => {
     c.getContext('2d').clearRect(0,0,c.width,c.height);
 }
 
-// --- FUNCIONES AUXILIARES (Login, Grupos, Borrar) ---
+// --- AUXILIARES (Login, Grupos, Borrar) ---
 
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -504,7 +495,7 @@ function loginSuccess(u) {
 
 window.logout = () => { localStorage.removeItem('user_session'); location.reload(); };
 
-window.saveGroup = async () => { const n = document.getElementById('group-name-input').value; if(n) { await setDoc(doc(db,"groups",n),{name:n}); loadGroups(); }};
+window.saveGroup = async () => { const n = document.getElementById('group-name-input').value.trim(); if(n) { await setDoc(doc(db,"groups",n),{name:n}); loadGroups(); }};
 window.deleteGroup = async (n) => { if(confirm("Borrar?")) { await deleteDoc(doc(db,"groups",n)); loadGroups(); }};
 async function loadGroups() { 
     const s = await getDocs(collection(db,"groups")); 
@@ -571,6 +562,7 @@ if(sessionUser) {
     document.getElementById('app-screen').classList.remove('d-none');
     document.getElementById('user-display').innerText = sessionUser.username;
     document.getElementById('group-display').innerText = sessionUser.userGroup || "";
+    
     applyPermissions();
     loadGroups(); loadTemplates(); loadStats();
 }
