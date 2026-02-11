@@ -1,376 +1,343 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, doc, setDoc, deleteDoc, getDoc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
-    authDomain: "archivos-351d3.firebaseapp.com",
-    projectId: "archivos-351d3",
-    storageBucket: "archivos-351d3.firebasestorage.app",
-    messagingSenderId: "1024267964788",
-    appId: "1:1024267964788:web:27b02f5c6a5ac8256c1c21"
-};
+const firebaseConfig = { apiKey: "AIzaSyA3cRmakg2dV2YRuNV1fY7LE87artsLmB8", authDomain: "mi-web-db.firebaseapp.com", projectId: "mi-web-db", storageBucket: "mi-web-db.appspot.com" };
+const CLOUD_NAME = 'df79cjklp'; const UPLOAD_PRESET = 'insumos'; 
+const EMAIL_SERVICE_ID = 'service_a7yozqh'; const EMAIL_TEMPLATE_ID = 'template_mlcofoo'; const EMAIL_PUBLIC_KEY = '2jVnfkJKKG0bpKN-U'; 
+const ADMIN_EMAIL = 'archivos@fcipty.com'; 
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-let sessionUser = JSON.parse(localStorage.getItem('user_session')) || null;
-let detailsModal, biChart, chartTimeline, chartUsers;
 
-// --- GLOBAL: Navegación & Permisos ---
-window.showSection = (id) => {
-    document.querySelectorAll('.content-section').forEach(s => s.classList.add('d-none'));
-    const target = document.getElementById(id);
-    if(target) target.classList.remove('d-none');
+let usuarioActual = null, stockChart=null, userChart=null, locationChart=null, carritoGlobal={}, cloudinaryWidget=null;
+let allPedidos = []; // Cache para filtrar
 
-    if(id === 'panel-admin') { window.loadGroups(); window.loadTemplates(); window.loadUsers(); }
-    if(id === 'dashboard') window.loadStats();
-    if(id === 'mis-registros') window.loadHistory(false);
-    if(id === 'historial-maestro') window.loadHistory(true);
-    if(id === 'nuevo-registro') window.loadTemplates();
-    
-    const nav = document.getElementById('navMain');
-    if(nav && nav.classList.contains('show')) document.querySelector('.navbar-toggler').click();
-};
+emailjs.init(EMAIL_PUBLIC_KEY);
 
-window.logout = () => { localStorage.removeItem('user_session'); location.reload(); };
+window.addEventListener('DOMContentLoaded', () => {
+    const s = localStorage.getItem("fcilog_session");
+    if(s) cargarSesion(JSON.parse(s));
+    setupCloudinary();
+});
 
-window.applyPermissions = () => {
-    if(!sessionUser) return;
-    const permMap = { 'nav-dashboard':'dashboard', 'nav-registrar':'registrar', 'nav-misregistros':'misregistros', 'nav-admin':'admin', 'nav-historial':'historial' };
-    const isSuper = (sessionUser.username === "Admin");
-    
-    // Toggle Menu Items
-    for (const [navId, permKey] of Object.entries(permMap)) {
-        const el = document.getElementById(navId);
-        if(el) el.classList.toggle('d-none', !(isSuper || (sessionUser.perms && sessionUser.perms.includes(permKey))));
-    }
-
-    // Toggle KPI Usuarios (Solo Admin)
-    const kpiUser = document.getElementById('kpi-users-container');
-    if(kpiUser) kpiUser.classList.toggle('d-none', !isSuper);
-};
-
-// --- GESTIÓN DE FORMULARIOS (CRUD + EDICIÓN) ---
-
-window.loadGroups = async () => {
-    const s = await getDocs(collection(db,"groups")); 
-    let o = '<option value="">-- Grupo --</option>'; 
-    s.forEach(d=>{ o+=`<option value="${d.id}">${d.id}</option>`; });
-    document.querySelectorAll('.group-dropdown-source').forEach(e=>e.innerHTML=o);
-};
-window.saveGroup = async () => { const n = document.getElementById('group-name-input').value.trim(); if(n) { await setDoc(doc(db,"groups",n),{name:n}); window.loadGroups(); document.getElementById('group-name-input').value=""; } };
-
-window.loadTemplates = async () => {
-    const snap = await getDocs(collection(db, "templates"));
-    const regSelect = document.getElementById('reg-template-select');
-    const adminList = document.getElementById('templates-list');
-    const biSelect = document.getElementById('bi-template-select');
-    let regOpts = '<option value="">-- Seleccionar --</option>', biOpts = regOpts, adminHtml = "";
-
-    snap.forEach(d => {
-        const t = d.data();
-        const isSuper = sessionUser.username === "Admin";
-        const hasAccess = sessionUser.userGroup === t.group || !t.group;
-        if(isSuper || hasAccess) { biOpts += `<option value="${d.id}">${t.name}</option>`; regOpts += `<option value="${d.id}">${t.name}</option>`; }
-        
-        // Botones de Admin: Editar y Borrar
-        adminHtml += `
-            <div class="list-group-item d-flex justify-content-between align-items-center p-2">
-                <span>${t.name} <small class="text-muted">(${t.group})</small></span>
-                <div>
-                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editTemplate('${d.id}')"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate('${d.id}')"><i class="bi bi-trash"></i></button>
-                </div>
-            </div>`;
-    });
-    if(regSelect) regSelect.innerHTML = regOpts; if(adminList) adminList.innerHTML = adminHtml; if(biSelect) biSelect.innerHTML = biOpts;
-};
-
-// ** Nueva Función: Editar Template **
-window.editTemplate = async (id) => {
-    const d = await getDoc(doc(db, "templates", id));
-    if(!d.exists()) return;
-    const t = d.data();
-
-    document.getElementById('edit-template-id').value = id;
-    document.getElementById('type-name').value = t.name;
-    document.getElementById('type-group-select').value = t.group;
-    
-    // Limpiar y reconstruir campos
-    const container = document.getElementById('admin-fields-builder');
-    container.innerHTML = "";
-    t.fields.forEach(f => {
-        window.addBuilderField(f.label, f.type, f.options, f.isAnalyzable);
-    });
-
-    // UI Updates
-    document.getElementById('btn-save-template').innerText = "ACTUALIZAR FORMULARIO";
-    document.getElementById('btn-save-template').classList.replace('btn-primary', 'btn-warning');
-    document.getElementById('btn-cancel-edit-tpl').classList.remove('d-none');
-    window.scrollTo(0,0);
-};
-
-window.cancelEditTemplate = () => {
-    document.getElementById('edit-template-id').value = "";
-    document.getElementById('type-name').value = "";
-    document.getElementById('admin-fields-builder').innerHTML = "";
-    document.getElementById('btn-save-template').innerText = "PUBLICAR FORMULARIO";
-    document.getElementById('btn-save-template').classList.replace('btn-warning', 'btn-primary');
-    document.getElementById('btn-cancel-edit-tpl').classList.add('d-none');
-};
-
-// ** Builder con Checkbox de Análisis **
-window.addBuilderField = (label="", type="text", options="", isAnalyzable=false) => {
-    const c = document.getElementById('admin-fields-builder');
-    const d = document.createElement('div');
-    d.className = "builder-row p-2 mb-2 border rounded bg-white";
-    
-    // Toggle para input de opciones
-    const showOpts = type === 'select' ? '' : 'd-none';
-    const checked = isAnalyzable ? 'checked' : '';
-
-    d.innerHTML = `
-        <div class="d-flex gap-2 mb-1">
-            <input type="text" class="form-control form-control-sm f-label" placeholder="Nombre Campo" value="${label}">
-            <select class="form-select form-select-sm f-type" onchange="toggleOpts(this)" style="width:120px;">
-                <option value="text" ${type==='text'?'selected':''}>Texto</option>
-                <option value="number" ${type==='number'?'selected':''}>Número</option>
-                <option value="select" ${type==='select'?'selected':''}>Lista</option>
-                <option value="checkbox" ${type==='checkbox'?'selected':''}>Casilla</option>
-                <option value="date" ${type==='date'?'selected':''}>Fecha</option>
-                <option value="signature" ${type==='signature'?'selected':''}>Firma</option>
-            </select>
-            <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.parentElement.remove()"><i class="bi bi-x"></i></button>
-        </div>
-        <input type="text" class="form-control form-control-sm f-opts ${showOpts} mb-1" placeholder="Opciones (Ej: Rojo,Verde)" value="${options}">
-        <div class="form-check form-switch">
-            <input class="form-check-input f-analyzable" type="checkbox" ${checked}>
-            <label class="form-check-label small text-muted">¿Analizar en BI?</label>
-        </div>
-    `;
-    c.appendChild(d);
-};
-
-window.toggleOpts = (el) => {
-    const inp = el.parentElement.nextElementSibling; // El input de opciones es el siguiente hermano del div padre
-    if(el.value === 'select') inp.classList.remove('d-none'); else inp.classList.add('d-none');
-};
-
-window.saveTemplate = async () => {
-    const id = document.getElementById('edit-template-id').value;
-    const name = document.getElementById('type-name').value.trim();
-    const group = document.getElementById('type-group-select').value;
-    const rows = document.querySelectorAll('.builder-row');
-    
-    if(!name) return alert("Nombre requerido");
-    
-    let fields = [];
-    rows.forEach(r => {
-        fields.push({
-            label: r.querySelector('.f-label').value,
-            type: r.querySelector('.f-type').value,
-            options: r.querySelector('.f-opts').value,
-            isAnalyzable: r.querySelector('.f-analyzable').checked // Guardamos el flag
+// CLOUDINARY
+function setupCloudinary() {
+    if(typeof cloudinary!=="undefined") {
+        cloudinaryWidget = cloudinary.createUploadWidget({ cloudName: CLOUD_NAME, uploadPreset: UPLOAD_PRESET, sources: ['local','camera'], multiple:false, cropping:true, folder:'fcilog_insumos' }, (error, result) => { 
+            if(!error && result && result.event === "success") { 
+                document.getElementById('edit-prod-img').value = result.info.secure_url;
+                document.getElementById('preview-img').src = result.info.secure_url;
+                document.getElementById('preview-img').classList.remove('hidden');
+            }
         });
-    });
+        const btn = document.getElementById("upload_widget");
+        if(btn) btn.addEventListener("click", () => cloudinaryWidget.open(), false);
+    }
+}
 
-    const data = { name, group, fields };
-    
-    if(id) {
-        await updateDoc(doc(db, "templates", id), data);
-        alert("Formulario Actualizado");
-        window.cancelEditTemplate();
+// SESIÓN
+function cargarSesion(d) {
+    usuarioActual = d; localStorage.setItem("fcilog_session", JSON.stringify(d));
+    document.getElementById("pantalla-login").classList.add("hidden");
+    document.getElementById("interfaz-app").classList.remove("hidden");
+    const info = document.getElementById("info-usuario");
+    if(info) info.innerHTML = `<div class="flex flex-col items-center"><div class="w-8 h-8 bg-white border rounded-full flex items-center justify-center text-indigo-500 mb-1"><i class="fas fa-user"></i></div><span class="font-bold text-slate-700">${d.id}</span><span class="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-50 px-2 rounded-full mt-1">${d.rol}</span></div>`;
+    if(['admin','manager'].includes(d.rol)) document.getElementById("btn-admin-stock")?.classList.remove("hidden");
+    configurarMenu(); window.verPagina(['admin','manager','supervisor'].includes(d.rol)?'stats':'stock');
+    activarSincronizacion();
+}
+
+window.iniciarSesion = async () => {
+    const u = document.getElementById("login-user").value.trim().toLowerCase(), p = document.getElementById("login-pass").value.trim();
+    if(!u||!p) return alert("Ingrese datos");
+    if(u==="admin"&&p==="1130") { cargarSesion({id:"admin",rol:"admin"}); return; }
+    try { const s=await getDoc(doc(db,"usuarios",u)); if(s.exists()&&s.data().pass===p) cargarSesion({id:u,...s.data()}); else alert("Datos incorrectos"); } catch(e){alert("Error red");}
+};
+window.cerrarSesion = () => { localStorage.removeItem("fcilog_session"); location.reload(); };
+
+// UI & MENU MÓVIL (CORREGIDO)
+window.verPagina = (id) => {
+    document.querySelectorAll(".view").forEach(v => {v.classList.add("hidden"); v.classList.remove("animate-fade-in")});
+    const t = document.getElementById(`pag-${id}`);
+    if(t){ t.classList.remove("hidden"); setTimeout(()=>t.classList.add("animate-fade-in"),10); }
+    if(window.innerWidth<768) window.toggleMenu(false); // Cerrar menú al navegar
+};
+
+// Función Toggle Menú Corregida
+window.toggleMenu = (forceState) => {
+    const sb = document.getElementById("sidebar");
+    const ov = document.getElementById("sidebar-overlay");
+    const isClosed = sb.classList.contains("-translate-x-full");
+    // Si forceState está definido, úsalo. Si no, invierte el estado actual.
+    const shouldOpen = forceState !== undefined ? forceState : isClosed;
+
+    if (shouldOpen) {
+        sb.classList.remove("-translate-x-full");
+        ov.classList.remove("hidden");
     } else {
-        await addDoc(collection(db, "templates"), data); // Usar ID auto de firebase para evitar conflictos
-        alert("Formulario Publicado");
+        sb.classList.add("-translate-x-full");
+        ov.classList.add("hidden");
     }
-    
-    document.getElementById('type-name').value = "";
-    document.getElementById('admin-fields-builder').innerHTML = "";
-    window.loadTemplates();
 };
 
-window.deleteTemplate = async (id) => { if(confirm("¿Eliminar?")) { await deleteDoc(doc(db,"templates",id)); window.loadTemplates(); }};
+window.switchTab = (tab) => {
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+    document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+    const btnA = document.getElementById('tab-btn-activos'), btnH = document.getElementById('tab-btn-historial');
+    if(tab === 'activos') { btnA.className = "flex-1 py-2 rounded-xl text-sm font-bold transition-all bg-white text-indigo-600 shadow-sm"; btnH.className = "flex-1 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-700 transition-all"; } 
+    else { btnH.className = "flex-1 py-2 rounded-xl text-sm font-bold transition-all bg-white text-indigo-600 shadow-sm"; btnA.className = "flex-1 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-700 transition-all"; }
+};
 
-// --- RENDERIZADO Y USO ---
-window.renderDynamicFields = async () => {
-    const id = document.getElementById('reg-template-select').value;
-    const cont = document.getElementById('dynamic-fields-container');
-    cont.innerHTML = ""; if(!id) return;
-    const d = await getDoc(doc(db, "templates", id));
-    if (d.exists()) {
-        d.data().fields.forEach((f, idx) => {
-            const w = document.createElement('div');
-            w.className = f.type==='signature'?"col-12":"col-md-6"; 
-            let html = "";
-            if(f.type==='select') {
-                const o = f.options.split(',').map(x=>`<option value="${x.trim()}">${x.trim()}</option>`).join('');
-                html = `<select class="form-select dyn-input" data-label="${f.label}"><option value="">--</option>${o}</select>`;
-            } else if(f.type==='checkbox') {
-                html = `<div class="form-check pt-4"><input class="form-check-input dyn-input" type="checkbox" data-label="${f.label}"><label class="form-check-label">${f.label}</label></div>`;
-                w.innerHTML=html; cont.appendChild(w); return;
-            } else if(f.type==='signature') {
-                html = `<label class="fw-bold">${f.label}</label><canvas id="sig-${idx}" class="signature-pad"></canvas>
-                        <button type="button" class="btn btn-sm btn-light border mt-1" onclick="clearCanvas(${idx})">Limpiar</button>
-                        <input type="hidden" class="dyn-input" data-type="signature" data-label="${f.label}" id="inp-${idx}">`;
-            } else {
-                html = `<input type="${f.type}" class="form-control dyn-input" data-label="${f.label}">`;
+function configurarMenu() {
+    const rol = usuarioActual.rol, menu = document.getElementById("menu-dinamico");
+    const i = { st:{id:'stats',n:'Dashboard',i:'chart-pie'}, sk:{id:'stock',n:'Stock',i:'boxes'}, pd:{id:'solicitar',n:'Realizar Pedido',i:'cart-plus'}, pe:{id:'solicitudes',n:'Aprobaciones',i:'clipboard-check'}, hs:{id:'historial',n:'Historial',i:'history'}, us:{id:'usuarios',n:'Accesos',i:'users-cog'}, mp:{id:'notificaciones',n:'Mis Solicitudes',i:'shipping-fast'} };
+    let r = [];
+    if(rol==='admin') r=[i.st,i.sk,i.pd,i.pe,i.hs,i.us,i.mp]; else if(rol==='manager'||rol==='supervisor') r=[i.st,i.sk,i.pd,i.pe,i.hs,i.mp]; else r=[i.sk,i.pd,i.mp];
+    menu.innerHTML = r.map(x => `<button onclick="verPagina('${x.id}')" class="w-full flex items-center gap-3 p-3 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all font-bold text-sm group"><div class="w-8 h-8 rounded-lg bg-slate-50 group-hover:bg-white border border-slate-100 flex items-center justify-center transition-colors"><i class="fas fa-${x.i}"></i></div>${x.n}</button>`).join('');
+}
+
+// NOTIFICACIONES
+async function enviarNotificacionGrupo(tipo, datos) {
+    let config = { to_email: datos.target_email || ADMIN_EMAIL, asunto: "", titulo_principal: "", mensaje_cuerpo: "", fecha: new Date().toLocaleString() };
+    const lista = datos.items ? datos.items.map(i => `• ${i.insumo.toUpperCase()} (x${i.cantidad})`).join('\n') : "";
+
+    switch (tipo) {
+        case 'nuevo_pedido': config.asunto = `📦 Nuevo Pedido de ${datos.usuario}`; config.titulo_principal = "🚀 Solicitud Recibida"; config.mensaje_cuerpo = `El usuario ${datos.usuario} ha solicitado:\n\n${lista}\n\n📍 Sede: ${datos.sede}`; break;
+        case 'aprobado_parcial': config.asunto = `✅ Actualización de Pedido`; config.titulo_principal = "Estado de Solicitud"; config.mensaje_cuerpo = `Hola ${datos.usuario},\n\nSe ha gestionado tu solicitud de:\n\n${lista}\n\nRevisa "Mis Pedidos" para ver el detalle.`; break;
+        case 'stock_bajo': config.asunto = `⚠️ ALERTA STOCK: ${datos.insumo}`; config.titulo_principal = "Stock Crítico"; config.mensaje_cuerpo = `El insumo ${datos.insumo} está bajo mínimos.\nActual: ${datos.actual}\nMínimo: ${datos.minimo}`; break;
+        case 'recibido': config.asunto = `🔵 Entrega Confirmada - ${datos.sede}`; config.titulo_principal = "Recepción Exitosa"; config.mensaje_cuerpo = `El usuario ${datos.usuario} confirmó la recepción de:\n\n• ${datos.insumo} (x${datos.cantidad})`; break;
+    }
+    try { await emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, { asunto: config.asunto, titulo_principal: config.titulo_principal, mensaje_cuerpo: config.mensaje_cuerpo, to_email: config.to_email, fecha: config.fecha }); } catch (e) { console.error(e); }
+}
+
+// PEDIDOS
+window.ajustarCantidad=(i,d)=>{const n=Math.max(0,(carritoGlobal[i]||0)+d); carritoGlobal[i]=n; document.getElementById(`cant-${i}`).innerText=n; document.getElementById(`row-${i}`).classList.toggle("border-indigo-500",n>0);};
+
+window.procesarSolicitudMultiple = async () => {
+    const ubi = document.getElementById("sol-ubicacion").value, items = Object.entries(carritoGlobal).filter(([_, c]) => c > 0);
+    if(!ubi || items.length === 0) return alert("Seleccione sede y productos.");
+    const batchId = Date.now().toString(); 
+    const itemsData = items.map(([ins, cant]) => ({ insumo: ins, cantidad: cant }));
+    await Promise.all(items.map(async ([ins, cant]) => {
+        await addDoc(collection(db, "pedidos"), { usuarioId: usuarioActual.id, insumoNom: ins, cantidad: cant, ubicacion: ubi, estado: "pendiente", fecha: new Date().toLocaleString(), timestamp: Date.now(), batchId: batchId });
+    }));
+    enviarNotificacionGrupo('nuevo_pedido', { usuario: usuarioActual.id, sede: ubi, items: itemsData });
+    alert("✅ Solicitud enviada."); carritoGlobal={}; document.getElementById("sol-ubicacion").value=""; activarSincronizacion(); window.verPagina('notificaciones');
+};
+
+// DASHBOARD FILTRADO
+window.renderDashboard = () => {
+    if (!allPedidos.length) return;
+
+    // Obtener valores de filtros
+    const fFecha = document.getElementById("dash-filtro-fecha").value;
+    const fSede = document.getElementById("dash-filtro-sede").value;
+    const fUser = document.getElementById("dash-filtro-user").value;
+
+    const ahora = new Date();
+    const mesActual = ahora.getMonth();
+    const anoActual = ahora.getFullYear();
+
+    // Filtrar datos
+    const pedidosFiltrados = allPedidos.filter(p => {
+        const pDate = new Date(p.timestamp);
+        // Filtro Fecha
+        let passFecha = true;
+        if (fFecha === 'mes_actual') passFecha = (pDate.getMonth() === mesActual && pDate.getFullYear() === anoActual);
+        if (fFecha === 'mes_anterior') passFecha = (pDate.getMonth() === (mesActual - 1) && pDate.getFullYear() === anoActual); // Simplificado
+        
+        // Filtro Sede
+        const passSede = fSede === 'todas' || p.ubicacion === fSede;
+        // Filtro Usuario
+        const passUser = fUser === 'todos' || p.usuarioId === fUser;
+
+        return passFecha && passSede && passUser;
+    });
+
+    // Calcular Métricas
+    const pendientes = pedidosFiltrados.filter(p => p.estado === 'pendiente').length;
+    const entregados = pedidosFiltrados.filter(p => p.estado === 'recibido' || p.estado === 'aprobado').length;
+
+    // Calcular Datos Gráficas
+    const insumosCount = {};
+    const sedesCount = {};
+
+    pedidosFiltrados.forEach(p => {
+        if (p.estado !== 'rechazado') {
+            insumosCount[p.insumoNom] = (insumosCount[p.insumoNom] || 0) + p.cantidad;
+            sedesCount[p.ubicacion] = (sedesCount[p.ubicacion] || 0) + p.cantidad;
+        }
+    });
+
+    // Top 10 Insumos
+    const topInsumos = Object.entries(insumosCount).sort((a,b) => b[1] - a[1]).slice(0, 10);
+    const labelsIns = topInsumos.map(x => x[0].substring(0,10));
+    const dataIns = topInsumos.map(x => x[1]);
+
+    // Sedes
+    const labelsSedes = Object.keys(sedesCount);
+    const dataSedes = Object.values(sedesCount);
+
+    // Actualizar UI
+    document.getElementById("metrica-entregados").innerText = entregados;
+    document.getElementById("metrica-pendientes").innerText = pendientes;
+
+    // Renderizar Gráficas
+    renderChart('chart-insumos', labelsIns, dataIns, 'Insumos', '#6366f1', stockChart, c => stockChart = c);
+    renderChart('chart-sedes', labelsSedes, dataSedes, 'Sedes', '#10b981', locationChart, c => locationChart = c);
+};
+
+// SINCRONIZACIÓN Y CARGA DE FILTROS
+function activarSincronizacion() {
+    // STOCK
+    onSnapshot(collection(db, "inventario"), snap => {
+        const g=document.getElementById("lista-inventario"), c=document.getElementById("contenedor-lista-pedidos"), d=document.getElementById("lista-sugerencias");
+        if(g)g.innerHTML=""; if(c)c.innerHTML=""; if(d)d.innerHTML="";
+        let tr=0, ts=0;
+        snap.forEach(ds=>{ const p=ds.data(), n=ds.id.toUpperCase(); tr++; ts+=p.cantidad; if(d)d.innerHTML+=`<option value="${n}">`;
+            const adm=['admin','manager'].includes(usuarioActual.rol), acts=adm?`<div class="flex gap-2"><button onclick="prepararEdicionProducto('${ds.id}')" class="text-slate-300 hover:text-indigo-500"><i class="fas fa-cog"></i></button><button onclick="eliminarDato('inventario','${ds.id}')" class="text-slate-300 hover:text-red-400"><i class="fas fa-trash"></i></button></div>`:'';
+            const img=p.imagen?`<img src="${p.imagen}" class="w-12 h-12 object-cover rounded-lg border mb-2">`:`<div class="w-12 h-12 bg-slate-50 rounded-lg border flex items-center justify-center text-slate-300 mb-2"><i class="fas fa-image"></i></div>`;
+            const isLow = (p.stockMinimo && p.cantidad<=p.stockMinimo);
+            const border = isLow ? "border-2 border-red-500 bg-red-50" : "border border-slate-100 bg-white";
+            const price = p.precio ? `<span class="text-xs font-bold text-emerald-600">$${p.precio}</span>` : '';
+            if(g)g.innerHTML+=`<div class="${border} p-4 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col"><div class="flex justify-between items-start">${img}${acts}</div><h4 class="font-bold text-slate-700 text-sm truncate">${n}</h4><div class="flex justify-between items-end mt-1"><p class="text-2xl font-black text-slate-800">${p.cantidad}</p>${price}</div></div>`;
+            if(c&&p.cantidad>0){ const inC=carritoGlobal[ds.id]||0, act=inC>0?"border-indigo-500 bg-indigo-50/50":"border-transparent bg-white"; c.innerHTML+=`<div id="row-${ds.id}" class="flex items-center justify-between p-3 rounded-xl border ${act} transition-all shadow-sm"><div class="flex items-center gap-3 overflow-hidden">${p.imagen?`<img src="${p.imagen}" class="w-8 h-8 rounded-md object-cover">`:''}<div class="truncate"><p class="font-bold text-xs uppercase text-slate-700 truncate">${n}</p><p class="text-[10px] text-slate-400">Disp: ${p.cantidad}</p></div></div><div class="flex items-center gap-2 bg-white rounded-lg p-1 border flex-shrink-0"><button onclick="ajustarCantidad('${ds.id}', -1)" class="w-7 h-7 rounded-md bg-slate-50 font-bold">-</button><span id="cant-${ds.id}" class="w-6 text-center font-bold text-indigo-600 text-sm">${inC}</span><button onclick="ajustarCantidad('${ds.id}', 1)" class="w-7 h-7 rounded-md bg-indigo-50 font-bold" ${inC>=p.cantidad?'disabled':''}>+</button></div></div>`; }
+        });
+        if(document.getElementById("metrica-stock")){ document.getElementById("metrica-total").innerText=tr; document.getElementById("metrica-stock").innerText=ts; }
+    });
+
+    // PEDIDOS (GLOBAL)
+    onSnapshot(collection(db,"pedidos"), s=>{
+        allPedidos = []; // Guardar todo para filtrado
+        let grupos = {}, pendingCount = 0;
+        const sedesSet = new Set(), usersSet = new Set(); // Para llenar selects
+
+        // Elementos UI
+        const lAdmin = document.getElementById("lista-pendientes-admin");
+        const lActive = document.getElementById("tab-content-activos");
+        const lHistory = document.getElementById("tab-content-historial");
+        const tHist = document.getElementById("tabla-historial-body");
+
+        if(lAdmin) lAdmin.innerHTML=""; if(lActive) lActive.innerHTML=""; if(lHistory) lHistory.innerHTML=""; if(tHist) tHist.innerHTML="";
+
+        s.forEach(ds => {
+            const p = ds.data(); p.id = ds.id; allPedidos.push(p);
+            sedesSet.add(p.ubicacion); usersSet.add(p.usuarioId);
+
+            const bKey = p.batchId || p.timestamp;
+            if(!grupos[bKey]) grupos[bKey] = { items:[], user:p.usuarioId, sede:p.ubicacion, date:p.fecha, ts:p.timestamp };
+            grupos[bKey].items.push(p);
+
+            if(p.estado==='pendiente') pendingCount++;
+
+            // Historial Tabla
+            if(p.estado!=='pendiente'&&tHist) tHist.innerHTML+=`<tr class="hover:bg-slate-50"><td class="p-4 text-slate-500">${p.fecha.split(',')[0]}</td><td class="p-4 font-bold uppercase">${p.insumoNom}</td><td class="p-4">x${p.cantidad}</td><td class="p-4 text-indigo-600 font-bold">${p.ubicacion}</td><td class="p-4 text-slate-500">${p.usuarioId}</td><td class="p-4"><span class="badge status-${p.estado}">${p.estado}</span></td></tr>`;
+
+            // Usuario Tabs
+            if(p.usuarioId===usuarioActual.id) {
+                let btns = "";
+                if(p.estado==='aprobado') btns=`<div class="mt-2 flex justify-end gap-2"><button onclick="confirmarRecibido('${p.id}')" class="bg-emerald-500 text-white px-3 py-1 rounded text-xs shadow">Recibir</button><button onclick="abrirIncidencia('${p.id}')" class="bg-white border text-slate-500 px-3 py-1 rounded text-xs">Reportar</button></div>`;
+                if(p.estado==='recibido' || p.estado==='devuelto') btns=`<div class="mt-2 flex justify-end"><button onclick="abrirIncidencia('${p.id}')" class="text-amber-500 text-xs hover:underline flex items-center gap-1"><i class="fas fa-undo"></i> Devolver / Reportar</button></div>`;
+                const card = `<div class="bg-white p-4 rounded-xl border shadow-sm"><div class="flex justify-between"><div><span class="badge status-${p.estado}">${p.estado}</span><h4 class="font-bold text-sm mt-1 uppercase">${p.insumoNom}</h4><p class="text-xs text-slate-400">x${p.cantidad} • ${p.ubicacion}</p></div></div>${btns}</div>`;
+                if(['pendiente','aprobado'].includes(p.estado)) { if(lActive) lActive.innerHTML+=card; } else { if(lHistory) lHistory.innerHTML+=card; }
             }
-            w.innerHTML = f.type!=='signature' ? `<label class="small fw-bold">${f.label}</label>${html}` : html;
-            cont.appendChild(w);
-            if(f.type==='signature') window.initCanvas(idx);
         });
+
+        // Admin Group View
+        if(lAdmin && ['admin','manager','supervisor'].includes(usuarioActual.rol)) {
+            Object.values(grupos).sort((a,b)=>b.ts-a.ts).forEach(g => {
+                const pendingItems = g.items.filter(i=>i.estado==='pendiente');
+                if(pendingItems.length > 0) {
+                    const itemsStr = pendingItems.map(i=>`<span class="bg-slate-100 px-2 py-1 rounded text-xs border">${i.insumoNom} (x${i.cantidad})</span>`).join('');
+                    lAdmin.innerHTML += `<div class="bg-white p-4 rounded-2xl border-l-4 border-l-amber-400 shadow-sm cursor-pointer hover:shadow-md transition" onclick="abrirModalGrupo('${g.items[0].batchId || g.ts}')"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-slate-800 text-sm">${g.user}</h4><span class="text-xs text-slate-400">${g.sede} • ${pendingItems.length} items</span></div><div class="flex flex-wrap gap-1">${itemsStr}</div><div class="mt-2 text-center text-xs text-indigo-500 font-bold">Ver Detalles <i class="fas fa-chevron-right"></i></div></div>`;
+                }
+            });
+        }
+
+        // Llenar selects del Dashboard
+        const selSede = document.getElementById("dash-filtro-sede");
+        const selUser = document.getElementById("dash-filtro-user");
+        if(selSede && selUser) {
+            // Guardar selección actual para no resetearla
+            const currentSede = selSede.value;
+            const currentUser = selUser.value;
+            
+            selSede.innerHTML = '<option value="todas">🏢 Todas las Sedes</option>';
+            sedesSet.forEach(s => selSede.innerHTML += `<option value="${s}">${s}</option>`);
+            selSede.value = currentSede;
+
+            selUser.innerHTML = '<option value="todos">👤 Todos los Usuarios</option>';
+            usersSet.forEach(u => selUser.innerHTML += `<option value="${u}">${u}</option>`);
+            selUser.value = currentUser;
+        }
+
+        // Render inicial del dashboard
+        if(['admin','manager','supervisor'].includes(usuarioActual.rol)) renderDashboard();
+    });
+
+    onSnapshot(collection(db,"entradas_stock"),s=>{const t=document.getElementById("tabla-entradas-body");if(t){t.innerHTML="";let d=[];s.forEach(x=>d.push(x.data()));d.sort((a,b)=>b.timestamp-a.timestamp);d.forEach(e=>{t.innerHTML+=`<tr class="hover:bg-emerald-50/30"><td class="p-4 text-xs">${e.fecha}</td><td class="p-4 font-bold uppercase text-emerald-900">${e.insumo}</td><td class="p-4 font-black text-emerald-600">+${e.cantidad}</td><td class="p-4 text-xs uppercase">${e.usuario}</td></tr>`;});}});
+    if(usuarioActual.rol==='admin') onSnapshot(collection(db,"usuarios"),s=>{const l=document.getElementById("lista-usuarios-db");if(l){l.innerHTML="";s.forEach(d=>{const u=d.data();l.innerHTML+=`<div class="bg-white p-4 rounded-xl border flex justify-between items-center"><div><span class="font-bold">${d.id}</span> <span class="text-[10px] bg-slate-100 px-2 rounded uppercase">${u.rol}</span><br><span class="text-xs text-slate-400">${u.email||'-'}</span></div><div class="flex gap-2"><button onclick="prepararEdicionUsuario('${d.id}','${u.pass}','${u.rol}','${u.email||''}')" class="text-indigo-500"><i class="fas fa-pen"></i></button><button onclick="eliminarDato('usuarios','${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></div></div>`;});}});
+}
+
+// RESTO DE FUNCIONES (Gestión, Modales, Excel - Mantenidos igual)
+window.abrirModalGrupo = (bKey) => {
+    const m = document.getElementById("modal-grupo-admin"), c = document.getElementById("modal-grupo-contenido"), t = document.getElementById("modal-grupo-titulo");
+    const items = pedidosRaw.filter(p => (p.batchId === bKey) || (p.timestamp.toString() === bKey));
+    if(items.length===0) return;
+    t.innerHTML = `${items[0].usuarioId} | ${items[0].ubicacion} | ${items[0].fecha}`; c.innerHTML = "";
+    items.forEach(p => {
+        let act = `<span class="badge status-${p.estado}">${p.estado}</span>`;
+        if(p.estado==='pendiente' && usuarioActual.rol!=='supervisor') {
+            act = `<div class="flex gap-2 items-center"><input type="number" id="qty-${p.id}" value="${p.cantidad}" class="w-12 border rounded text-center p-1"><button onclick="gestionarPedido('${p.id}','aprobar','${p.insumoNom}')" class="text-green-600 bg-green-50 p-2 rounded"><i class="fas fa-check"></i></button><button onclick="gestionarPedido('${p.id}','rechazar')" class="text-red-600 bg-red-50 p-2 rounded"><i class="fas fa-times"></i></button></div>`;
+        }
+        c.innerHTML += `<div class="flex justify-between items-center p-3 border-b last:border-0 hover:bg-slate-50"><div><b class="uppercase text-sm">${p.insumoNom}</b><br><span class="text-xs text-slate-400">Solicitado: ${p.cantidad}</span></div>${act}</div>`;
+    });
+    m.classList.remove("hidden");
+};
+
+window.gestionarPedido = async (pid, accion, ins) => {
+    const pRef = doc(db, "pedidos", pid), pSnap = await getDoc(pRef);
+    if(!pSnap.exists()) return;
+    const pData = pSnap.data();
+    let emailSolicitante = ""; try{const u=await getDoc(doc(db,"usuarios",pData.usuarioId)); if(u.exists()) emailSolicitante=u.data().email;}catch(e){}
+
+    if(accion === 'aprobar') {
+        const inp = document.getElementById(`qty-${pid}`), val = inp?parseInt(inp.value):pData.cantidad;
+        if(val<=0) return alert("Cantidad inválida");
+        const iRef = doc(db, "inventario", ins.toLowerCase()), iSnap = await getDoc(iRef);
+        if(iSnap.exists() && iSnap.data().cantidad >= val) {
+            const newStock = iSnap.data().cantidad - val;
+            await updateDoc(iRef, { cantidad: newStock });
+            await updateDoc(pRef, { estado: "aprobado", cantidad: val });
+            if(emailSolicitante) enviarNotificacionGrupo('aprobado_parcial', { usuario: pData.usuarioId, items: [{insumo:ins, cantidad:val}], target_email: emailSolicitante });
+            if (newStock <= (iSnap.data().stockMinimo||0)) enviarNotificacionGrupo('stock_bajo', { insumo: ins, actual: newStock, minimo: iSnap.data().stockMinimo });
+            const pendientes = pedidosRaw.filter(p => (p.batchId === pData.batchId) && p.estado === 'pendiente' && p.id !== pid);
+            if(pendientes.length === 0) document.getElementById("modal-grupo-admin").classList.add("hidden");
+            else window.abrirModalGrupo(pData.batchId);
+        } else alert("Stock insuficiente");
+    } else {
+        await updateDoc(pRef, { estado: "rechazado" });
+        window.abrirModalGrupo(pData.batchId);
     }
 };
 
-// --- BI & ANALYTICS ---
-// Filtra campos para mostrar SOLO los marcados como "isAnalyzable"
-window.loadTemplateFieldsForBI = async () => {
-    const id = document.getElementById('bi-template-select').value;
-    const sel = document.getElementById('bi-field-select');
-    sel.innerHTML = '<option value="">-- Campo --</option>';
-    if(!id) return;
-    const d = await getDoc(doc(db, "templates", id));
-    if(d.exists()) {
-        d.data().fields.forEach(f => {
-            // Mostrar si es analizable
-            if(f.isAnalyzable) {
-                sel.innerHTML += `<option value="${f.label}">${f.label}</option>`;
-            }
-        });
+window.confirmarRecibido = async (pid) => { 
+    if(confirm("¿Confirmar recepción?")) {
+        const pRef=doc(db,"pedidos",pid), snap=await getDoc(pRef);
+        await updateDoc(pRef, { estado: "recibido" });
+        if(snap.exists()) enviarNotificacionGrupo('recibido', {usuario:usuarioActual.id, items:[{insumo:snap.data().insumoNom, cantidad:snap.data().cantidad}], sede:snap.data().ubicacion});
     }
 };
 
-window.runCustomAnalysis = async () => {
-    const tid = document.getElementById('bi-template-select').value;
-    const fld = document.getElementById('bi-field-select').value;
-    if(!tid || !fld) return alert("Selecciona formulario y campo");
+window.agregarProductoRápido=async()=>{const n=document.getElementById("nombre-prod").value.trim().toUpperCase(), c=parseInt(document.getElementById("cantidad-prod").value); if(n&&c>0){const i=n.toLowerCase(),r=doc(db,"inventario",i),s=await getDoc(r); if(s.exists())await updateDoc(r,{cantidad:s.data().cantidad+c}); else await setDoc(r,{cantidad:c}); await addDoc(collection(db,"entradas_stock"),{insumo:n,cantidad:c,usuario:usuarioActual.id,fecha:new Date().toLocaleString(),timestamp:Date.now()}); cerrarModalInsumo(); document.getElementById("nombre-prod").value=""; document.getElementById("cantidad-prod").value="";}else alert("Datos inválidos");};
+window.prepararEdicionProducto=async(id)=>{const s=await getDoc(doc(db,"inventario",id)); if(!s.exists())return; const d=s.data(); document.getElementById('edit-prod-id').value=id; document.getElementById('edit-prod-precio').value=d.precio||''; document.getElementById('edit-prod-min').value=d.stockMinimo||''; document.getElementById('edit-prod-img').value=d.imagen||''; if(d.imagen)document.getElementById('preview-img').src=d.imagen,document.getElementById('preview-img').classList.remove('hidden'); document.getElementById('modal-detalles').classList.remove('hidden');};
+window.guardarDetallesProducto=async()=>{const id=document.getElementById('edit-prod-id').value, p=parseFloat(document.getElementById('edit-prod-precio').value)||0, m=parseInt(document.getElementById('edit-prod-min').value)||0, i=document.getElementById('edit-prod-img').value; await updateDoc(doc(db,"inventario",id),{precio:p,stockMinimo:m,imagen:i}); cerrarModalDetalles(); alert("Guardado");};
+window.guardarUsuario=async()=>{const id=document.getElementById("new-user").value.trim().toLowerCase(), p=document.getElementById("new-pass").value.trim(), e=document.getElementById("new-email").value.trim(), r=document.getElementById("new-role").value; if(!id||!p)return alert("Faltan datos"); await setDoc(doc(db,"usuarios",id),{pass:p,rol:r,email:e},{merge:true}); alert("Guardado"); cancelarEdicionUsuario();};
+window.prepararEdicionUsuario=(i,p,r,e)=>{document.getElementById("edit-mode-id").value=i; document.getElementById("new-user").value=i; document.getElementById("new-user").disabled=true; document.getElementById("new-pass").value=p; document.getElementById("new-email").value=e||""; document.getElementById("new-role").value=r; document.getElementById("btn-guardar-usuario").innerText="Actualizar"; document.getElementById("cancel-edit-msg").classList.remove("hidden");};
+window.cancelarEdicionUsuario=()=>{document.getElementById("edit-mode-id").value=""; document.getElementById("new-user").value=""; document.getElementById("new-user").disabled=false; document.getElementById("new-pass").value=""; document.getElementById("new-email").value=""; document.getElementById("btn-guardar-usuario").innerText="Guardar"; document.getElementById("cancel-edit-msg").classList.add("hidden");};
+window.abrirModalInsumo=()=>document.getElementById("modal-insumo").classList.remove("hidden"); window.cerrarModalInsumo=()=>document.getElementById("modal-insumo").classList.add("hidden"); window.cerrarModalDetalles=()=>{document.getElementById("modal-detalles").classList.add("hidden"); document.getElementById('preview-img').classList.add('hidden'); document.getElementById('edit-prod-img').value='';}; window.eliminarDato=async(c,i)=>{if(confirm("¿Eliminar?"))await deleteDoc(doc(db,c,i));};
+window.abrirIncidencia=(pid)=>{document.getElementById('incidencia-pid').value=pid;document.getElementById('incidencia-detalle').value="";document.getElementById('modal-incidencia').classList.remove('hidden');};
+window.confirmarIncidencia=async(dev)=>{const pid=document.getElementById('incidencia-pid').value,det=document.getElementById('incidencia-detalle').value.trim();if(!det)return alert("Describa el problema");const pRef=doc(db,"pedidos",pid),pData=(await getDoc(pRef)).data();if(dev){const iRef=doc(db,"inventario",pData.insumoNom.toLowerCase()),iSnap=await getDoc(iRef);if(iSnap.exists())await updateDoc(iRef,{cantidad:iSnap.data().cantidad+pData.cantidad});}await updateDoc(pRef,{estado:dev?"devuelto":"con_incidencia",detalleIncidencia:det});document.getElementById('modal-incidencia').classList.add('hidden');alert("Registrado");};
 
-    let q = query(collection(db, "records"), where("templateId", "==", tid));
-    if(sessionUser.username !== "Admin") q = query(q, where("group", "==", sessionUser.userGroup));
-
-    const snap = await getDocs(q);
-    const data = {};
-    let total = 0;
-
-    snap.forEach(d => {
-        const r = d.data();
-        const item = r.details[fld];
-        let val = item ? item.value : "N/A";
-        if(val===true || val==='on') val = "Sí"; if(val===false) val = "No";
-        data[val] = (data[val] || 0) + 1;
-        total++;
-    });
-    
-    // Render
-    const ctx = document.getElementById('biChart');
-    if(biChart) biChart.destroy();
-    biChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0'] }] },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-
-    document.getElementById('bi-stats-container').innerHTML = Object.entries(data).map(([k,v])=>
-        `<div class="d-flex justify-content-between border-bottom p-2"><span>${k}</span><b>${v}</b></div>`
-    ).join('');
-};
-
-window.loadStats = async () => {
-    const rSnap = await getDocs(collection(db,"records"));
-    const tSnap = await getDocs(collection(db,"templates"));
-    const uSnap = await getDocs(collection(db,"users"));
-    document.getElementById('dash-total').innerText = rSnap.size;
-    document.getElementById('dash-forms').innerText = tSnap.size;
-    document.getElementById('dash-users').innerText = uSnap.size;
-
-    // Gráficos Estáticos (Timeline & Top Users)
-    const timeline={}, users={};
-    rSnap.forEach(doc => {
-        const d = doc.data();
-        const date = d.date.split(',')[0];
-        timeline[date] = (timeline[date] || 0) + 1;
-        users[d.user] = (users[d.user] || 0) + 1;
-    });
-
-    if(chartTimeline) chartTimeline.destroy();
-    chartTimeline = new Chart(document.getElementById('chartTimeline'), {
-        type: 'line',
-        data: { labels: Object.keys(timeline), datasets: [{ label: 'Registros por Día', data: Object.values(timeline), borderColor: '#0d6efd', fill:true, backgroundColor:'rgba(13,110,253,0.1)' }] },
-        options: { maintainAspectRatio: false }
-    });
-
-    if(chartUsers) chartUsers.destroy();
-    chartUsers = new Chart(document.getElementById('chartUsers'), {
-        type: 'bar',
-        data: { labels: Object.keys(users), datasets: [{ label: 'Registros', data: Object.values(users), backgroundColor: '#198754' }] },
-        options: { maintainAspectRatio: false }
-    });
-};
-
-// --- USUARIOS & PERMISOS (Igual que versión anterior) ---
-window.loadUsers = async () => {
-    const term = document.getElementById('search-user') ? document.getElementById('search-user').value.toLowerCase() : "";
-    const list = document.getElementById('users-list');
-    if(!list) return; list.innerHTML = "";
-    const snap = await getDocs(collection(db, "users"));
-    snap.forEach(d => {
-        const u = d.data();
-        if(term && !u.username.toLowerCase().includes(term)) return;
-        list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center"><div><strong>${u.username}</strong> <small>(${u.userGroup})</small></div><div><button class="btn btn-sm btn-outline-primary" onclick="editUser('${d.id}','${u.username}','${u.email}','${u.userGroup}','${u.perms?u.perms.join(','):''}')"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${d.id}')"><i class="bi bi-trash"></i></button></div></li>`;
-    });
-};
-window.editUser = (id,u,e,g,p)=>{document.getElementById('edit-user-id').value=id;document.getElementById('new-username').value=u;document.getElementById('new-email').value=e;document.getElementById('new-user-group-select').value=g;const ps=p?p.split(','):[];['dashboard','registrar','misregistros','admin','historial'].forEach(k=>document.getElementById('perm-'+k).checked=ps.includes(k));document.getElementById('btn-cancel-edit').classList.remove('d-none');document.getElementById('btn-user-submit').innerText="Actualizar";};
-window.cancelEditUser=()=>{document.getElementById('create-user-form').reset();document.getElementById('edit-user-id').value="";document.getElementById('btn-cancel-edit').classList.add('d-none');document.getElementById('btn-user-submit').innerText="Guardar";};
-window.deleteUser=async(id)=>{if(confirm("Eliminar?")){await deleteDoc(doc(db,"users",id));window.loadUsers();}};
-document.getElementById('create-user-form')?.addEventListener('submit',async(e)=>{e.preventDefault();const id=document.getElementById('edit-user-id').value;const u={username:document.getElementById('new-username').value,email:document.getElementById('new-email').value,userGroup:document.getElementById('new-user-group-select').value,perms:[]};const p=document.getElementById('new-password').value;if(p)u.password=p;['dashboard','registrar','misregistros','admin','historial'].forEach(k=>{if(document.getElementById('perm-'+k).checked)u.perms.push(k)});if(id){await updateDoc(doc(db,"users",id),u);window.cancelEditUser();}else{await addDoc(collection(db,"users"),u);e.target.reset();}window.loadUsers();});
-
-// --- HISTORIAL & EXPORTAR ---
-window.loadHistory = async (isAdmin) => {
-    const tb = document.getElementById(isAdmin ? 'historial-table-body' : 'user-history-body');
-    if(!tb) return;
-    let q = query(collection(db,"records"), orderBy("timestamp","desc"));
-    if(!isAdmin) q = query(collection(db,"records"), where("user","==",sessionUser.username), orderBy("timestamp","desc"));
-    
-    try {
-        const s = await getDocs(q); tb.innerHTML = "";
-        s.forEach(d=>{
-            const r = d.data();
-            const safe = encodeURIComponent(JSON.stringify(r.details));
-            const fileIcon = (r.fileUrl && r.fileUrl !== "Sin archivo") ? `<a href="${r.fileUrl}" target="_blank" class="text-danger"><i class="bi bi-paperclip"></i></a>` : '-';
-            let row = `<tr><td>${r.date.split(',')[0]}</td>`;
-            if(isAdmin) row += `<td>${r.user}</td>`;
-            row += `<td>${r.templateName}</td><td>${fileIcon}</td>`;
-            row += isAdmin ? `<td>...</td><td><button class="btn btn-sm btn-info text-white" onclick="viewDetails('${safe}')"><i class="bi bi-eye"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteRecord('${d.id}')"><i class="bi bi-trash"></i></button></td>` : `<td><button class="btn btn-sm btn-info text-white" onclick="viewDetails('${safe}')">Ver</button></td>`;
-            tb.innerHTML += row + '</tr>';
-        });
-    } catch(e){console.error(e);}
-};
-window.deleteRecord = async (id) => { if(confirm("Borrar?")) { await deleteDoc(doc(db,"records",id)); window.loadHistory(true); }};
-window.viewDetails = (safe) => {
-    const data = JSON.parse(decodeURIComponent(safe));
-    const mb = document.getElementById('modal-details-body');
-    mb.innerHTML = "<div class='row g-2'>" + Object.entries(data).map(([k,v])=>`<div class="col-6"><div class="border p-2 rounded"><small class="fw-bold">${k}</small><div>${v.type==='image'?`<img src="${v.value}" class="img-fluid" style="max-height:100px">`:v.value}</div></div></div>`).join('') + "</div>";
-    new bootstrap.Modal(document.getElementById('detailsModal')).show();
-};
-window.exportTableToExcel = (id, name) => {
-    let t = document.getElementById(id).cloneNode(true);
-    const r = t.rows; for(let i=0;i<r.length;i++) if(r[i].cells.length>0) r[i].deleteCell(-1); // Quitar acciones
-    const html = t.outerHTML.replace(/ /g, '%20');
-    const a = document.createElement("a"); a.href = 'data:application/vnd.ms-excel,' + html; a.download = name + '.xls'; a.click();
-};
-window.filterTable = (id, txt) => { document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.innerText.toLowerCase().includes(txt.toLowerCase()) ? '' : 'none'); };
-window.filterTableByDate = () => {
-    const d1 = document.getElementById('filter-date-start').value; const d2 = document.getElementById('filter-date-end').value;
-    document.querySelectorAll('#global-history-table tbody tr').forEach(r => {
-        const d = r.cells[0].innerText.split('/').reverse().join('-'); 
-        let s = true; if(d1 && d < d1) s=false; if(d2 && d > d2) s=false;
-        r.style.display = s ? '' : 'none';
-    });
-};
-
-// Canvas & Login Helpers (Sin cambios mayores, copiar del anterior si hace falta)
-window.initCanvas=(i)=>{const c=document.getElementById(`sig-${i}`);if(!c)return;const x=c.getContext('2d');c.width=c.offsetWidth;c.height=c.offsetHeight;let d=false;c.onmousedown=(e)=>{d=true;x.beginPath();x.moveTo(e.offsetX,e.offsetY)};c.onmousemove=(e)=>{if(d){x.lineTo(e.offsetX,e.offsetY);x.stroke()}};c.onmouseup=()=>d=false;c.ontouchstart=(e)=>{e.preventDefault();d=true;const r=c.getBoundingClientRect();x.beginPath();x.moveTo(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top)};c.ontouchmove=(e)=>{e.preventDefault();if(d){const r=c.getBoundingClientRect();x.lineTo(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);x.stroke()}};c.ontouchend=()=>d=false;};window.clearCanvas=(i)=>{const c=document.getElementById(`sig-${i}`);c.getContext('2d').clearRect(0,0,c.width,c.height);};
-document.getElementById('login-form')?.addEventListener('submit',async(e)=>{e.preventDefault();const u=document.getElementById('login-user').value,p=document.getElementById('login-pass').value;if(u==="Admin"&&p==="1130"){loginSuccess({username:"Admin",group:"admin",userGroup:"IT",perms:['dashboard','registrar','misregistros','admin','historial']});return;}const q=query(collection(db,"users"),where("username","==",u),where("password","==",p));const s=await getDocs(q);if(!s.empty)loginSuccess(s.docs[0].data());else alert("Error");});function loginSuccess(u){localStorage.setItem('user_session',JSON.stringify(u));location.reload();}
-document.getElementById('dynamic-upload-form')?.addEventListener('submit', async(e)=>{e.preventDefault();const tid=document.getElementById('reg-template-select').value,tname=document.getElementById('reg-template-select').options[document.getElementById('reg-template-select').selectedIndex].text;let det={};document.querySelectorAll('.dyn-input').forEach(i=>{const l=i.getAttribute('data-label');let v=i.value,t='text';if(i.type==='checkbox')v=i.checked;if(i.type==='hidden'&&i.id.startsWith('inp-')){const x=i.id.split('-')[1];v=document.getElementById(`sig-${x}`).toDataURL();t='image';}det[l]={type:t,value:v};});const f=document.getElementById('reg-file').files[0];const fu=f?"Archivo adjunto":"Sin archivo";await addDoc(collection(db,"records"),{templateId:tid,templateName:tname,user:sessionUser.username,group:sessionUser.userGroup,date:new Date().toLocaleString(),timestamp:Date.now(),details:det,fileUrl:fu});alert("Guardado");e.target.reset();document.getElementById('dynamic-fields-container').innerHTML="";window.loadStats();});
-
-if(sessionUser){document.getElementById('login-screen').classList.add('d-none');document.getElementById('app-screen').classList.remove('d-none');document.getElementById('user-display').innerText=sessionUser.username;document.getElementById('group-display').innerText=sessionUser.userGroup||"";window.applyPermissions();window.loadGroups();window.loadTemplates();window.loadStats();}
+window.descargarReporte=async()=>{if(!confirm("Descargar Excel?"))return;const[s,e,p]=await Promise.all([getDocs(collection(db,"inventario")),getDocs(collection(db,"entradas_stock")),getDocs(collection(db,"pedidos"))]);let h=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body><h2>STOCK</h2><table border="1"><thead><tr><th>INSUMO</th><th>CANT</th><th>$</th><th>MIN</th></tr></thead><tbody>`;s.forEach(d=>{const x=d.data();h+=`<tr><td>${d.id}</td><td>${x.cantidad}</td><td>${x.precio||0}</td><td>${x.stockMinimo||0}</td></tr>`;});h+=`</tbody></table><h2>PEDIDOS</h2><table border="1"><thead><tr><th>FECHA</th><th>INSUMO</th><th>CANT</th><th>SEDE</th><th>USER</th><th>ESTADO</th></tr></thead><tbody>`;p.forEach(d=>{const x=d.data();h+=`<tr><td>${x.fecha}</td><td>${x.insumoNom}</td><td>${x.cantidad}</td><td>${x.ubicacion}</td><td>${x.usuarioId}</td><td>${x.estado}</td></tr>`;});h+=`</tbody></table></body></html>`;const b=new Blob([h],{type:'application/vnd.ms-excel'}),l=document.createElement("a");l.href=URL.createObjectURL(b);l.download=`FCI_${new Date().toISOString().slice(0,10)}.xls`;document.body.appendChild(l);l.click();document.body.removeChild(l);};
+function renderChart(id,l,d,t,c,i,s){const x=document.getElementById(id);if(!x)return;if(i)i.destroy();s(new Chart(x,{type:'bar',data:{labels:l,datasets:[{label:t,data:d,backgroundColor:c,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}}}}));}
