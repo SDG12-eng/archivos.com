@@ -4,7 +4,7 @@ import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, u
 const firebaseConfig = { apiKey: "AIzaSyA3cRmakg2dV2YRuNV1fY7LE87artsLmB8", authDomain: "mi-web-db.firebaseapp.com", projectId: "mi-web-db", storageBucket: "mi-web-db.appspot.com" };
 const CLOUD_NAME = 'df79cjklp'; const UPLOAD_PRESET = 'insumos'; 
 const EMAIL_SERVICE_ID = 'service_a7yozqh'; const EMAIL_TEMPLATE_ID = 'template_mlcofoo'; const EMAIL_PUBLIC_KEY = '2jVnfkJKKG0bpKN-U'; 
-const ADMIN_EMAIL = 'archivos@fcipty.com'; 
+const ADMIN_EMAIL = 'juniorcede3002@gmail.com'; 
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
