@@ -3,235 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArchiveMaster Pro - BI & Records</title>
+    <title>ArchiveMaster Enterprise - Gestión Integral</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        :root { --primary: #3b82f6; --primary-dark: #1d4ed8; --sidebar-width: 280px; --bg-body: #f1f5f9; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); overflow-x: hidden; }
+        .pointer { cursor: pointer; } .hover-scale:hover { transform: scale(1.05); transition: 0.2s; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .scroll-y { max-height: 500px; overflow-y: auto; }
         
-        :root {
-            --primary: #4338ca;
-            --primary-hover: #3730a3;
-            --sidebar-width: 260px;
-            --bg-color: #f8fafc;
-        }
+        /* Layout */
+        #sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top:0; left:0; background: #0f172a; color: #e2e8f0; z-index: 1000; transition: 0.3s; }
+        #main-content { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; }
+        .nav-link-custom { padding: 12px 20px; margin: 4px 12px; border-radius: 8px; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+        .nav-link-custom:hover, .nav-link-custom.active { background: rgba(255,255,255,0.1); color: white; }
+        .nav-link-custom.active { background: var(--primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: #334155; overflow-x: hidden; }
-        
-        /* Utilidades */
-        .pointer { cursor: pointer; }
-        .transition-all { transition: all 0.3s ease; }
-        .shadow-sm-soft { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .scroll-y { max-height: 400px; overflow-y: auto; }
+        /* UI Elements */
+        .card-custom { border: none; border-radius: 16px; box-shadow: 0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04); background: white; }
+        .card-header-custom { background: transparent; border-bottom: 1px solid #f1f5f9; padding: 20px 25px; font-weight: 700; color: #334155; }
+        .btn-primary-c { background: var(--primary); border: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; color: white; transition: 0.2s; }
+        .btn-primary-c:hover { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .form-control, .form-select { border-radius: 10px; padding: 0.7rem 1rem; border-color: #e2e8f0; }
+        .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); border-color: var(--primary); }
 
-        /* Layout (Sidebar) */
-        #sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            background-color: #1e293b;
-            color: #f8fafc;
-            z-index: 1000;
-            transition: 0.3s;
-        }
-        #main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: 0.3s;
-        }
-        
-        /* Nav Links */
-        .nav-link-custom {
-            color: #94a3b8; padding: 12px 20px; border-radius: 8px; margin: 4px 12px; display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 0.9rem; transition: 0.2s;
-        }
-        .nav-link-custom:hover, .nav-link-custom.active {
-            color: #fff; background-color: rgba(255,255,255,0.1); cursor: pointer;
-        }
-        .nav-link-custom.active { background-color: var(--primary); }
+        /* Badges & Status */
+        .badge-flow { padding: 6px 12px; border-radius: 30px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .st-pendiente { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+        .st-aprobado { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .st-rechazado { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .st-registrado { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+        .priority-alta { border-left: 4px solid #ef4444 !important; }
 
-        /* Badges de Flujo */
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
-        .st-registrado { background: #e2e8f0; color: #475569; }
-        .st-en-revision { background: #fef3c7; color: #d97706; }
-        .st-aprobado { background: #d1fae5; color: #059669; }
-        .st-rechazado { background: #fee2e2; color: #dc2626; }
-
-        /* Formularios y UI */
-        .form-control, .form-select { border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; font-size: 0.9rem; }
-        .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 0.25rem rgba(67, 56, 202, 0.15); }
-        .btn-primary-custom { background-color: var(--primary); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; }
-        .btn-primary-custom:hover { background-color: var(--primary-hover); color: white; }
-
-        /* Login */
-        .login-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        /* Grid Table (Excel Type) */
+        .grid-table th { background: #f8fafc; font-size: 0.8rem; text-transform: uppercase; color: #64748b; }
+        .grid-table input { border: none; background: transparent; width: 100%; padding: 8px; outline: none; }
+        .grid-table input:focus { background: #f1f5f9; }
     </style>
 </head>
 <body>
-
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;" id="toast-container"></div>
 
-    <div id="login-screen" class="container-fluid login-bg d-flex justify-content-center align-items-center vh-100">
-        <div class="card glass-card p-5 shadow-lg border-0 rounded-4" style="width: 400px;">
-            <div class="text-center mb-4">
-                <i class="bi bi-hexagon-fill text-primary" style="font-size: 3rem;"></i>
-                <h3 class="fw-bold text-dark mt-2">ArchiveMaster</h3>
-                <p class="text-muted small">Suite de Gestión y Análisis</p>
+    <div id="login-screen" class="vh-100 d-flex justify-content-center align-items-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+        <div class="card card-custom p-5" style="width: 420px;">
+            <div class="text-center mb-5">
+                <i class="bi bi-boxes fs-1 text-primary"></i>
+                <h3 class="fw-bold mt-3">ArchiveMaster Enterprise</h3>
+                <p class="text-muted">Sistema Integral de Datos y Flujos</p>
             </div>
             <form id="login-form">
                 <div class="form-floating mb-3">
                     <input type="text" class="form-control" id="login-user" placeholder="Usuario" required>
-                    <label for="login-user">Usuario</label>
+                    <label>Usuario</label>
                 </div>
                 <div class="form-floating mb-4">
                     <input type="password" class="form-control" id="login-pass" placeholder="Contraseña" required>
-                    <label for="login-pass">Contraseña</label>
+                    <label>Contraseña</label>
                 </div>
-                <button type="submit" class="btn btn-primary-custom w-100 mb-2">Ingresar al Sistema</button>
+                <button type="submit" class="btn btn-primary-c w-100 py-3">Iniciar Sesión Segura</button>
             </form>
         </div>
     </div>
 
     <div id="app-screen" class="d-none">
-        
-        <aside id="sidebar" class="shadow">
-            <div class="p-4 d-flex align-items-center gap-2 mb-2 border-bottom border-secondary border-opacity-25">
-                <i class="bi bi-hexagon-half fs-4 text-info"></i>
-                <h5 class="mb-0 fw-bold tracking-wide">ArchiveMaster</h5>
+        <aside id="sidebar" class="shadow-lg">
+            <div class="p-4 d-flex align-items-center gap-3 mb-4" style="background: rgba(255,255,255,0.05);">
+                <i class="bi bi-boxes text-primary fs-4"></i>
+                <div><h6 class="mb-0 fw-bold">ArchiveMaster</h6><small style="color: #94a3b8;">Enterprise Ed.</small></div>
             </div>
-            <div class="px-3 pb-2 text-center mt-3 mb-3 border-bottom border-secondary border-opacity-25">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-5 mb-2 shadow" style="width: 50px; height: 50px;" id="avatar-initial">U</div>
-                <h6 class="mb-0 fw-bold" id="user-display">Usuario</h6>
-                <span class="badge bg-secondary opacity-75 mt-1 text-uppercase" id="role-display" style="font-size: 0.65rem;">Rol</span>
+            <div class="px-4 mb-4">
+                <div class="d-flex align-items-center gap-3 p-3 rounded-4" style="background: rgba(255,255,255,0.08);">
+                    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold shadow" style="width: 45px; height: 45px;" id="avatar-initial">U</div>
+                    <div style="line-height: 1.2;"><h6 class="mb-0 fw-bold" id="user-display">Usuario</h6><span class="badge bg-primary bg-opacity-25 text-primary-light" id="role-display" style="font-size: 0.65rem;">ROL</span></div>
+                </div>
             </div>
-            
-            <nav id="menu-dinamico" class="mt-2"></nav>
-
-            <div class="position-absolute bottom-0 w-100 p-3">
-                <button class="btn btn-outline-light w-100 rounded-3 text-start" id="btn-logout"><i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión</button>
+            <nav id="menu-dinamico" class="mt-2 pb-5 scroll-y"></nav>
+            <div class="position-absolute bottom-0 w-100 p-3 bg-dark bg-opacity-50">
+                <button class="btn btn-outline-light w-100 border-0 text-start ps-3" id="btn-logout" style="background: rgba(255,255,255,0.05);"><i class="bi bi-power me-2 text-danger"></i> Cerrar Sesión</button>
             </div>
         </aside>
 
         <main id="main-content">
-            
-            <header class="bg-white shadow-sm-soft py-3 px-4 d-flex justify-content-between align-items-center sticky-top">
-                <h5 class="mb-0 fw-bold text-secondary" id="section-title">Dashboard</h5>
-                <div class="d-flex gap-3 align-items-center">
-                    <span class="text-muted small d-none d-md-block" id="datetime-display"></span>
-                </div>
+            <header class="bg-white py-3 px-4 d-flex justify-content-between align-items-center sticky-top shadow-sm" style="z-index: 900;">
+                <h4 class="mb-0 fw-bold text-dark" id="section-title">Dashboard</h4>
+                <span class="text-muted small fw-semibold" id="datetime-display"></span>
             </header>
 
             <div class="container-fluid p-4">
                 
                 <div id="sec-dashboard" class="content-section d-none">
-                    
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <div class="card border-0 shadow-sm-soft rounded-4 p-4 h-100">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div><p class="text-muted mb-1 fw-bold text-uppercase small">Total Registros</p><h2 class="fw-bold mb-0 text-dark" id="dash-total">0</h2></div>
-                                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-4"><i class="bi bi-layers fs-4"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card border-0 shadow-sm-soft rounded-4 p-4 h-100">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div><p class="text-muted mb-1 fw-bold text-uppercase small">Formularios Activos</p><h2 class="fw-bold mb-0 text-dark" id="dash-plantillas">0</h2></div>
-                                    <div class="bg-success bg-opacity-10 text-success p-3 rounded-4"><i class="bi bi-ui-checks fs-4"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card border-0 shadow-sm-soft rounded-4 p-4 h-100">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div><p class="text-muted mb-1 fw-bold text-uppercase small">Usuarios en Sistema</p><h2 class="fw-bold mb-0 text-dark" id="dash-users">0</h2></div>
-                                    <div class="bg-info bg-opacity-10 text-info p-3 rounded-4"><i class="bi bi-people fs-4"></i></div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3"><div class="card-custom p-4"><h3 id="dash-total">0</h3><small class="text-muted fw-bold">TOTAL REGISTROS</small></div></div>
+                        <div class="col-md-3"><div class="card-custom p-4"><h3 id="dash-tasks">0</h3><small class="text-muted fw-bold">MIS TAREAS PENDIENTES</small></div></div>
                     </div>
-
-                    <div class="card border-0 shadow-sm-soft rounded-4 mb-4">
-                        <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
-                            <h5 class="fw-bold text-primary"><i class="bi bi-pie-chart-fill me-2"></i> Analizador Dinámico de Datos</h5>
-                            <p class="text-muted small">Genera gráficas seleccionando el tipo de formulario y el dato que deseas analizar.</p>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="row g-3 align-items-end mb-4 bg-light p-3 rounded-4 border">
-                                <div class="col-md-5">
-                                    <label class="form-label small fw-bold">1. Seleccionar Formulario</label>
-                                    <select id="bi-template" class="form-select border-0 shadow-sm"></select>
-                                </div>
-                                <div class="col-md-5">
-                                    <label class="form-label small fw-bold">2. Dato a Analizar</label>
-                                    <select id="bi-field" class="form-select border-0 shadow-sm"><option value="">-- Elija formulario primero --</option></select>
-                                </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-primary-custom w-100" id="btn-generate-chart"><i class="bi bi-magic"></i> Graficar</button>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-8 mx-auto" style="height: 350px; position: relative;">
-                                    <canvas id="dynamicChart"></canvas>
-                                    <div id="chart-placeholder" class="position-absolute top-50 start-50 translate-middle text-center text-muted">
-                                        <i class="bi bi-bar-chart fs-1 opacity-50 mb-2"></i>
-                                        <p class="small">Configura los filtros arriba para visualizar los datos</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="alert alert-info border-0 shadow-sm rounded-4"><i class="bi bi-info-circle-fill me-2"></i> Bienvenido al nuevo sistema Enterprise. Ahora los formularios están restringidos por los grupos a los que perteneces.</div>
                 </div>
 
                 <div id="sec-registrar" class="content-section d-none">
-                    <div class="card border-0 shadow-sm-soft rounded-4 mx-auto" style="max-width: 800px;">
-                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0"><h5 class="fw-bold text-primary">Ingreso de Nueva Información</h5></div>
+                    <div class="card-custom mx-auto" style="max-width: 1000px;">
+                        <div class="card-header-custom d-flex justify-content-between">
+                            <span>Nuevo Registro</span>
+                             <small class="text-primary fw-bold"><i class="bi bi-shield-lock"></i> Filtrado por tus Grupos</small>
+                        </div>
                         <div class="card-body p-4">
-                            <label class="form-label small fw-bold text-muted">Tipo de Registro / Formulario</label>
-                            <select id="reg-template-select" class="form-select form-select-lg mb-4 bg-light border-0 shadow-sm"></select>
+                            <select id="reg-template-select" class="form-select form-select-lg mb-4 bg-light border-0 fw-bold text-primary"></select>
                             
-                            <form id="dynamic-upload-form" class="d-none">
-                                <div id="dynamic-fields-container" class="row g-4 mb-4"></div>
-                                
-                                <div class="bg-light p-4 rounded-4 border border-dashed">
-                                    <label class="form-label small fw-bold text-dark"><i class="bi bi-paperclip me-1"></i> Evidencia / Archivo Adjunto (Opcional)</label>
+                            <form id="dynamic-form" class="d-none">
+                                <input type="hidden" id="current-tpl-type">
+                                <div id="standard-fields-container" class="row g-4 mb-4"></div>
+                                <div id="grid-container" class="d-none mb-4">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered grid-table mb-0 bg-white" id="grid-table">
+                                            <thead id="grid-header"></thead>
+                                            <tbody id="grid-body"></tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border mt-2 fw-bold text-primary" id="btn-add-row"><i class="bi bi-plus-lg"></i> Agregar Fila</button>
+                                </div>
+
+                                <div class="bg-light p-3 rounded-4 border border-dashed mb-4">
+                                    <label class="small fw-bold text-muted mb-2"><i class="bi bi-paperclip"></i> Archivo Adjunto (Opcional)</label>
                                     <input type="file" id="reg-file" class="form-control bg-white">
-                                    <input type="hidden" id="reg-file-url">
                                 </div>
-                                
-                                <div class="text-end mt-4">
-                                    <button type="submit" class="btn btn-primary-custom px-5 py-3 shadow"><i class="bi bi-send me-2"></i> Guardar Registro</button>
-                                </div>
+                                <div class="text-end"><button type="submit" class="btn btn-primary-c px-5 py-3 shadow-sm"><i class="bi bi-rocket-takeoff me-2"></i> PROCESAR REGISTRO</button></div>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                <div id="sec-misregistros" class="content-section d-none">
-                    <div class="card border-0 shadow-sm-soft rounded-4">
-                        <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
-                            <h5 class="fw-bold mb-0">Mis Gestiones</h5>
-                            <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" id="btn-export-mis"><i class="bi bi-file-excel me-1"></i> Exportar</button>
-                        </div>
+                <div id="sec-mistareas" class="content-section d-none">
+                    <div class="card-custom">
+                        <div class="card-header-custom">Bandeja de Tareas Asignadas</div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0" id="table-mis-registros">
-                                    <thead class="table-light text-muted small text-uppercase"><tr><th class="ps-4">Fecha</th><th>Tipo</th><th>Datos Resumen</th><th>Adjunto</th><th>Estado</th></tr></thead>
-                                    <tbody id="body-mis-registros"></tbody>
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light text-uppercase small text-muted"><tr><th class="ps-4">Prioridad</th><th>Motivo / Descripción</th><th>Asignado El</th><th>Estado</th><th>Acción</th></tr></thead>
+                                    <tbody id="body-mistareas"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                 <div id="sec-historial" class="content-section d-none">
+                    <div class="card-custom">
+                        <div class="card-header-custom d-flex justify-content-between">
+                            <span>Master Data Global (Todos los Registros)</span>
+                            <button class="btn btn-sm btn-success fw-bold" onclick="exportarTabla('table-global', 'MasterDataEnterprise')"><i class="bi bi-file-excel"></i> Exportar</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+                                <table class="table table-hover align-middle mb-0" id="table-global">
+                                    <thead class="bg-light text-muted small text-uppercase sticky-top"><tr><th class="ps-4">Fecha</th><th>Tipo</th><th>Formulario</th><th>Grupo</th><th>Datos Resumen</th><th>Estado / Flujo</th><th>Gestión</th></tr></thead>
+                                    <tbody id="body-global"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -239,100 +167,104 @@
                 </div>
 
                 <div id="sec-admin" class="content-section d-none">
-                    <div class="row g-4">
-                        
-                        <div class="col-lg-7">
-                            <div class="card border-0 shadow-sm-soft rounded-4 h-100">
-                                <div class="card-body p-4">
-                                    <h5 class="text-primary fw-bold mb-4"><i class="bi bi-tools me-2"></i> Diseñador de Formularios</h5>
-                                    
-                                    <div class="mb-4">
-                                        <input type="text" id="tpl-name" class="form-control form-control-lg bg-light border-0 shadow-sm" placeholder="Nombre del Formulario (Ej. Control de Calidad)">
-                                    </div>
-                                    
-                                    <div class="bg-light border border-dashed rounded-4 p-4 mb-4">
-                                        <h6 class="fw-bold text-muted small mb-3 text-uppercase">Agregar Campo Nuevo</h6>
-                                        <div class="row g-2 align-items-end">
-                                            <div class="col-md-4">
-                                                <input type="text" id="new-field-name" class="form-control" placeholder="Nombre Campo (Ej. Sede)">
+                    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm" style="width: fit-content;">
+                        <li class="nav-item"><button class="nav-link active rounded-pill fw-bold px-4" data-bs-toggle="pill" data-bs-target="#tab-tpls">1. Formularios y Flujos</button></li>
+                        <li class="nav-item"><button class="nav-link rounded-pill fw-bold px-4" data-bs-toggle="pill" data-bs-target="#tab-users">2. Usuarios</button></li>
+                        <li class="nav-item"><button class="nav-link rounded-pill fw-bold px-4" data-bs-toggle="pill" data-bs-target="#tab-groups">3. Grupos de Acceso</button></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tab-tpls">
+                            <div class="row g-4">
+                                <div class="col-lg-8">
+                                    <div class="card-custom h-100">
+                                        <div class="card-header-custom bg-primary text-white"><i class="bi bi-ui-checks-grid me-2"></i> Diseñador de Plantillas</div>
+                                        <div class="card-body p-4">
+                                            <div class="row g-3 mb-4">
+                                                <div class="col-md-6"><input type="text" id="tpl-name" class="form-control fw-bold" placeholder="Nombre de la Plantilla"></div>
+                                                <div class="col-md-3"><select id="tpl-type" class="form-select fw-bold text-primary"><option value="formulario">Tipo: Formulario Estándar</option><option value="excel">Tipo: Grilla (Excel)</option><option value="inventario">Tipo: Inventario</option></select></div>
+                                                <div class="col-md-3"><select id="tpl-group" class="form-select fw-bold"><option value="">- Asignar a Grupo -</option></select></div>
                                             </div>
-                                            <div class="col-md-3">
-                                                <select id="new-field-type" class="form-select">
-                                                    <option value="text">Texto Corto</option>
-                                                    <option value="number">Número</option>
-                                                    <option value="date">Fecha</option>
-                                                    <option value="select">Lista de Opciones</option>
-                                                    <option value="textarea">Área de Texto</option>
+                                            
+                                            <div class="bg-light border border-dashed rounded-4 p-3 mb-4">
+                                                <h6 class="fw-bold small text-muted text-uppercase mb-3">Definir Campos / Columnas</h6>
+                                                <div class="input-group mb-3"><input type="text" id="field-name" class="form-control" placeholder="Nombre del Campo/Columna"><select id="field-type" class="form-select" style="max-width: 150px;"><option value="text">Texto</option><option value="number">Número</option><option value="date">Fecha</option><option value="select">Selector</option><option value="textarea">Área Texto</option></select><button class="btn btn-dark px-4" id="btn-add-field"><i class="bi bi-plus-lg"></i></button></div>
+                                                <input type="text" id="field-options" class="form-control mb-2 d-none bg-white" placeholder="Opciones separadas por coma (ej. A, B, C)">
+                                                <div id="builder-fields-container" class="d-flex flex-wrap gap-2 mt-3"></div>
+                                            </div>
+
+                                            <div class="bg-info bg-opacity-10 border border-info rounded-4 p-4 mb-4">
+                                                <h6 class="fw-bold text-info mb-3"><i class="bi bi-diagram-3-fill me-2"></i> Configurar Flujo de Trabajo Post-Registro</h6>
+                                                <select id="flow-type" class="form-select mb-3 fw-bold">
+                                                    <option value="solo_registro">Solo Registrar (Sin flujo posterior)</option>
+                                                    <option value="aprobacion">Requiere Aprobación (Pasa a estado 'Pendiente')</option>
+                                                    <option value="tarea">Generar Tarea Automática</option>
                                                 </select>
+                                                <div id="flow-task-config" class="d-none row g-3 text-bg-light p-3 rounded border">
+                                                    <div class="col-md-6"><select id="flow-task-user" class="form-select"><option value="">- Asignar Tarea A -</option></select></div>
+                                                    <div class="col-md-6"><select id="flow-task-priority" class="form-select"><option value="baja">Prioridad Baja</option><option value="media" selected>Prioridad Media</option><option value="alta">Prioridad Alta</option></select></div>
+                                                    <div class="col-12"><input type="text" id="flow-task-reason" class="form-control" placeholder="Motivo de la tarea (ej. Validar stock físico)"></div>
+                                                </div>
                                             </div>
-                                            <div class="col-md-3">
-                                                <input type="text" id="new-field-options" class="form-control d-none" placeholder="Opciones (Ej. A, B, C)">
-                                            </div>
-                                            <div class="col-md-2">
-                                                <button class="btn btn-dark w-100" id="btn-add-field"><i class="bi bi-plus-lg"></i></button>
-                                            </div>
+                                            <button class="btn btn-primary-c w-100 py-3 shadow" id="btn-save-tpl">GUARDAR PLANTILLA Y FLUJO</button>
                                         </div>
                                     </div>
-
-                                    <div id="builder-fields" class="mb-4 d-flex flex-wrap gap-2"></div>
-                                    
-                                    <button class="btn btn-primary-custom w-100 shadow" id="btn-save-tpl">PUBLICAR FORMULARIO</button>
-                                    
-                                    <hr class="my-4 text-muted">
-                                    <h6 class="fw-bold text-muted small text-uppercase mb-3">Formularios Existentes</h6>
-                                    <ul id="list-templates" class="list-group list-group-flush scroll-y"></ul>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="card-custom h-100 scroll-y"><div class="card-header-custom">Plantillas Activas</div><div class="card-body p-0"><ul id="list-templates" class="list-group list-group-flush"></ul></div></div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="col-lg-5">
-                            <div class="card border-0 shadow-sm-soft rounded-4 h-100">
-                                <div class="card-body p-4">
-                                    <h5 class="text-primary fw-bold mb-4"><i class="bi bi-shield-lock me-2"></i> Accesos y Usuarios</h5>
-                                    <form id="form-user" class="mb-4 bg-light p-4 rounded-4 border">
-                                        <div class="row g-3 mb-3">
-                                            <div class="col-12"><input type="text" id="usr-id" class="form-control" placeholder="ID Usuario (Ej. jmendoza)" required></div>
-                                            <div class="col-12"><input type="password" id="usr-pass" class="form-control" placeholder="Contraseña de Acceso" required></div>
-                                            <div class="col-12">
-                                                <select id="usr-rol" class="form-select">
-                                                    <option value="usuario">Usuario Estándar (Ingreso)</option>
-                                                    <option value="revisor">Revisor (Aprobar/Rechazar)</option>
-                                                    <option value="admin">Administrador Global</option>
-                                                </select>
-                                            </div>
+
+                        <div class="tab-pane fade" id="tab-users">
+                            <div class="row g-4">
+                                <div class="col-lg-5">
+                                    <div class="card-custom h-100">
+                                        <div class="card-header-custom">Crear / Editar Usuario</div>
+                                        <div class="card-body p-4">
+                                            <form id="form-user">
+                                                <div class="mb-3"><input type="text" id="usr-id" class="form-control" placeholder="ID Usuario (ej. jpereza)" required></div>
+                                                <div class="mb-3"><input type="password" id="usr-pass" class="form-control" placeholder="Contraseña" required></div>
+                                                <div class="mb-3"><select id="usr-rol" class="form-select fw-bold"><option value="usuario">Rol: Usuario Estándar</option><option value="revisor">Rol: Revisor/Gestor</option><option value="admin">Rol: Administrador Global</option></select></div>
+                                                
+                                                <div class="mb-4 bg-light p-3 rounded border">
+                                                    <label class="fw-bold small mb-2 d-block">Asignar Grupos de Acceso (Múltiple)</label>
+                                                    <select id="usr-groups" class="form-select" multiple size="4" style="height: 120px;"></select>
+                                                    <small class="text-muted">Mantén presionado Ctrl/Cmd para seleccionar varios.</small>
+                                                </div>
+                                                
+                                                <div class="mb-4 border-top pt-3">
+                                                    <label class="fw-bold small mb-2">Permisos de Menú</label>
+                                                    <div class="d-flex flex-wrap gap-3"><div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash" checked><label class="form-check-label small" for="p-dash">Dash</label></div><div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked><label class="form-check-label small" for="p-reg">Registrar</label></div><div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="mistareas" id="p-task" checked><label class="form-check-label small" for="p-task">Tareas</label></div><div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist"><label class="form-check-label small" for="p-hist">MasterData</label></div><div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm"><label class="form-check-label small" for="p-adm">Admin</label></div></div>
+                                                </div>
+                                                <button type="submit" class="btn btn-dark w-100 py-2">Guardar Usuario</button>
+                                            </form>
                                         </div>
-                                        <div class="mb-4">
-                                            <label class="small fw-bold d-block text-dark mb-2 border-bottom pb-2">Permisos de Módulos</label>
-                                            <div class="d-flex flex-wrap gap-3">
-                                                <div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash"><label class="form-check-label small" for="p-dash">Dashboard</label></div>
-                                                <div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked><label class="form-check-label small" for="p-reg">Registrar</label></div>
-                                                <div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="misregistros" id="p-mis" checked><label class="form-check-label small" for="p-mis">Mis Registros</label></div>
-                                                <div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist"><label class="form-check-label small" for="p-hist">Master Data</label></div>
-                                                <div class="form-check"><input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm"><label class="form-check-label small" for="p-adm">Admin</label></div>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-dark w-100">Crear / Actualizar Usuario</button>
-                                    </form>
-                                    <h6 class="fw-bold text-muted small text-uppercase mb-3">Directorio</h6>
-                                    <ul id="list-users" class="list-group list-group-flush scroll-y"></ul>
+                                    </div>
+                                </div>
+                                <div class="col-lg-7">
+                                     <div class="card-custom h-100 scroll-y"><div class="card-header-custom">Directorio de Usuarios</div><div class="card-body p-0"><ul id="list-users" class="list-group list-group-flush"></ul></div></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <div id="sec-historial" class="content-section d-none">
-                    <div class="card border-0 shadow-sm-soft rounded-4">
-                        <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
-                            <h5 class="fw-bold mb-0 text-dark">Master Data & Flujos</h5>
-                            <button class="btn btn-sm btn-dark rounded-pill px-3 shadow-sm" id="btn-export-global"><i class="bi bi-cloud-download me-1"></i> Base Completa</button>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0" id="table-global">
-                                    <thead class="table-light text-muted small text-uppercase"><tr><th class="ps-4">Fecha</th><th>Autor</th><th>Formulario</th><th>Datos</th><th>Estado Actual</th><th>Gestión</th></tr></thead>
-                                    <tbody id="body-global"></tbody>
-                                </table>
+                        <div class="tab-pane fade" id="tab-groups">
+                            <div class="row g-4">
+                                <div class="col-md-5">
+                                    <div class="card-custom h-100">
+                                        <div class="card-header-custom bg-dark text-white"><i class="bi bi-people-fill me-2"></i> Nuevo Grupo de Acceso</div>
+                                        <div class="card-body p-4">
+                                            <form id="form-group">
+                                                <div class="mb-3"><input type="text" id="grp-id" class="form-control fw-bold" placeholder="ID Grupo (ej. ventas_norte)" required></div>
+                                                <div class="mb-3"><input type="text" id="grp-name" class="form-control" placeholder="Nombre Descriptivo (ej. Ventas Zona Norte)" required></div>
+                                                <button type="submit" class="btn btn-primary-c w-100">Crear Grupo</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="card-custom h-100 scroll-y"><div class="card-header-custom">Grupos Existentes</div><div class="card-body p-0"><ul id="list-groups" class="list-group list-group-flush"></ul></div></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -344,347 +276,277 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
-        // CONFIGURACIÓN FIREBASE (Usa tus credenciales)
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        
+        // --- CONFIGURACIÓN FIREBASE (REEMPLAZA CON TUS CREDENCIALES REALES) ---
         const firebaseConfig = { apiKey: "AIzaSyA3cRmakg2dV2YRuNV1fY7LE87artsLmB8", authDomain: "mi-web-db.firebaseapp.com", projectId: "mi-web-db", storageBucket: "mi-web-db.appspot.com" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
 
-        // Variables Globales
-        let usuarioActual = null;
-        let camposTemporales = [];
-        let plantillasCache = [];
-        let registrosCache = [];
-        let dashboardChart = null; // Instancia de Chart.js
+        // --- ESTADO GLOBAL ---
+        let currentUser = null; let tempFields = []; let gridColumns = []; 
+        let cache = { templates: [], groups: [], users: [] }; // Caché simple
+        const showToast=(m,t='success')=>{const b=document.getElementById('toast-container');b.innerHTML+=`<div class="toast show align-items-center text-bg-${t} border-0 p-2 mb-2 shadow"><div class="d-flex"><div class="toast-body fw-bold"><i class="bi bi-${t=='success'?'check-circle':'exclamation-triangle'}-fill me-2"></i>${m}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;setTimeout(()=>{b.firstChild?.remove()},3500)};
 
-        // Utilidad: Mostrar Notificaciones Elegantes
-        window.showToast = (msg, type = 'success') => {
-            const container = document.getElementById('toast-container');
-            const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
-            const color = type === 'success' ? 'success' : 'danger';
-            const html = `<div class="toast align-items-center text-bg-${color} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex"><div class="toast-body fw-bold"><i class="bi bi-${icon} me-2"></i>${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>
-            </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-            setTimeout(() => { if(container.lastChild) container.lastChild.remove(); }, 3000);
-        };
-
-        // --- SISTEMA DE SESIÓN ---
+        // --- INICIO Y SESIÓN ---
         window.addEventListener('DOMContentLoaded', () => {
-            setInterval(() => document.getElementById('datetime-display').innerText = new Date().toLocaleString('es-ES', { dateStyle:'medium', timeStyle:'short' }), 1000);
-            const s = localStorage.getItem("archive_session");
-            if(s) iniciarApp(JSON.parse(s));
+            setInterval(()=>document.getElementById('datetime-display').innerText=new Date().toLocaleString(),1000);
+            const s = localStorage.getItem("am_enterprise_session"); if(s) initApp(JSON.parse(s));
         });
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const u = document.getElementById("login-user").value.trim().toLowerCase();
-            const p = document.getElementById("login-pass").value.trim();
-            
-            if(u === "admin" && p === "1130") { 
-                iniciarApp({ id: "admin", rol: "admin", accesos: ["dashboard", "registrar", "misregistros", "historial", "admin"] }); 
-                return; 
-            }
-
-            try { 
-                const s = await getDoc(doc(db, "am_usuarios", u)); 
-                if(s.exists() && s.data().pass === p) iniciarApp({ id: u, ...s.data() }); 
-                else showToast("Credenciales incorrectas", "danger"); 
-            } catch(e) { showToast("Error de conexión", "danger"); }
+        document.getElementById('login-form').addEventListener('submit', async e => { e.preventDefault();
+            const u=document.getElementById("login-user").value.trim().toLowerCase(), p=document.getElementById("login-pass").value.trim();
+            if(u==="admin"&&p==="1130"){ initApp({id:"admin",rol:"admin",accesos:["dashboard","registrar","mistareas","historial","admin"], grupos:[]}); return; }
+            try { const s=await getDoc(doc(db,"am_usuarios",u)); if(s.exists()&&s.data().pass===p) initApp({id:u,...s.data()}); else showToast("Error de credenciales","danger");
+            } catch(e){showToast("Error de conexión","danger");}
         });
-
-        document.getElementById('btn-logout').addEventListener('click', () => { localStorage.removeItem("archive_session"); location.reload(); });
-
-        function iniciarApp(userData) {
-            usuarioActual = userData;
-            localStorage.setItem("archive_session", JSON.stringify(userData));
-            
-            document.getElementById("login-screen").classList.add("d-none");
-            document.getElementById("app-screen").classList.remove("d-none");
-            
-            document.getElementById("user-display").innerText = userData.id;
-            document.getElementById("avatar-initial").innerText = userData.id.charAt(0).toUpperCase();
-            document.getElementById("role-display").innerText = userData.rol;
-
-            construirMenu(userData.accesos || []);
-            if(userData.accesos.length > 0) verSeccion(userData.accesos[0]);
-            
-            activarListenersBD();
+        document.getElementById('btn-logout').addEventListener('click',()=>{localStorage.removeItem("am_enterprise_session");location.reload()});
+        function initApp(u){ currentUser=u; localStorage.setItem("am_enterprise_session",JSON.stringify(u));
+            document.getElementById("login-screen").classList.add("d-none"); document.getElementById("app-screen").classList.remove("d-none");
+            document.getElementById("user-display").innerText=u.id; document.getElementById("role-display").innerText=u.rol; document.getElementById("avatar-initial").innerText=u.id[0].toUpperCase();
+            buildMenu(u.accesos||[]); if(u.accesos.length>0) navigateTo(u.accesos[0]);
+            startRealtimeListeners();
         }
 
         // --- NAVEGACIÓN ---
-        const seccionesConfig = {
-            dashboard: { id: 'sec-dashboard', nom: 'Dashboard & BI', icon: 'pie-chart' },
-            registrar: { id: 'sec-registrar', nom: 'Registrar Datos', icon: 'plus-square' },
-            misregistros: { id: 'sec-misregistros', nom: 'Mis Gestiones', icon: 'journal-text' },
-            historial: { id: 'sec-historial', nom: 'Master Data', icon: 'database' },
-            admin: { id: 'sec-admin', nom: 'Panel Admin', icon: 'gear' }
-        };
+        const navMap={dashboard:{id:'sec-dashboard',n:'Tablero Principal',i:'speedometer2'},registrar:{id:'sec-registrar',n:'Registrar Datos',i:'plus-square-dotted'},mistareas:{id:'sec-mistareas',n:'Mis Tareas Pendientes',i:'list-check'},historial:{id:'sec-historial',n:'Master Data Global',i:'database-lock'},admin:{id:'sec-admin',n:'Panel de Control Total',i:'sliders2-vertical'}};
+        function buildMenu(acc){ document.getElementById("menu-dinamico").innerHTML = acc.map(a=>navMap[a]?`<div class="nav-link-custom pointer" id="nav-${a}" onclick="navigateTo('${a}')"><i class="bi bi-${navMap[a].i} fs-5"></i><span>${navMap[a].n}</span></div>`:'').join(''); }
+        window.navigateTo=(sId)=>{ document.querySelectorAll(".content-section").forEach(e=>e.classList.add("d-none")); document.querySelectorAll(".nav-link-custom").forEach(e=>e.classList.remove("active"));
+        document.getElementById(navMap[sId].id).classList.remove("d-none"); document.getElementById(`nav-${sId}`)?.classList.add("active"); document.getElementById("section-title").innerText=navMap[sId].n; }
 
-        function construirMenu(accesos) {
-            const menu = document.getElementById("menu-dinamico");
-            menu.innerHTML = accesos.map(acc => {
-                if(!seccionesConfig[acc]) return '';
-                const s = seccionesConfig[acc];
-                return `<a class="nav-link-custom text-decoration-none" id="nav-${acc}" onclick="verSeccion('${acc}')"><i class="bi bi-${s.icon} fs-5"></i> <span>${s.nom}</span></a>`;
-            }).join('');
-        }
+        // ================= PANEL ADMIN (BUILDERS) =================
 
-        window.verSeccion = (idSeccion) => {
-            document.querySelectorAll(".content-section").forEach(el => el.classList.add("d-none"));
-            document.querySelectorAll(".nav-link-custom").forEach(el => el.classList.remove("active"));
-            
-            document.getElementById(seccionesConfig[idSeccion].id).classList.remove("d-none");
-            const navBtn = document.getElementById(`nav-${idSeccion}`);
-            if(navBtn) navBtn.classList.add("active");
-            
-            document.getElementById("section-title").innerText = seccionesConfig[idSeccion].nom;
-        };
-
-        // --- CONSTRUCTOR DE FORMULARIOS ---
-        document.getElementById('new-field-type').addEventListener('change', (e) => {
-            const optInput = document.getElementById('new-field-options');
-            if(e.target.value === 'select') optInput.classList.remove('d-none'); else optInput.classList.add('d-none');
+        // --- GESTIÓN DE GRUPOS ---
+        document.getElementById('form-group').addEventListener('submit', async e => { e.preventDefault();
+            const id=document.getElementById('grp-id').value.trim(), nom=document.getElementById('grp-name').value.trim();
+            await setDoc(doc(db,"am_grupos",id),{nombre:nom}); showToast("Grupo creado"); e.target.reset();
         });
+        window.delGroup=async id=>{if(confirm("¿Eliminar grupo?"))await deleteDoc(doc(db,"am_grupos",id))};
 
-        document.getElementById('btn-add-field').addEventListener('click', () => {
-            const name = document.getElementById('new-field-name').value.trim();
-            const type = document.getElementById('new-field-type').value;
-            const options = document.getElementById('new-field-options').value.trim();
-            if(!name) return;
-            camposTemporales.push({ name, type, options: type === 'select' ? options.split(',').map(o=>o.trim()) : [] });
-            renderBuilderFields();
-            document.getElementById('new-field-name').value = ''; document.getElementById('new-field-options').value = '';
+        // --- CONSTRUCTOR DE PLANTILLAS Y FLUJOS ---
+        document.getElementById('field-type').addEventListener('change',e=>{document.getElementById('field-options').classList.toggle('d-none',e.target.value!=='select')});
+        document.getElementById('btn-add-field').addEventListener('click',()=>{
+            const n=document.getElementById('field-name').value.trim(), t=document.getElementById('field-type').value, o=document.getElementById('field-options').value.trim();
+            if(!n)return; tempFields.push({name:n,type:t,options:t==='select'?o.split(',').map(x=>x.trim()):[]}); renderBuilderFields(); 
+            document.getElementById('field-name').value='';document.getElementById('field-options').value='';
         });
-
-        function renderBuilderFields() {
-            const container = document.getElementById('builder-fields');
-            container.innerHTML = camposTemporales.map((c, i) => `
-                <div class="bg-white border rounded-pill px-3 py-2 shadow-sm fs-7 d-flex align-items-center gap-2">
-                    <span class="fw-bold text-dark">${c.name}</span> <span class="text-muted small">(${c.type})</span>
-                    <i class="bi bi-x-circle-fill text-danger pointer ms-1 hover-scale" onclick="removerCampo(${i})"></i>
-                </div>
-            `).join('');
-        }
-        window.removerCampo = (index) => { camposTemporales.splice(index, 1); renderBuilderFields(); };
-
-        document.getElementById('btn-save-tpl').addEventListener('click', async () => {
-            const name = document.getElementById('tpl-name').value.trim();
-            if(!name || camposTemporales.length === 0) return showToast("Falta nombre o campos", "danger");
-            await addDoc(collection(db, "am_plantillas"), { nombre: name, campos: camposTemporales, timestamp: Date.now() });
-            document.getElementById('tpl-name').value = ''; camposTemporales = []; renderBuilderFields();
-            showToast("Formulario Creado Exitosamente");
-        });
-
-        // --- REGISTRO DE DATOS (DATA ENTRY) ---
-        document.getElementById('reg-template-select').addEventListener('change', (e) => {
-            const form = document.getElementById('dynamic-upload-form');
-            const container = document.getElementById('dynamic-fields-container');
-            const tplId = e.target.value;
-            if(!tplId) { form.classList.add('d-none'); return; }
+        function renderBuilderFields(){ document.getElementById('builder-fields-container').innerHTML = tempFields.map((f,i)=>`<span class="badge bg-white border text-dark p-2"><i class="bi bi-input-cursor-text me-1 text-primary"></i>${f.name} (${f.type}) <i class="bi bi-x text-danger pointer ms-2" onclick="tempFields.splice(${i},1);renderBuilderFields()"></i></span>`).join(''); }
+        
+        document.getElementById('flow-type').addEventListener('change',e=>{document.getElementById('flow-task-config').classList.toggle('d-none',e.target.value!=='tarea')});
+        
+        document.getElementById('btn-save-tpl').addEventListener('click', async ()=>{
+            const nom=document.getElementById('tpl-name').value.trim(), tipo=document.getElementById('tpl-type').value, grp=document.getElementById('tpl-group').value, flowT=document.getElementById('flow-type').value;
+            if(!nom || !grp || tempFields.length===0) return showToast("Falta nombre, grupo o campos","danger");
             
-            const tpl = plantillasCache.find(p => p.id === tplId);
-            form.classList.remove('d-none');
-            
-            container.innerHTML = tpl.campos.map(c => {
-                let inputHtml = '';
-                if(c.type === 'textarea') inputHtml = `<textarea class="form-control bg-light border-0 dyn-field" data-name="${c.name}" rows="3" required></textarea>`;
-                else if (c.type === 'select') inputHtml = `<select class="form-select bg-light border-0 dyn-field" data-name="${c.name}" required><option value="">- Seleccione -</option>${c.options.map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`;
-                else inputHtml = `<input type="${c.type}" class="form-control bg-light border-0 dyn-field" data-name="${c.name}" required>`;
-                
-                return `<div class="${c.type === 'textarea' ? 'col-12' : 'col-md-6'}">
-                    <label class="form-label small fw-bold text-dark">${c.name}</label>${inputHtml}
-                </div>`;
-            }).join('');
-        });
-
-        document.getElementById('reg-file').addEventListener('change', e => { if(e.target.files[0]) document.getElementById('reg-file-url').value = e.target.files[0].name; });
-
-        document.getElementById('dynamic-upload-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
-            
-            const tplId = document.getElementById('reg-template-select').value;
-            const tpl = plantillasCache.find(p => p.id === tplId);
-            let datos = {}; document.querySelectorAll('.dyn-field').forEach(el => datos[el.dataset.name] = el.value);
-            
-            await addDoc(collection(db, "am_registros"), {
-                usuarioId: usuarioActual.id, plantillaId: tplId, plantillaNombre: tpl.nombre, datos: datos,
-                adjunto: document.getElementById('reg-file-url').value || null, estado: "Registrado", fecha: new Date().toLocaleString(), timestamp: Date.now()
-            });
-
-            showToast("Datos registrados correctamente");
-            e.target.reset(); document.getElementById('dynamic-upload-form').classList.add('d-none'); document.getElementById('reg-template-select').value = "";
-            btn.disabled = false;
-        });
-
-        // --- GESTIÓN DE ESTADOS Y DB ---
-        window.cambiarEstado = async (regId, nuevoEstado) => await updateDoc(doc(db, "am_registros", regId), { estado: nuevoEstado });
-        window.eliminarRegistro = async (regId) => { if(confirm("¿Eliminar registro?")) await deleteDoc(doc(db, "am_registros", regId)); };
-        window.eliminarPlantilla = async (id) => { if(confirm("¿Eliminar formulario?")) await deleteDoc(doc(db, "am_plantillas", id)); };
-        window.eliminarUsuario = async (id) => { if(confirm("¿Eliminar usuario?")) await deleteDoc(doc(db, "am_usuarios", id)); };
-
-        document.getElementById('form-user').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('usr-id').value.trim().toLowerCase();
-            const pass = document.getElementById('usr-pass').value.trim();
-            let accesos = []; document.querySelectorAll('.perm-chk:checked').forEach(chk => accesos.push(chk.value));
-            await setDoc(doc(db, "am_usuarios", id), { pass, rol: document.getElementById('usr-rol').value, accesos }, { merge: true });
-            showToast("Usuario guardado/actualizado"); e.target.reset();
-        });
-
-        // --- BI ENGINE (DASHBOARDS DINÁMICOS) ---
-        // 1. Al seleccionar plantilla en el Analizador, cargar sus campos
-        document.getElementById('bi-template').addEventListener('change', (e) => {
-            const selField = document.getElementById('bi-field');
-            selField.innerHTML = '<option value="">-- Seleccione Dato --</option>';
-            const tplId = e.target.value;
-            if(!tplId) return;
-            
-            const tpl = plantillasCache.find(p => p.id === tplId);
-            // Solo permitimos graficar datos agrupables (selects, numeros, textos cortos)
-            const graficables = tpl.campos.filter(c => c.type !== 'textarea');
-            
-            graficables.forEach(c => {
-                selField.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-            });
-            selField.innerHTML += `<option value="ESTADO_SISTEMA">Estado del Flujo (Sistema)</option>`; // Dato por defecto
-        });
-
-        // 2. Procesar datos y dibujar gráfica
-        document.getElementById('btn-generate-chart').addEventListener('click', () => {
-            const tplId = document.getElementById('bi-template').value;
-            const fieldName = document.getElementById('bi-field').value;
-            if(!tplId || !fieldName) return showToast("Seleccione formulario y dato", "danger");
-
-            document.getElementById('chart-placeholder').classList.add('d-none');
-
-            // Filtrar registros por la plantilla seleccionada
-            const registrosFiltrados = registrosCache.filter(r => r.plantillaId === tplId);
-            
-            // Agrupar y contar
-            const conteo = {};
-            registrosFiltrados.forEach(r => {
-                let valor = fieldName === "ESTADO_SISTEMA" ? r.estado : (r.datos[fieldName] || 'Sin Dato');
-                conteo[valor] = (conteo[valor] || 0) + 1;
-            });
-
-            const labels = Object.keys(conteo);
-            const data = Object.values(conteo);
-
-            // Colores vibrantes
-            const colors = ['#4338ca', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
-
-            if(dashboardChart) dashboardChart.destroy();
-            
-            const ctx = document.getElementById('dynamicChart').getContext('2d');
-            dashboardChart = new Chart(ctx, {
-                type: 'bar', // Puede ser 'pie' o 'doughnut'
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: `Cantidad por ${fieldName}`,
-                        data: data,
-                        backgroundColor: colors,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                }
-            });
-        });
-
-        // --- SINCRONIZACIÓN FIREBASE (REALTIME) ---
-        function activarListenersBD() {
-            // Plantillas
-            onSnapshot(collection(db, "am_plantillas"), snap => {
-                plantillasCache = [];
-                const selectReg = document.getElementById("reg-template-select");
-                const selectBI = document.getElementById("bi-template");
-                const lista = document.getElementById("list-templates");
-                
-                selectReg.innerHTML = '<option value="">-- Seleccionar --</option>';
-                selectBI.innerHTML = '<option value="">-- Seleccionar Formulario --</option>';
-                lista.innerHTML = '';
-                
-                snap.forEach(doc => {
-                    const d = doc.data(); d.id = doc.id; plantillasCache.push(d);
-                    const opt = `<option value="${d.id}">${d.nombre}</option>`;
-                    selectReg.innerHTML += opt; selectBI.innerHTML += opt;
-                    lista.innerHTML += `<li class="list-group-item bg-transparent d-flex justify-content-between align-items-center border-bottom border-light px-0 py-3">
-                        <span class="fw-bold text-dark"><i class="bi bi-file-text text-primary me-2"></i> ${d.nombre}</span> 
-                        <button class="btn btn-sm btn-light text-danger rounded-circle p-2 shadow-sm border" onclick="eliminarPlantilla('${d.id}')"><i class="bi bi-trash"></i></button>
-                    </li>`;
-                });
-                if(document.getElementById("dash-plantillas")) document.getElementById("dash-plantillas").innerText = plantillasCache.length;
-            });
-
-            // Usuarios (Solo Admin)
-            if(usuarioActual.rol === 'admin') {
-                onSnapshot(collection(db, "am_usuarios"), snap => {
-                    const l = document.getElementById("list-users"); l.innerHTML = ''; let c = 0;
-                    snap.forEach(doc => {
-                        const u = doc.data(); c++;
-                        l.innerHTML += `<li class="list-group-item bg-transparent d-flex justify-content-between align-items-center border-bottom border-light px-0 py-3">
-                            <div><strong class="text-dark">${doc.id}</strong> <span class="badge bg-primary bg-opacity-10 text-primary ms-2 text-uppercase" style="font-size:0.6rem">${u.rol}</span></div>
-                            <button class="btn btn-sm btn-light text-danger rounded-circle p-2 shadow-sm border" onclick="eliminarUsuario('${doc.id}')"><i class="bi bi-trash"></i></button>
-                        </li>`;
-                    });
-                    document.getElementById("dash-users").innerText = c + 1; // Sumamos la cuenta admin local
-                });
+            const flujoConfig = { tipo: flowT };
+            if(flowT === 'tarea') {
+                flujoConfig.asignadoA = document.getElementById('flow-task-user').value;
+                flujoConfig.prioridad = document.getElementById('flow-task-priority').value;
+                flujoConfig.motivo = document.getElementById('flow-task-reason').value;
+                if(!flujoConfig.asignadoA) return showToast("Seleccione usuario para la tarea","danger");
             }
 
-            // Registros
-            onSnapshot(collection(db, "am_registros"), snap => {
-                registrosCache = []; let total = 0;
-                const tbodyMis = document.getElementById("body-mis-registros"), tbodyGlobal = document.getElementById("body-global");
-                tbodyMis.innerHTML = ''; tbodyGlobal.innerHTML = '';
+            await addDoc(collection(db,"am_plantillas"), { nombre:nom, tipo, grupoId:grp, campos:tempFields, flujoConfig, timestamp:Date.now() });
+            showToast("Plantilla y Flujo guardados Exitosamente");
+            document.getElementById('tpl-name').value=''; tempFields=[]; renderBuilderFields(); document.getElementById('flow-task-reason').value='';
+        });
+        window.delTpl=async id=>{if(confirm("¿Eliminar plantilla?"))await deleteDoc(doc(db,"am_plantillas",id))};
 
-                snap.forEach(docSnap => {
-                    const r = docSnap.data(); r.id = docSnap.id; registrosCache.push(r); total++;
-                    
-                    const keys = Object.keys(r.datos);
-                    let resumenHtml = keys.slice(0, 2).map(k => `<span class="badge bg-light text-dark border me-1 fw-normal">${k}: <b>${r.datos[k]}</b></span>`).join('');
-                    const adj = r.adjunto ? `<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25"><i class="bi bi-paperclip"></i> Adjunto</span>` : '<span class="text-muted small">-</span>';
-                    
-                    const clsEstado = r.estado === 'Registrado' ? 'st-registrado' : (r.estado === 'En Revisión' ? 'st-en-revision' : (r.estado === 'Aprobado' ? 'st-aprobado' : 'st-rechazado'));
-                    const badgeHtml = `<span class="status-badge ${clsEstado}">${r.estado}</span>`;
+        // --- GESTIÓN DE USUARIOS ---
+        document.getElementById('form-user').addEventListener('submit', async e => { e.preventDefault();
+            const id=document.getElementById('usr-id').value.trim().toLowerCase(), pass=document.getElementById('usr-pass').value.trim(), rol=document.getElementById('usr-rol').value;
+            let accesos=[], grupos=[];
+            document.querySelectorAll('.perm-chk:checked').forEach(c=>accesos.push(c.value));
+            Array.from(document.getElementById('usr-groups').selectedOptions).forEach(o=>grupos.push(o.value));
+            await setDoc(doc(db,"am_usuarios",id),{pass,rol,accesos,grupos},{merge:true}); showToast("Usuario actualizado"); e.target.reset();
+        });
+        window.delUser=async id=>{if(confirm("¿Eliminar usuario?"))await deleteDoc(doc(db,"am_usuarios",id))};
 
-                    // Llenar "Mis Registros"
-                    if(r.usuarioId === usuarioActual.id) {
-                        tbodyMis.innerHTML += `<tr><td class="ps-4"><small class="text-muted fw-bold">${r.fecha.split(',')[0]}</small></td><td class="fw-bold text-dark">${r.plantillaNombre}</td><td>${resumenHtml}</td><td>${adj}</td><td>${badgeHtml}</td></tr>`;
-                    }
 
-                    // Llenar "Master Data"
-                    if(['admin', 'revisor'].includes(usuarioActual.rol)) {
-                        let acciones = '';
-                        if(r.estado === 'Registrado') acciones = `<button class="btn btn-sm btn-warning text-dark fw-bold px-3 py-1 me-1 shadow-sm" onclick="cambiarEstado('${r.id}', 'En Revisión')">Revisar</button>`;
-                        else if(r.estado === 'En Revisión') acciones = `<button class="btn btn-sm btn-success fw-bold px-3 py-1 me-1 shadow-sm" onclick="cambiarEstado('${r.id}', 'Aprobado')">Aprobar</button><button class="btn btn-sm btn-danger fw-bold px-3 py-1 shadow-sm" onclick="cambiarEstado('${r.id}', 'Rechazado')">Rechazar</button>`;
-                        
-                        if(usuarioActual.rol === 'admin') acciones += `<button class="btn btn-sm btn-light text-danger border ms-2 shadow-sm" onclick="eliminarRegistro('${r.id}')"><i class="bi bi-trash"></i></button>`;
+        // ================= ZONA DE USUARIO (REGISTRO & TAREAS) =================
 
-                        tbodyGlobal.innerHTML += `<tr><td class="ps-4"><small class="text-muted fw-bold">${r.fecha.split(',')[0]}</small></td><td><div class="d-flex align-items-center gap-2"><div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:28px;height:28px;font-size:0.7rem">${r.usuarioId.charAt(0).toUpperCase()}</div><span class="fw-bold text-dark small">${r.usuarioId}</span></div></td><td><span class="badge bg-light text-primary border">${r.plantillaNombre}</span></td><td>${resumenHtml}</td><td>${badgeHtml}</td><td>${acciones || '<span class="text-muted small fw-bold">FINALIZADO</span>'}</td></tr>`;
-                    }
+        // --- RENDERIZADO DINÁMICO DEL FORMULARIO DE REGISTRO ---
+        document.getElementById('reg-template-select').addEventListener('change', e => {
+            const tplId = e.target.value; const form=document.getElementById('dynamic-form');
+            if(!tplId){form.classList.add('d-none');return;} form.classList.remove('d-none');
+            
+            const tpl = cache.templates.find(t=>t.id===tplId);
+            document.getElementById('current-tpl-type').value = tpl.tipo;
+            gridColumns = tpl.campos; // Para uso en grilla
+            
+            const stdContainer = document.getElementById('standard-fields-container');
+            const gridContainer = document.getElementById('grid-container');
+
+            if(tpl.tipo === 'formulario' || tpl.tipo === 'inventario') {
+                gridContainer.classList.add('d-none');
+                // Render Standard/Inventory inputs
+                stdContainer.innerHTML = tpl.campos.map(c => {
+                    let inputHtml = c.type==='textarea' ? `<textarea class="form-control bg-light dyn-field" data-name="${c.name}" rows="2" required></textarea>` :
+                                    (c.type==='select' ? `<select class="form-select bg-light dyn-field" data-name="${c.name}" required><option value="">-Sel-</option>${c.options.map(o=>`<option>${o}</option>`).join('')}</select>` :
+                                    `<input type="${c.type}" class="form-control bg-light dyn-field" data-name="${c.name}" required>`);
+                    return `<div class="col-md-6"><label class="form-label small fw-bold">${c.name}</label>${inputHtml}</div>`;
+                }).join('');
+            } else if (tpl.tipo === 'excel') {
+                stdContainer.innerHTML = ''; gridContainer.classList.remove('d-none');
+                // Render Grid Headers
+                document.getElementById('grid-header').innerHTML = `<tr>${tpl.campos.map(c=>`<th>${c.name}</th>`).join('')}<th></th></tr>`;
+                document.getElementById('grid-body').innerHTML = ''; // Limpiar filas
+                addGridRow(); // Agregar primera fila por defecto
+            }
+        });
+
+        // Funciones para la Grilla (Tipo Excel)
+        window.addGridRow = () => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = gridColumns.map(c => `<td><input type="${c.type==='number'?'number':'text'}" class="grid-input" data-col="${c.name}" placeholder="..."></td>`).join('') + 
+                           `<td class="text-center"><i class="bi bi-x-circle-fill text-danger pointer" onclick="this.closest('tr').remove()"></i></td>`;
+            document.getElementById('grid-body').appendChild(tr);
+        };
+        document.getElementById('btn-add-row').addEventListener('click', addGridRow);
+
+        // --- PROCESAMIENTO DEL REGISTRO & MOTOR DE FLUJO ---
+        document.getElementById('dynamic-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
+
+            const tplId = document.getElementById('reg-template-select').value;
+            const tpl = cache.templates.find(t => t.id === tplId);
+            const tipoRegistro = document.getElementById('current-tpl-type').value;
+            let datosForm = {}, datosExcel = [];
+
+            // Recolección de Datos según tipo
+            if(tipoRegistro === 'excel') {
+                document.querySelectorAll('#grid-body tr').forEach(tr => {
+                    let fila = {};
+                    tr.querySelectorAll('.grid-input').forEach(input => fila[input.dataset.col] = input.value);
+                    if(Object.keys(fila).length > 0) datosExcel.push(fila);
                 });
-                if(document.getElementById("dash-total")) document.getElementById("dash-total").innerText = total;
+                if(datosExcel.length === 0) return showToast("La grilla está vacía", "warning");
+            } else {
+                document.querySelectorAll('.dyn-field').forEach(el => datosForm[el.dataset.name] = el.value);
+            }
+
+            // Determinar Estado Inicial según Flujo
+            let estadoInicial = 'Registrado';
+            if(tpl.flujoConfig.tipo === 'aprobacion') estadoInicial = 'Pendiente de Aprobación';
+
+            // 1. Guardar Registro Principal
+            const nuevoRegRef = await addDoc(collection(db, "am_registros"), {
+                usuarioId: currentUser.id,
+                plantillaId: tplId, plantillaNombre: tpl.nombre, grupoId: tpl.grupoId,
+                tipoRegistro: tipoRegistro,
+                datos: datosForm, datosExcel: datosExcel, // Guarda uno u otro
+                adjunto: document.getElementById('reg-file').value.split('\\').pop() || null,
+                estado: estadoInicial,
+                fecha: new Date().toLocaleString(), timestamp: Date.now()
+            });
+
+            // 2. Ejecutar Motor de Flujo (Si aplica generación de tarea)
+            if(tpl.flujoConfig.tipo === 'tarea') {
+                await addDoc(collection(db, "am_tareas"), {
+                    registroPadreId: nuevoRegRef.id,
+                    asignadoA: tpl.flujoConfig.asignadoA,
+                    motivo: tpl.flujoConfig.motivo,
+                    prioridad: tpl.flujoConfig.prioridad,
+                    estadoTarea: 'Pendiente',
+                    fechaAsig: new Date().toLocaleDateString(), timestamp: Date.now()
+                });
+                showToast("Registro guardado y TAREA AUTOMÁTICA generada.");
+            } else {
+                showToast(`Registro guardado exitosamente. Estado: ${estadoInicial}`);
+            }
+
+            e.target.reset(); document.getElementById('dynamic-form').classList.add('d-none'); document.getElementById('reg-template-select').value="";
+            btn.disabled=false; btn.innerHTML='<i class="bi bi-rocket-takeoff me-2"></i> PROCESAR REGISTRO';
+        });
+
+        // --- GESTIÓN DE TAREAS (PARA EL USUARIO ASIGNADO) ---
+        window.completarTarea = async (tareaId) => { if(confirm("¿Marcar tarea como completada?")) await updateDoc(doc(db,"am_tareas",tareaId),{estadoTarea:'Completada'}); };
+
+        // --- GESTIÓN GLOBAL (MASTER DATA - REVISORES/ADMINS) ---
+        window.cambiarEstadoReg = async (id, st) => await updateDoc(doc(db,"am_registros",id),{estado:st});
+        window.delReg = async (id) => { if(confirm("¿Eliminar registro permanentemente?")) await deleteDoc(doc(db,"am_registros",id)); };
+
+
+        // ================= LISTENERS REALTIME (EL CORAZÓN DEL SISTEMA) =================
+        function startRealtimeListeners() {
+            // 1. Escuchar Grupos y Usuarios (Para Admin y Selectores)
+            onSnapshot(collection(db, "am_grupos"), s => {
+                cache.groups = s.docs.map(d=>({id:d.id,...d.data()}));
+                document.getElementById('list-groups').innerHTML = cache.groups.map(g=>`<li class="list-group-item d-flex justify-content-between"><span><b>${g.id}</b>: ${g.nombre}</span><i class="bi bi-trash text-danger pointer" onclick="delGroup('${g.id}')"></i></li>`).join('');
+                const opts = '<option value="">- Seleccionar -</option>' + cache.groups.map(g=>`<option value="${g.id}">${g.nombre}</option>`).join('');
+                document.getElementById('tpl-group').innerHTML = opts; document.getElementById('usr-groups').innerHTML = opts.replace('Seleccionar','(Múltiple)');
+            });
+
+            onSnapshot(collection(db, "am_usuarios"), s => {
+                cache.users = s.docs.map(d=>({id:d.id,...d.data()}));
+                document.getElementById('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><small><b>${u.id}</b> (${u.rol})<br>Gr: ${u.grupos?.join(',')||'-'}</small><i class="bi bi-trash text-danger pointer" onclick="delUser('${u.id}')"></i></li>`).join('');
+                document.getElementById('flow-task-user').innerHTML = '<option value="">- Seleccionar Usuario -</option>' + cache.users.map(u=>`<option value="${u.id}">${u.id} (${u.rol})</option>`).join('');
+            });
+
+            // 2. Escuchar Plantillas (Filtrado por Grupo del Usuario Actual)
+            onSnapshot(collection(db, "am_plantillas"), s => {
+                cache.templates = s.docs.map(d=>({id:d.id,...d.data()}));
+                // Filtrar para el selector de registro: Solo mostrar si el usuario pertenece al grupo de la plantilla o es admin
+                const userGroups = currentUser.grupos || [];
+                const misPlantillas = currentUser.rol === 'admin' ? cache.templates : cache.templates.filter(t => userGroups.includes(t.grupoId));
+                
+                document.getElementById('reg-template-select').innerHTML = '<option value="">-- Seleccione Formulario Autorizado --</option>' + 
+                    misPlantillas.map(t=>`<option value="${t.id}">[${t.tipo.toUpperCase()}] ${t.nombre} (Grp: ${t.grupoId})</option>`).join('');
+                
+                // Lista Admin completa
+                document.getElementById('list-templates').innerHTML = cache.templates.map(t=>`<li class="list-group-item d-flex justify-content-between align-items-center"><small><b>${t.nombre}</b><br>Tipo: ${t.tipo} | Grp: ${t.grupoId}<br>Flujo: ${t.flujoConfig.tipo}</small><i class="bi bi-trash text-danger pointer" onclick="delTpl('${t.id}')"></i></li>`).join('');
+            });
+
+             // 3. Escuchar Tareas (Solo las asignadas a mí)
+             const qTareas = query(collection(db, "am_tareas"), where("asignadoA", "==", currentUser.id), where("estadoTarea", "==", "Pendiente"));
+             onSnapshot(qTareas, s => {
+                document.getElementById('dash-tasks').innerText = s.size;
+                document.getElementById('body-mistareas').innerHTML = s.docs.map(d=>{
+                    const t = d.data(); t.id = d.id;
+                    return `<tr class="priority-${t.prioridad}">
+                        <td class="ps-4"><span class="badge bg-${t.prioridad=='alta'?'danger':(t.prioridad=='media'?'warning text-dark':'success')}">${t.prioridad}</span></td>
+                        <td class="fw-bold">${t.motivo} <br><small class="text-muted fw-normal">Ref: Registro ${t.registroPadreId.substring(0,5)}...</small></td>
+                        <td><small>${t.fechaAsig}</small></td>
+                        <td><span class="badge bg-secondary">${t.estadoTarea}</span></td>
+                        <td><button class="btn btn-sm btn-outline-success" onclick="completarTarea('${t.id}')"><i class="bi bi-check-lg me-1"></i> Completar</button></td>
+                    </tr>`;
+                }).join('') || '<tr><td colspan="5" class="text-center py-4 text-muted">No tienes tareas pendientes.</td></tr>';
+             });
+
+            // 4. Escuchar Master Data Global (Todos los registros)
+            onSnapshot(query(collection(db, "am_registros"), orderBy('timestamp', 'desc')), s => {
+                document.getElementById('dash-total').innerText = s.size;
+                document.getElementById('body-global').innerHTML = s.docs.map(d=>{
+                    const r = d.data(); r.id = d.id;
+                    // Renderizado resumen de datos (si es form o excel)
+                    let resumenStr = '';
+                    if(r.tipoRegistro === 'excel'){ resumenStr = `<span class="badge bg-dark">${r.datosExcel.length} Filas Grilla</span>`; }
+                    else { const k=Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`${key}: <b>${r.datos[key]}</b>`).join(', ') + (k.length>2?'...':''); }
+                    
+                    // Badges de estado
+                    let stClass = 'st-registrado';
+                    if(r.estado.includes('Pendiente')) stClass='st-pendiente'; else if(r.estado==='Aprobado') stClass='st-aprobado'; else if(r.estado==='Rechazado') stClass='st-rechazado';
+
+                    // Acciones de Gestión (Solo revisores/admins)
+                    let acciones = '<small class="text-muted">-</small>';
+                    if(['admin','revisor'].includes(currentUser.rol)){
+                         if(r.estado.includes('Pendiente')) acciones = `<div class="btn-group shadow-sm"><button class="btn btn-sm btn-success" onclick="cambiarEstadoReg('${r.id}','Aprobado')"><i class="bi bi-check"></i></button><button class="btn btn-sm btn-danger" onclick="cambiarEstadoReg('${r.id}','Rechazado')"><i class="bi bi-x"></i></button></div>`;
+                         if(currentUser.rol === 'admin') acciones += `<button class="btn btn-sm text-danger border ms-2" onclick="delReg('${r.id}')"><i class="bi bi-trash"></i></button>`;
+                    }
+
+                    return `<tr><td class="ps-4"><small>${r.fecha.split(' ')[0]}</small></td>
+                        <td><span class="badge bg-light text-dark border">${r.tipoRegistro.toUpperCase().substring(0,4)}</span></td>
+                        <td class="fw-bold text-primary"><small>${r.plantillaNombre}</small></td>
+                        <td><span class="badge bg-info text-dark bg-opacity-25">${r.grupoId}</span></td>
+                        <td class="small text-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${resumenStr}</td>
+                        <td><span class="badge-flow ${stClass}">${r.estado}</span></td>
+                        <td>${acciones}</td>
+                    </tr>`;
+                }).join('');
             });
         }
 
-        // --- EXPORTACIÓN ---
-        function exportarTabla(tableId, nombre) {
-            const table = document.getElementById(tableId);
-            if(!table) return;
-            let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body><table border="1">${table.innerHTML}</table></body></html>`;
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([html], {type: 'application/vnd.ms-excel'}));
-            a.download = `${nombre}_${new Date().toISOString().slice(0,10)}.xls`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }
-        document.getElementById('btn-export-mis').addEventListener('click', () => exportarTabla('table-mis-registros', 'MisGestiones'));
-        document.getElementById('btn-export-global').addEventListener('click', () => exportarTabla('table-global', 'MasterData'));
+        // Utilidad Exportar
+        window.exportarTabla = (tId,n) => { const t=document.getElementById(tId); if(!t)return; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([`<table border="1">${t.innerHTML}</table>`],{type:'application/vnd.ms-excel'})); a.download=`${n}_${Date.now()}.xls`; a.click(); };
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
