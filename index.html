@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyControl OS - ROL ADMIN</title>
+    <title>SkyControl OS - Enterprise Suite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
@@ -14,7 +14,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-app); color: #334155; overflow-x: hidden; }
         
         .pointer { cursor: pointer; } 
-        .hover-scale:hover { transform: translateY(-2px); transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .hover-scale { transition: 0.2s; }
+        .hover-scale:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); border-color: var(--primary) !important; }
         ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .scroll-y { max-height: 65vh; overflow-y: auto; }
 
@@ -74,7 +75,7 @@
 
     <div id="login-screen" class="vh-100 d-flex justify-content-center align-items-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
         <div class="card-panel p-5 border-0 shadow-lg" style="width: 100%; max-width: 400px; margin: 15px;">
-            <div class="text-center mb-4"><i class="bi bi-stack fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">SkyControl</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">ADMIN EDITION</span></div>
+            <div class="text-center mb-4"><i class="bi bi-stack fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">SkyControl</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">ENTERPRISE OS</span></div>
             <form id="login-form">
                 <input type="text" class="form-control mb-3" id="login-user" placeholder="Usuario" required>
                 <input type="password" class="form-control mb-4" id="login-pass" placeholder="Contraseña" required>
@@ -91,7 +92,7 @@
                 <div class="d-flex align-items-center gap-3"><i class="bi bi-stack text-primary fs-3"></i><h5 class="mb-0 fw-bold">SkyControl</h5></div>
                 <i class="bi bi-x-lg d-lg-none pointer text-white fs-4" onclick="toggleMenu()"></i>
             </div>
-            <div class="p-4"><div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(255,255,255,0.05);"><div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold fs-5" style="width:42px;height:42px;" id="avatar-initial"></div><div style="line-height:1.2;"><h6 class="mb-1 fw-bold text-white" id="user-display">User</h6><span class="badge bg-danger bg-opacity-25 text-danger text-uppercase" id="role-display" style="font-size:0.65rem;">ROL</span></div></div></div>
+            <div class="p-4"><div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(255,255,255,0.05);"><div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold fs-5" style="width:42px;height:42px;" id="avatar-initial"></div><div style="line-height:1.2;"><h6 class="mb-1 fw-bold text-white" id="user-display">User</h6><span class="badge bg-info bg-opacity-25 text-info text-uppercase" id="role-display" style="font-size:0.65rem;">ROL</span></div></div></div>
             <nav id="menu-dinamico" class="mt-2 flex-grow-1 scroll-y"></nav>
             <div class="p-4 mt-auto border-top border-secondary border-opacity-25"><button class="btn w-100 text-start fw-bold rounded-3 p-2 text-danger pointer" style="background: rgba(220, 38, 38, 0.1);" id="btn-logout"><i class="bi bi-power me-2"></i> Cerrar Sesión</button></div>
         </aside>
@@ -108,27 +109,40 @@
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-4"><div class="card-panel p-4 text-center"><i class="bi bi-hdd-stack fs-1 text-primary mb-2"></i><h2 class="fw-black mb-0" id="dash-total">0</h2><small class="text-muted fw-bold">Registros Base</small></div></div>
                         <div class="col-6 col-md-4"><div class="card-panel p-4 text-center"><i class="bi bi-boxes fs-1 text-success mb-2"></i><h2 class="fw-black mb-0" id="dash-stock">0</h2><small class="text-muted fw-bold">Stock Inventario</small></div></div>
-                        <div class="col-12 col-md-4"><div class="card-panel p-4 text-center"><i class="bi bi-ticket-detailed fs-1 text-warning mb-2"></i><h2 class="fw-black mb-0" id="dash-tasks">0</h2><small class="text-muted fw-bold">Tiquetes Globales</small></div></div>
+                        <div class="col-12 col-md-4"><div class="card-panel p-4 text-center"><i class="bi bi-ticket-detailed fs-1 text-warning mb-2"></i><h2 class="fw-black mb-0" id="dash-tasks">0</h2><small class="text-muted fw-bold">Mis Tareas Pendientes</small></div></div>
                     </div>
                 </div>
 
                 <div id="sec-registrar" class="content-section d-none fade-in">
-                    <div class="card-panel mx-auto shadow-sm" style="max-width: 900px;">
+                    <div class="card-panel mx-auto shadow-sm" style="max-width: 1000px;">
                         <div class="card-header-panel bg-light"><i class="bi bi-file-earmark-plus text-primary me-2"></i> Captura de Datos Oficial</div>
                         <div class="card-body p-4 p-md-5">
-                            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Seleccione el Formato de Documento</label>
-                            <select id="reg-template-select" class="form-select form-select-lg mb-4 fw-bold text-primary border-primary"></select>
                             
-                            <form id="dynamic-form" class="d-none">
-                                <input type="hidden" id="current-tpl-type">
-                                <div id="standard-fields-container" class="row g-4 mb-4"></div>
-                                <div id="grid-container" class="d-none mb-4">
-                                    <div class="table-responsive border rounded-3 overflow-hidden">
-                                        <table class="table grid-table mb-0 bg-white" id="grid-table"><thead id="grid-header"></thead><tbody id="grid-body"></tbody></table>
+                            <div id="template-selection-view">
+                                <label class="form-label small fw-bold text-muted text-uppercase mb-3">1. Seleccione el Formato o Documento a Llenar</label>
+                                <div id="template-cards-container" class="row g-3 mb-4">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2 fw-bold" id="btn-add-row"><i class="bi bi-plus-lg"></i> Añadir Fila</button>
+                            </div>
+
+                            <form id="dynamic-form" class="d-none">
+                                <div class="bg-light p-4 rounded-4 border mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                                        <h5 class="fw-bold text-primary mb-0" id="form-active-title">Llenando Formulario...</h5>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="cancelarRegistro()"><i class="bi bi-arrow-left me-1"></i> Cambiar Formato</button>
+                                    </div>
+                                    
+                                    <input type="hidden" id="current-tpl-type">
+                                    
+                                    <div id="standard-fields-container" class="row g-4 mb-4"></div>
+                                    
+                                    <div id="grid-container" class="d-none mb-4">
+                                        <div class="table-responsive border rounded-3 overflow-hidden bg-white">
+                                            <table class="table grid-table mb-0" id="grid-table"><thead id="grid-header"></thead><tbody id="grid-body"></tbody></table>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" id="btn-add-row"><i class="bi bi-plus-lg"></i> Añadir Fila a la Tabla</button>
+                                    </div>
                                 </div>
-                                <div class="text-end border-top pt-4"><button type="submit" class="btn-brand px-5 shadow w-100 w-md-auto"><i class="bi bi-send-fill me-2"></i> ENVIAR DATOS</button></div>
+                                <div class="text-end pt-2"><button type="submit" class="btn-brand px-5 shadow w-100 w-md-auto py-3"><i class="bi bi-send-fill me-2"></i> ENVIAR DATOS AL SISTEMA</button></div>
                             </form>
                         </div>
                     </div>
@@ -143,7 +157,7 @@
                         <div class="card-body p-0">
                             <ul class="nav nav-tabs px-4 pt-3 bg-light" role="tablist">
                                 <li class="nav-item"><a class="nav-link active fw-bold text-dark" data-bs-toggle="tab" href="#tab-asignados-mi"><i class="bi bi-inbox me-1"></i> Asignados a Mí / Mi Grupo</a></li>
-                                <li class="nav-item"><a class="nav-link fw-bold text-muted" data-bs-toggle="tab" href="#tab-mis-reportes"><i class="bi bi-clock-history me-1"></i> Mis Reportes</a></li>
+                                <li class="nav-item"><a class="nav-link fw-bold text-muted" data-bs-toggle="tab" href="#tab-mis-reportes"><i class="bi bi-clock-history me-1"></i> Creados por Mí</a></li>
                                 <li class="nav-item admin-only d-none"><a class="nav-link fw-bold text-danger" data-bs-toggle="tab" href="#tab-todos-tiquetes"><i class="bi bi-globe me-1"></i> Gestión Global (Admin)</a></li>
                             </ul>
                             
@@ -233,7 +247,7 @@
                             <div class="row g-4">
                                 <div class="col-lg-7">
                                     <div class="card-panel p-4 position-relative">
-                                        <div id="tpl-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 rounded-bl-lg fw-bold d-none" style="border-bottom-left-radius: 12px; border-top-right-radius: 12px;">Modo Edición</div>
+                                        <div id="tpl-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 fw-bold d-none" style="border-bottom-left-radius: 12px; border-top-right-radius: 12px;">Modo Edición</div>
                                         <h5 class="fw-bold text-dark mb-4"><i class="bi bi-tools text-primary me-2"></i> Constructor de Estructuras</h5>
                                         <input type="hidden" id="tpl-edit-id">
                                         <input type="text" id="tpl-name" class="form-control form-control-lg fw-bold mb-3" placeholder="Nombre (Ej. Inspección, Solicitud)">
@@ -273,7 +287,7 @@
                                             </div>
                                         </div>
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-secondary py-3 d-none" id="btn-cancel-tpl-edit" onclick="cancelEditTpl()">Cancelar</button>
+                                            <button type="button" class="btn btn-secondary py-3 d-none fw-bold" id="btn-cancel-tpl-edit" onclick="cancelEditTpl()">Cancelar</button>
                                             <button type="button" class="btn-brand flex-grow-1 py-3 shadow-sm" id="btn-save-tpl">PUBLICAR FORMATO Y FLUJO</button>
                                         </div>
                                     </div>
@@ -294,8 +308,8 @@
                                                 <div class="mb-3"><input type="password" id="usr-pass" class="form-control" placeholder="Contraseña" required></div>
                                                 <div class="mb-3"><select id="usr-rol" class="form-select fw-bold"><option value="usuario">Usuario Regular</option><option value="revisor">Supervisor/Revisor</option><option value="admin">Administrador Global</option></select></div>
                                                 <div class="mb-3"><label class="fw-bold small mb-2 d-block">Grupos:</label><div id="usr-groups-container" class="row g-2 px-1"></div></div>
-                                                <div class="mb-4 bg-light p-3 rounded border"><label class="fw-bold small mb-2 d-block">Módulos:</label><div class="d-flex flex-wrap gap-2"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash" checked> Dash <input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked> Reg <input class="form-check-input perm-chk" type="checkbox" value="mistareas" id="p-task" checked> Tiquetes <input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist" checked> BD <input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm" checked> Admin</div></div>
-                                                <div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none" id="btn-cancel-usr-edit" onclick="cancelEditUsr()">Cancelar</button><button type="submit" class="btn btn-dark flex-grow-1" id="btn-save-usr">Guardar Usuario</button></div>
+                                                <div class="mb-4 bg-light p-3 rounded border"><label class="fw-bold small mb-2 d-block">Módulos Permitidos:</label><div class="d-flex flex-wrap gap-2"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash" checked> Dash <input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked> Reg <input class="form-check-input perm-chk" type="checkbox" value="mistareas" id="p-task" checked> Tiquetes <input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist" checked> BD <input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm" checked> Admin</div></div>
+                                                <div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-usr-edit" onclick="cancelEditUsr()">Cancelar</button><button type="submit" class="btn btn-dark flex-grow-1 fw-bold" id="btn-save-usr">Guardar Usuario</button></div>
                                             </form>
                                         </div>
                                     </div>
@@ -314,7 +328,7 @@
                                             <form id="form-group">
                                                 <div class="mb-3"><input type="text" id="grp-id" class="form-control fw-bold" placeholder="ID (ej. g_soporte)" required></div>
                                                 <div class="mb-4"><input type="text" id="grp-name" class="form-control" placeholder="Nombre Público (ej. Soporte TI)" required></div>
-                                                <div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none" id="btn-cancel-grp-edit" onclick="cancelEditGrp()">Cancelar</button><button type="submit" class="btn-brand flex-grow-1" id="btn-save-grp">Guardar Grupo</button></div>
+                                                <div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-grp-edit" onclick="cancelEditGrp()">Cancelar</button><button type="submit" class="btn-brand flex-grow-1" id="btn-save-grp">Guardar Grupo</button></div>
                                             </form>
                                         </div>
                                     </div>
@@ -382,6 +396,9 @@
         window.toggleMenu = () => { el('sidebar').classList.toggle('show'); el('sidebar-overlay').classList.toggle('show'); };
         const fileToBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
 
+        // Nombres legibles para los tipos de datos en el formulario
+        const tipoLabels = { text:'Texto Corto', textarea:'Párrafo', number:'Número', date:'Fecha', time:'Hora', radio:'Única Opción', checkbox:'Selección Múltiple', boolean:'Sí / No', file:'Archivo Adjunto', image:'Imagen', video:'Video', signature:'Firma Digital', select:'Lista Desplegable' };
+
         document.addEventListener('DOMContentLoaded', () => {
             setInterval(() => { el('datetime-display').innerText = new Date().toLocaleString('es-ES', { dateStyle:'short', timeStyle:'short' }); }, 1000);
             const s = localStorage.getItem("am_enterprise_session"); if(s) initApp(JSON.parse(s));
@@ -389,7 +406,7 @@
         });
 
         function setupEvents() {
-            el('login-form').addEventListener('submit', async e => { e.preventDefault(); const u=el('login-user').value.trim().toLowerCase(), p=el('login-pass').value.trim(); if(u==="admin"&&p==="1130"){ initApp({id:"admin",rol:"admin",accesos:["dashboard","registrar","mistareas","historial","admin"], grupos:[]}); return; } try { const s=await getDoc(doc(db,"am_usuarios",u)); if(s.exists()&&s.data().pass===p) initApp({id:u,...s.data()}); else showToast("Error", "danger"); } catch(err) {} });
+            el('login-form').addEventListener('submit', async e => { e.preventDefault(); const u=el('login-user').value.trim().toLowerCase(), p=el('login-pass').value.trim(); if(u==="admin"&&p==="1130"){ initApp({id:"admin",rol:"admin",accesos:["dashboard","registrar","mistareas","historial","admin"], grupos:[]}); return; } try { const s=await getDoc(doc(db,"am_usuarios",u)); if(s.exists()&&s.data().pass===p) initApp({id:u,...s.data()}); else showToast("Error de credenciales", "danger"); } catch(err) {} });
             el('btn-logout').addEventListener('click', () => { localStorage.removeItem("am_enterprise_session"); location.reload(); });
 
             // BUILDER UI
@@ -431,24 +448,23 @@
             // Tiquete Manual
             el('form-nuevo-tiquete').addEventListener('submit', async e => { e.preventDefault(); const asig = el('tq-man-asignado').value; await addDoc(collection(db, "am_tareas"), { titulo: el('tq-man-titulo').value, descripcion: el('tq-man-desc').value, asignadoA: asig, reportadoPor: currentUser.id, prioridad: el('tq-man-pri').value, fechaLimite: el('tq-man-sla').value.replace('T', ' '), estadoTarea: 'Abierto', historial: [{ tipo: 'comentario', texto: 'Tiquete creado manualmente.', autor: currentUser.id, fecha: new Date().toLocaleString() }], timestamp: Date.now() }); showToast("Tiquete Creado"); e.target.reset(); bootstrap.Modal.getInstance(el('modalNuevoTiquete')).hide(); });
 
-            // REGISTRO
-            el('reg-template-select').addEventListener('change', renderizarFormulario);
+            // REGISTRO Y TABLAS DINÁMICAS
             el('btn-add-row').addEventListener('click', () => { el('grid-body').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td><input type="text" class="grid-input" data-col="${c.name}"></td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); });
             el('dynamic-form').addEventListener('submit', procesarRegistro);
             el('btn-volver-interaccion').addEventListener('click', () => { window.navigateTo(interaccionActual.tipo==='tarea'?'mistareas':'historial'); });
             
             // EDICIÓN DE REGISTRO
             el('form-editar-registro').addEventListener('submit', async e => {
-                e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+                e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = "Guardando...";
                 const motivo = el('edicion-motivo').value.trim();
-                let nuevosDatos = { ...currentEditData }; // Mantener datos no editables (imagenes, firmas)
+                let nuevosDatos = { ...currentEditData }; 
                 document.querySelectorAll('.edit-dyn-field').forEach(inp => nuevosDatos[inp.dataset.name] = inp.value);
                 
                 await updateDoc(doc(db, "am_registros", interaccionActual.id), { 
                     datos: nuevosDatos, 
                     historial: arrayUnion({ tipo: 'edicion_datos', texto: `Se modificaron los datos del registro. Motivo del Auditor: ${motivo}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) 
                 });
-                showToast("Datos actualizados exitosamente"); e.target.reset(); bootstrap.Modal.getInstance(el('modalEditarRegistro')).hide(); btn.disabled = false;
+                showToast("Datos actualizados exitosamente"); e.target.reset(); bootstrap.Modal.getInstance(el('modalEditarRegistro')).hide(); btn.disabled = false; btn.innerHTML = "Confirmar y Guardar Cambios";
             });
         }
 
@@ -472,16 +488,34 @@
 
         // --- CORE UI FUNCTIONS ---
         function renderOptionsBuilder() { el('options-list').innerHTML = currentOptionsBuilder.map((o, i) => `<span class="badge bg-primary bg-opacity-10 text-primary border">${o} <i class="bi bi-x pointer" onclick="removeOptionFromBuilder(${i})"></i></span>`).join(''); }
-        function renderBuilderFields() { el('builder-fields-container').innerHTML = tempFields.map((f, i) => `<span class="badge bg-white border text-dark p-2">${f.name} <small class="text-muted">(${f.type})</small><i class="bi bi-x-circle-fill text-danger pointer ms-2" onclick="removerCampoTemp(${i})"></i></span>`).join(''); }
+        function renderBuilderFields() { el('builder-fields-container').innerHTML = tempFields.map((f, i) => `<span class="badge bg-white border text-dark p-2">${f.name} <small class="text-primary fw-bold ms-1">(${tipoLabels[f.type] || f.type})</small><i class="bi bi-x-circle-fill text-danger pointer ms-2 hover-scale" onclick="removerCampoTemp(${i})"></i></span>`).join(''); }
 
-        function initApp(u) { currentUser = u; el('login-screen').classList.add("d-none"); el('app-screen').classList.remove("d-none"); el('user-display').innerText = u.id; el('role-display').innerText = u.rol; el('avatar-initial').innerText = u.id[0].toUpperCase(); const navMap = { dashboard: {id: 'sec-dashboard', n: 'Dashboard', i: 'pie-chart'}, registrar: {id: 'sec-registrar', n: 'Nuevo Registro', i: 'file-earmark-plus'}, mistareas: {id: 'sec-mistareas', n: 'Helpdesk/Tiquetes', i: 'ticket-detailed'}, historial: {id: 'sec-historial', n: 'Base de Datos', i: 'database'}, admin: {id: 'sec-admin', n: 'Admin', i: 'gear'} }; el('menu-dinamico').innerHTML = u.accesos.map(a => navMap[a] ? `<a href="#" class="nav-link-menu" id="nav-${a}" onclick="navigateTo('${a}')"><i class="bi bi-${navMap[a].i} fs-5"></i><span>${navMap[a].n}</span></a>` : '').join(''); if(u.rol === 'admin') { document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('d-none')); } if(u.accesos.length > 0) window.navigateTo(u.accesos[0]); startRealtime(); }
-        window.navigateTo = (sId) => { document.querySelectorAll(".content-section").forEach(e => e.classList.add("d-none")); document.querySelectorAll(".nav-link-menu").forEach(e => e.classList.remove("active")); const sectionMap = {dashboard:'sec-dashboard', registrar:'sec-registrar', mistareas:'sec-mistareas', historial:'sec-historial', admin:'sec-admin'}; el(sectionMap[sId])?.classList.remove("d-none"); el(`nav-${sId}`)?.classList.add("active"); if(window.innerWidth < 992) toggleMenu(); };
+        function initApp(u) { 
+            currentUser = u; el('login-screen').classList.add("d-none"); el('app-screen').classList.remove("d-none"); el('user-display').innerText = u.id; el('role-display').innerText = u.rol; el('avatar-initial').innerText = u.id[0].toUpperCase(); 
+            const navMap = { dashboard: {id: 'sec-dashboard', n: 'Dashboard', i: 'pie-chart'}, registrar: {id: 'sec-registrar', n: 'Nuevo Registro', i: 'file-earmark-plus'}, mistareas: {id: 'sec-mistareas', n: 'Helpdesk/Tiquetes', i: 'ticket-detailed'}, historial: {id: 'sec-historial', n: 'Base de Datos', i: 'database'}, admin: {id: 'sec-admin', n: 'Admin', i: 'gear'} }; 
+            el('menu-dinamico').innerHTML = u.accesos.map(a => navMap[a] ? `<a href="#" class="nav-link-menu" id="nav-${a}" onclick="navigateTo('${a}')"><i class="bi bi-${navMap[a].i} fs-5"></i><span>${navMap[a].n}</span></a>` : '').join(''); 
+            
+            if(u.rol === 'admin') { document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('d-none')); } 
+            if(u.accesos.length > 0) window.navigateTo(u.accesos[0]); 
+            startRealtime(); 
+        }
 
-        // --- RENDER FORM (TIPOS DE DATOS & FIRMAS) ---
-        function renderizarFormulario(e) {
-            const tplId = e.target.value; const form = el('dynamic-form');
-            if(!tplId) { form.classList.add('d-none'); return; } 
-            form.classList.remove('d-none'); const tpl = cache.templates.find(t => t.id === tplId); 
+        window.navigateTo = (sId) => { 
+            document.querySelectorAll(".content-section").forEach(e => e.classList.add("d-none")); 
+            document.querySelectorAll(".nav-link-menu").forEach(e => e.classList.remove("active")); 
+            const sectionMap = {dashboard:'sec-dashboard', registrar:'sec-registrar', mistareas:'sec-mistareas', historial:'sec-historial', admin:'sec-admin'}; 
+            el(sectionMap[sId])?.classList.remove("d-none"); el(`nav-${sId}`)?.classList.add("active"); 
+            if(window.innerWidth < 992) toggleMenu(); 
+        };
+
+        // --- SELECCION DE FORMULARIO (NUEVA VISTA CARDS) ---
+        window.seleccionarPlantilla = (id) => {
+            const form = el('dynamic-form');
+            form.classList.remove('d-none');
+            el('template-selection-view').classList.add('d-none'); // Ocultar tarjetas
+            
+            const tpl = cache.templates.find(t => t.id === id); 
+            el('form-active-title').innerText = `Llenando: ${tpl.nombre}`;
             
             const std = el('standard-fields-container'), grid = el('grid-container');
             if(tpl.sysType === 'excel') {
@@ -491,6 +525,8 @@
                 grid.classList.add('d-none');
                 std.innerHTML = tpl.campos.map(c => {
                     let inp = '';
+                    const badgeTipo = `<span class="badge bg-primary bg-opacity-10 text-primary border ms-2 fw-normal"><i class="bi bi-info-circle"></i> ${tipoLabels[c.type] || c.type}</span>`;
+                    
                     if(c.type === 'textarea') inp = `<textarea class="form-control dyn-field" data-name="${c.name}" required></textarea>`;
                     else if(c.type === 'boolean') inp = `<select class="form-select dyn-field" data-name="${c.name}" required><option value="Sí">Sí</option><option value="No">No</option></select>`;
                     else if(c.type === 'radio') inp = c.options.map(o => `<div class="form-check"><input class="form-check-input dyn-field-radio" type="radio" name="${c.name}" value="${o}" required><label class="form-check-label">${o}</label></div>`).join('');
@@ -499,11 +535,16 @@
                     else if(['file', 'image', 'video'].includes(c.type)) inp = `<input type="file" class="form-control dyn-field-file" data-name="${c.name}" accept="${c.type==='image'?'image/*':(c.type==='video'?'video/*':'*')}" required>`;
                     else if(c.type === 'signature') inp = `<div class="signature-wrapper"><button type="button" class="btn btn-light btn-clear-sig shadow-sm" onclick="this.nextElementSibling.getContext('2d').clearRect(0,0,this.nextElementSibling.width,this.nextElementSibling.height)">Limpiar</button><canvas class="signature-pad dyn-field-sig" data-name="${c.name}"></canvas></div>`;
                     else inp = `<input type="${c.type}" class="form-control dyn-field" data-name="${c.name}" required>`;
-                    return `<div class="${['textarea','signature'].includes(c.type)?'col-12':'col-md-6'}"><label class="form-label small fw-bold">${c.name}</label>${inp}</div>`;
+                    return `<div class="${['textarea','signature'].includes(c.type)?'col-12':'col-md-6'}"><label class="form-label small fw-bold text-dark d-flex align-items-center mb-2">${c.name} ${badgeTipo}</label>${inp}</div>`;
                 }).join('');
                 initSignaturePads();
             }
-        }
+        };
+
+        window.cancelarRegistro = () => {
+            el('dynamic-form').classList.add('d-none');
+            el('template-selection-view').classList.remove('d-none');
+        };
 
         function initSignaturePads() {
             document.querySelectorAll('.signature-pad').forEach(canvas => {
@@ -520,8 +561,12 @@
         }
 
         async function procesarRegistro(e) {
-            e.preventDefault(); const tplId = el('reg-template-select').value, tpl = cache.templates.find(t => t.id === tplId);
-            let btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.innerHTML='Procesando...';
+            e.preventDefault(); 
+            // Buscar la plantilla por el nombre actual que estamos llenando (sacado del título)
+            const nombreActivo = el('form-active-title').innerText.replace('Llenando: ', '');
+            const tpl = cache.templates.find(t => t.nombre === nombreActivo);
+            
+            let btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
             let datosForm = {}, datosExcel = [];
             
             if(tpl.sysType === 'excel') { document.querySelectorAll('#grid-body tr').forEach(tr => { let fila = {}; tr.querySelectorAll('.grid-input').forEach(input => fila[input.dataset.col] = input.value); if(Object.keys(fila).length > 0) datosExcel.push(fila); }); } 
@@ -539,21 +584,21 @@
                 });
             }
 
-            let asignado = null, titulo = 'Registro de Formulario', prioridad = 'normal';
+            let asignado = null, titulo = 'Registro Automático', prioridad = 'normal';
             if(tpl.flujoConfig && tpl.flujoConfig.tipo === 'tarea') {
                 titulo = `Registro: ${tpl.nombre}`;
-                asignado = tpl.flujoConfig.asignacion === 'dinamico' ? prompt("Ingrese ID de Usuario/Grupo al que se le asignará:") : tpl.flujoConfig.usuarioFijo;
-                if(tpl.flujoConfig.asignacion === 'dinamico' && !asignado) asignado = 'Sistema';
+                asignado = tpl.flujoConfig.asignacion === 'dinamico' ? prompt("Ingrese ID de Usuario/Grupo (Ej. USR_juan o GRP_soporte) al que se le asignará el tiquete:") : tpl.flujoConfig.usuarioFijo;
+                if(tpl.flujoConfig.asignacion === 'dinamico' && !asignado) asignado = `USR_${currentUser.id}`; // Fallback a sí mismo
             }
 
-            const ref = await addDoc(collection(db, "am_registros"), { usuarioId: currentUser.id, plantillaId: tplId, plantillaNombre: tpl.nombre, sysType: tpl.sysType||'formulario', seguimiento: tpl.habilitarSeguimiento, datos: datosForm, datosExcel: datosExcel, estado: "Registrado", historial: [{ tipo: 'comentario', texto: 'Registro ingresado.', autor: currentUser.id, fecha: new Date().toLocaleString() }], fecha: new Date().toLocaleString(), timestamp: Date.now() });
+            const ref = await addDoc(collection(db, "am_registros"), { usuarioId: currentUser.id, plantillaId: tpl.id, plantillaNombre: tpl.nombre, sysType: tpl.sysType||'formulario', seguimiento: tpl.habilitarSeguimiento, datos: datosForm, datosExcel: datosExcel, estado: "Registrado", historial: [{ tipo: 'comentario', texto: 'Registro ingresado al Master Data.', autor: currentUser.id, fecha: new Date().toLocaleString() }], fecha: new Date().toLocaleString(), timestamp: Date.now() });
 
             if(tpl.flujoConfig && tpl.flujoConfig.tipo === 'tarea') {
-                await addDoc(collection(db, "am_tareas"), { registroPadreId: ref.id, titulo: titulo, descripcion: "Datos registrados en Base de Datos Principal.", asignadoA: asignado, reportadoPor: currentUser.id, prioridad: prioridad, estadoTarea: 'Abierto', historial: [{ tipo: 'comentario', texto: 'Tiquete creado vía Formulario.', autor: 'Sistema', fecha: new Date().toLocaleString() }], fechaCreacion: new Date().toLocaleString(), timestamp: Date.now() });
-                showToast(`Tiquete asignado a ${asignado}`);
-            } else { showToast("Guardado en Base de Datos"); }
+                await addDoc(collection(db, "am_tareas"), { registroPadreId: ref.id, titulo: titulo, descripcion: "Datos registrados en Base de Datos Principal.", asignadoA: asignado, reportadoPor: currentUser.id, prioridad: prioridad, estadoTarea: 'Abierto', historial: [{ tipo: 'comentario', texto: 'Tiquete generado automáticamente vía Formulario.', autor: 'Sistema', fecha: new Date().toLocaleString() }], fechaCreacion: new Date().toLocaleString(), timestamp: Date.now() });
+                showToast(`Registro guardado y Tiquete asignado a ${asignado}`);
+            } else { showToast("Guardado en Base de Datos Principal"); }
 
-            e.target.reset(); el('dynamic-form').classList.add('d-none'); el('reg-template-select').value=""; btn.disabled=false; btn.innerHTML='ENVIAR DATOS';
+            e.target.reset(); window.cancelarRegistro(); btn.disabled=false; btn.innerHTML='<i class="bi bi-send-fill me-2"></i> ENVIAR DATOS AL SISTEMA';
         }
 
         // --- INTERACCIÓN Y EDICIÓN ---
@@ -561,7 +606,7 @@
             if(input.files && input.files[0]) {
                 const f = input.files[0]; el('chat-file-name').innerText = f.name; el('chat-file-preview').classList.remove('d-none');
                 if(f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (e) => chatFileBase64 = e.target.result; r.readAsDataURL(f); }
-                else if(f.type.startsWith('video/')) { chatFileBase64 = `[Video Adjunto: ${f.name} - Enlace sim]`; } 
+                else if(f.type.startsWith('video/')) { chatFileBase64 = `[Video Adjunto: ${f.name}]`; } 
                 else { chatFileBase64 = `[Documento Adjunto: ${f.name}]`; }
             }
         };
@@ -604,7 +649,7 @@
             
             el('det-asignado').value = docData.asignadoA || '';
 
-            // Edición de Registros habilitada para Admin/Revisor
+            // Edición habilitada para Admin/Revisor
             if(!isTiquete && ['admin','revisor'].includes(currentUser.rol) && docData.sysType !== 'excel') {
                 el('panel-editar-registro').classList.remove('d-none'); currentEditData = docData.datos;
             } else { el('panel-editar-registro').classList.add('d-none'); }
@@ -638,13 +683,13 @@
                 cache.groups = s.docs.map(d=>({id:d.id,...d.data()}));
                 const cHtml = (cls) => cache.groups.map(g => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input ${cls}" type="checkbox" value="${g.id}"> <label class="small fw-bold">${g.nombre}</label></div></div>`).join('');
                 el('tpl-groups-container').innerHTML = cHtml('tpl-grp-chk'); el('usr-groups-container').innerHTML = cHtml('usr-grp-chk');
-                el('list-groups').innerHTML = cache.groups.map(g=>`<li class="list-group-item d-flex justify-content-between"><div><b>${g.nombre}</b> <small class="text-muted">(GRP_${g.id})</small></div> <div><i class="bi bi-pencil text-primary pointer me-3" onclick="editGroup('${g.id}')"></i><i class="bi bi-trash text-danger pointer" onclick="delGroup('${g.id}')"></i></div></li>`).join('');
+                el('list-groups').innerHTML = cache.groups.map(g=>`<li class="list-group-item d-flex justify-content-between"><div><b>${g.nombre}</b> <small class="text-muted">(GRP_${g.id})</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editGroup('${g.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delGroup('${g.id}')"></i></div></li>`).join('');
                 actualizarSelects();
             });
 
             onSnapshot(collection(db, "am_usuarios"), s => {
                 cache.users = s.docs.map(d=>({id:d.id,...d.data()}));
-                el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><div><b>${u.id}</b> <span class="badge bg-light text-dark">${u.rol}</span></div> <div><i class="bi bi-pencil text-primary pointer me-3" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer" onclick="delUser('${u.id}')"></i></div></li>`).join('');
+                el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><div><b>${u.id}</b> <span class="badge bg-light text-dark">${u.rol}</span></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delUser('${u.id}')"></i></div></li>`).join('');
                 actualizarSelects();
             });
 
@@ -655,17 +700,30 @@
 
             onSnapshot(collection(db, "am_plantillas"), s => {
                 cache.templates = s.docs.map(d=>({id:d.id,...d.data()}));
+                
+                // Generar Tarjetas en Lugar de Select
                 const ms = currentUser.rol==='admin' ? cache.templates : cache.templates.filter(t => (t.gruposPermitidos||[]).some(g => (currentUser.grupos||[]).includes(g)));
-                el('reg-template-select').innerHTML = '<option value="">- SELECCIONE FORMATO -</option>' + ms.map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
-                el('list-templates').innerHTML = cache.templates.map(t=>`<li class="list-group-item d-flex justify-content-between"><div><b class="d-block">${t.nombre}</b><small class="text-primary">Sys: ${t.sysType||'form'} | Chat: ${t.habilitarSeguimiento?'Sí':'No'}</small></div> <div><i class="bi bi-pencil text-primary pointer me-3" onclick="editTpl('${t.id}')"></i><i class="bi bi-trash text-danger pointer" onclick="delTpl('${t.id}')"></i></div></li>`).join('');
+                
+                el('template-cards-container').innerHTML = ms.map(t => `
+                    <div class="col-md-4 col-sm-6">
+                        <div class="card-panel p-4 pointer hover-scale border-primary h-100 d-flex flex-column justify-content-center align-items-center text-center" onclick="seleccionarPlantilla('${t.id}')">
+                            <i class="bi ${t.sysType==='excel' ? 'bi-file-earmark-spreadsheet text-success' : 'bi-file-earmark-text text-primary'} fs-1 mb-2"></i>
+                            <h6 class="fw-bold mb-1">${t.nombre}</h6>
+                            <span class="badge bg-light text-dark border">${(t.sysType||'formulario').toUpperCase()}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                el('list-templates').innerHTML = cache.templates.map(t=>`<li class="list-group-item d-flex justify-content-between"><div><b class="d-block">${t.nombre}</b><small class="text-primary">Sys: ${t.sysType||'form'} | Chat: ${t.habilitarSeguimiento?'Sí':'No'}</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editTpl('${t.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delTpl('${t.id}')"></i></div></li>`).join('');
             });
 
              onSnapshot(query(collection(db, "am_tareas"), orderBy('timestamp', 'desc')), s => {
                 cache.tickets = s.docs.map(d=>({id:d.id,...d.data()}));
-                const reportadosPorMi = cache.tickets.filter(t => t.reportadoPor === currentUser.id);
-                const asignadosAmi = currentUser.rol==='admin' ? cache.tickets : cache.tickets.filter(t => t.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => t.asignadoA === `GRP_${g}`));
                 
-                el('dash-tasks').innerText = cache.tickets.filter(t=>t.estadoTarea!=='Solucionado').length;
+                const reportadosPorMi = cache.tickets.filter(t => t.reportadoPor === currentUser.id);
+                const asignadosAmi = cache.tickets.filter(t => t.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => t.asignadoA === `GRP_${g}`));
+                
+                el('dash-tasks').innerText = asignadosAmi.filter(t=>t.estadoTarea!=='Solucionado').length;
                 
                 const drawTable = (arr, isAdminView = false) => arr.map(t => {
                     let stClass = 'st-abierto'; if(t.estadoTarea==='En Proceso') stClass='st-en-proceso'; else if(t.estadoTarea==='En espera') stClass='st-en-espera'; else if(t.estadoTarea==='Solucionado') stClass='st-solucionado';
@@ -677,7 +735,7 @@
 
                 el('body-tareas-asignadas').innerHTML = drawTable(asignadosAmi);
                 el('body-tareas-reportadas').innerHTML = drawTable(reportadosPorMi);
-                el('body-todos-tiquetes').innerHTML = drawTable(cache.tickets, true); // Admin Table
+                el('body-todos-tiquetes').innerHTML = drawTable(cache.tickets, true); // Admin Table (Muestra TODOS sin excepción)
                 
                 if(interaccionActual.tipo === 'tarea') renderizarPanelInteraccion();
              });
