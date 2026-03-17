@@ -285,11 +285,12 @@
                                             <div class="row g-2 mb-2 align-items-center">
                                                 <div class="col-sm-4"><input type="text" id="field-name" class="form-control" placeholder="Nombre Campo"></div>
                                                 <div class="col-sm-4"><select id="field-type" class="form-select text-primary fw-bold"><option value="text">A Letra (Texto Corto)</option><option value="textarea">¶ Párrafo</option><option value="number">123 Número</option><option value="date">📅 Fecha</option><option value="time">🕒 Hora</option><option value="radio">◉ Sel. Única</option><option value="checkbox">☑ Sel. Múltiple</option><option value="boolean">👍 Sí/No</option><option value="file">📎 Archivo/Doc Genérico</option><option value="image">📷 Imagen Fija</option><option value="video">🎥 Video Fijo</option><option value="signature">✍️ Firma Digital</option></select></div>
-                                                <div class="col-sm-2 text-center pt-1"><input type="checkbox" id="field-req" class="form-check-input border-dark" checked><label class="form-check-label small ms-1 fw-bold">Oblig.</label></div>
+                                                <div class="col-sm-2 text-center pt-1"><div class="form-check form-switch"><input type="checkbox" id="field-req" class="form-check-input pointer" checked><label class="form-check-label small fw-bold text-muted pointer" for="field-req">Oblig.</label></div></div>
                                                 <div class="col-sm-2"><button type="button" class="btn btn-dark w-100" id="btn-add-field"><i class="bi bi-plus-lg"></i></button></div>
                                             </div>
                                             <div id="options-builder-container" class="d-none bg-white p-3 rounded border mb-3"><div id="options-list" class="d-flex flex-wrap gap-2 mb-2"></div><div class="input-group input-group-sm"><input type="text" id="new-option-input" class="form-control" placeholder="Opción..."><button class="btn btn-primary" type="button" onclick="addOptionToBuilder()">Añadir</button></div></div>
-                                            <div id="builder-fields-container" class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top"></div>
+                                            
+                                            <div id="builder-fields-container" class="d-flex flex-column gap-2 mt-4 pt-3 border-top"></div>
                                         </div>
 
                                         <div class="mb-4"><label class="fw-bold small text-dark mb-2 border-bottom pb-1 d-block">Visibilidad para Grupos:</label><div id="tpl-groups-container" class="row g-2 px-1"></div></div>
@@ -365,21 +366,46 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, query, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-        // IMPORT STORAGE PARA SOLUCIONAR LÍMITE DE 11MB
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+        // HEMOS ELIMINADO FIREBASE STORAGE PARA EVITAR EL ERROR DE CORS
 
         const firebaseConfig = {
             apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
             authDomain: "archivos-351d3.firebaseapp.com",
             projectId: "archivos-351d3",
-            storageBucket: "archivos-351d3.firebasestorage.app",
             messagingSenderId: "1024267964788",
             appId: "1:1024267964788:web:27b02f5c6a5ac8256c1c21"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app); // Inicializar Storage
+
+        // CONFIGURACIÓN DE CLOUDINARY
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dlpigdcle/auto/upload";
+        const CLOUDINARY_PRESET = "SKysistem";
+
+        // Función para subir archivos a Cloudinary (Soluciona el problema de CORS)
+        const uploadFileToCloudinary = async (file) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_PRESET);
+
+            try {
+                const response = await fetch(CLOUDINARY_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Error en la subida a Cloudinary");
+                }
+                
+                const data = await response.json();
+                return data.secure_url; // Devuelve la URL pública del archivo
+            } catch (error) {
+                console.error("Cloudinary Error:", error);
+                throw error;
+            }
+        };
 
         let currentUser=null, tempFields=[], currentOptionsBuilder=[], gridColumns=[], currentMetaItemsBuilder=[];
         let cache = { templates:[], groups:[], users:[], records:[], tickets:[], metas:[] };
@@ -390,14 +416,6 @@
         const el = id => document.getElementById(id);
         const showToast = (msg, type='success') => { const c = el('toast-container'); c.innerHTML += `<div class="toast show align-items-center text-bg-${type} border-0 p-2 mb-2 shadow"><div class="d-flex"><div class="toast-body fw-bold">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`; setTimeout(() => { if(c.firstChild) c.firstChild.remove(); }, 4000); };
         window.toggleMenu = () => { el('sidebar').classList.toggle('show'); el('sidebar-overlay').classList.toggle('show'); };
-        
-        // Función de Subida a Storage (Evita límite de 11MB en Base de Datos)
-        const uploadFileToStorage = async (file, pathFolder) => {
-            const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-            const storageRef = ref(storage, `${pathFolder}/${Date.now()}_${cleanName}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            return await getDownloadURL(snapshot.ref);
-        };
 
         const tipoLabels = { text:'Texto Corto', textarea:'Párrafo', number:'Número', date:'Fecha', time:'Hora', radio:'Única Opción', checkbox:'Sel. Múltiple', boolean:'Sí/No', file:'Archivo', image:'Imagen', video:'Video', signature:'Firma Digital', select:'Desplegable' };
         const placeHolders = { text:'Ingrese el texto...', number:'Digite un número...', date:'Seleccione la fecha...', time:'Seleccione la hora...' };
@@ -439,7 +457,7 @@
             });
             el('btn-logout').addEventListener('click', () => { localStorage.removeItem("am_enterprise_session"); location.reload(); });
 
-            // ADMIN BUILDER (Campos Obligatorios añadido aquí)
+            // ADMIN BUILDER: CAMPOS EN LISTA CON TOGGLE DE OBLIGATORIO
             el('field-type').addEventListener('change', e => { if(['select', 'radio', 'checkbox'].includes(e.target.value)) { el('options-builder-container').classList.remove('d-none'); currentOptionsBuilder = []; renderOptionsBuilder(); } else el('options-builder-container').classList.add('d-none'); });
             window.addOptionToBuilder = () => { const o = el('new-option-input').value.trim(); if(o) { currentOptionsBuilder.push(o); renderOptionsBuilder(); el('new-option-input').value = ''; } };
             window.removeOptionFromBuilder = (i) => { currentOptionsBuilder.splice(i,1); renderOptionsBuilder(); };
@@ -451,6 +469,10 @@
                 renderBuilderFields(); el('field-name').value=''; el('options-builder-container').classList.add('d-none'); el('field-type').value='text'; el('field-req').checked=true; currentOptionsBuilder=[]; 
             });
             window.removerCampoTemp = (i) => { tempFields.splice(i, 1); renderBuilderFields(); };
+            
+            // Función para alternar el estado obligatorio de un campo ya creado
+            window.toggleCampoReq = (index, isReq) => { tempFields[index].required = isReq; };
+
             el('tpl-sys-type').addEventListener('change', e => { if(e.target.value === 'excel') { tempFields = []; renderBuilderFields(); } });
             el('flow-type').addEventListener('change', e => el('flow-config-details').classList.toggle('d-none', e.target.value === 'solo_registro'));
             el('flow-assignment-type').addEventListener('change', e => el('flow-fixed-user-container').classList.toggle('d-none', e.target.value === 'dinamico'));
@@ -504,11 +526,11 @@
                 await updateDoc(doc(db, "am_registros", interaccionActual.id), updatePayload); showToast("Datos actualizados exitosamente"); e.target.reset(); bootstrap.Modal.getInstance(el('modalEditarRegistro')).hide(); btn.disabled = false; btn.innerHTML = "Confirmar y Actualizar Base de Datos";
             });
 
-            // SUBIDA DE EVIDENCIA DE CUMPLIMIENTO CON STORAGE
+            // SUBIDA DE EVIDENCIA DE CUMPLIMIENTO CON CLOUDINARY
             el('form-cumplir-meta').addEventListener('submit', async e => {
                 e.preventDefault(); const metaId = el('cump-meta-id').value, item = el('cump-meta-item').value, com = el('cump-comentario').value, btn = e.target.querySelector('button'); btn.disabled=true; btn.innerHTML="Subiendo Evidencia...";
                 try {
-                    const fileUrl = await uploadFileToStorage(el('cump-file').files[0], 'metas_evidencia');
+                    const fileUrl = await uploadFileToCloudinary(el('cump-file').files[0]);
                     const mRef = doc(db, "am_metas", metaId);
                     await updateDoc(mRef, { [`completados.${item}`]: { fecha: new Date().toLocaleString(), autor: currentUser.id, comentario: com, evidencia: fileUrl } });
                     showToast("Ítem Reportado como Completado"); e.target.reset(); bootstrap.Modal.getInstance(el('modalCumplirMeta')).hide();
@@ -541,7 +563,24 @@
 
         // --- CORE UI FUNCTIONS ---
         function renderOptionsBuilder() { el('options-list').innerHTML = currentOptionsBuilder.map((o, i) => `<span class="badge bg-primary bg-opacity-10 text-primary border">${o} <i class="bi bi-x pointer" onclick="removeOptionFromBuilder(${i})"></i></span>`).join(''); }
-        function renderBuilderFields() { el('builder-fields-container').innerHTML = tempFields.map((f, i) => `<span class="badge bg-white border text-dark p-2">${f.name} <small class="text-primary fw-bold ms-1">(${tipoLabels[f.type] || f.type}) ${f.required ? '<b class="text-danger">*</b>' : ''}</small><i class="bi bi-x-circle-fill text-danger pointer ms-2 hover-scale" onclick="removerCampoTemp(${i})"></i></span>`).join(''); }
+        
+        // RENDERIZADO DE LA LISTA DE CAMPOS CON EL BOTÓN DE OBLIGATORIO
+        function renderBuilderFields() { 
+            el('builder-fields-container').innerHTML = tempFields.map((f, i) => `
+                <div class="d-flex justify-content-between align-items-center bg-white border rounded p-2 shadow-sm w-100">
+                    <div>
+                        <b class="text-dark">${f.name}</b> <small class="text-primary ms-2 fw-bold">(${tipoLabels[f.type] || f.type})</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                            <input class="form-check-input pointer m-0" type="checkbox" id="req-chk-${i}" ${f.required !== false ? 'checked' : ''} onchange="toggleCampoReq(${i}, this.checked)">
+                            <label class="form-check-label small fw-bold text-muted pointer" for="req-chk-${i}">Obligatorio</label>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 hover-scale" onclick="removerCampoTemp(${i})"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            `).join(''); 
+        }
 
         function initApp(u) { 
             currentUser = u; el('login-screen').classList.add("d-none"); el('app-screen').classList.remove("d-none"); el('user-display').innerText = u.id; el('role-display').innerText = u.rol; el('avatar-initial').innerText = u.id[0].toUpperCase(); 
@@ -613,7 +652,7 @@
                 grid.classList.add('d-none');
                 std.innerHTML = tpl.campos.map(c => {
                     let inp = ''; const placeholder = placeHolders[c.type] || 'Complete el campo...';
-                    const isReq = c.required !== false ? 'required' : ''; // Validando si es obligatorio
+                    const isReq = c.required !== false ? 'required' : ''; 
                     const badgeTipo = `<span class="badge bg-primary bg-opacity-10 text-primary border ms-2 fw-normal"><i class="bi bi-info-circle"></i> ${tipoLabels[c.type] || c.type} ${c.required !== false ? '*' : ''}</span>`;
                     
                     if(c.type === 'textarea') inp = `<textarea class="form-control dyn-field" data-name="${c.name}" placeholder="${placeholder}" ${isReq}></textarea>`;
@@ -634,7 +673,7 @@
 
         function initSignaturePads() { document.querySelectorAll('.signature-pad').forEach(canvas => { canvas.width = canvas.offsetWidth || 300; canvas.height = canvas.offsetHeight || 150; const ctx = canvas.getContext('2d'); ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#0f172a'; let drawing = false; const getPos = (e) => { const rect = canvas.getBoundingClientRect(); const evt = e.touches ? e.touches[0] : e; return { x: evt.clientX - rect.left, y: evt.clientY - rect.top }; }; const start = (e) => { e.preventDefault(); drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }; const draw = (e) => { e.preventDefault(); if(!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }; const stop = (e) => { e.preventDefault(); drawing = false; }; canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop); canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stop); }); }
 
-        // PROCESAR REGISTRO Y SUBIDA CON STORAGE
+        // PROCESAR REGISTRO Y SUBIDA CON CLOUDINARY
         async function procesarRegistro(e) {
             e.preventDefault(); const nombreActivo = el('form-active-title').innerText.replace('Llenando: ', ''); const tpl = cache.templates.find(t => t.nombre === nombreActivo);
             let btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>Procesando Archivos...';
@@ -646,15 +685,15 @@
                 document.querySelectorAll('.dyn-field-radio:checked').forEach(el => datosForm[el.name] = el.value);
                 let checks = {}; document.querySelectorAll('.dyn-field-checkbox:checked').forEach(el => { const g = el.dataset.group; if(!checks[g]) checks[g]=[]; checks[g].push(el.value); }); Object.keys(checks).forEach(k => datosForm[k] = checks[k].join(', '));
                 
-                // Archivos Grandes enviados a Storage
+                // Archivos enviados a Cloudinary
                 const fileInputs = document.querySelectorAll('.dyn-field-file'); 
                 for(let inp of fileInputs) { 
                     if(inp.files[0]) { 
-                        try { datosForm[inp.dataset.name] = await uploadFileToStorage(inp.files[0], 'registros_archivos'); } 
+                        try { datosForm[inp.dataset.name] = await uploadFileToCloudinary(inp.files[0]); } 
                         catch(err) { console.error("Error subiendo archivo:", err); } 
                     } 
                 }
-                // Firmas (son muy pequeñas, Base64 está bien aquí)
+                
                 document.querySelectorAll('.dyn-field-sig').forEach(cvs => { const blank = document.createElement('canvas'); blank.width = cvs.width; blank.height = cvs.height; if(cvs.toDataURL() !== blank.toDataURL()) datosForm[cvs.dataset.name] = cvs.toDataURL(); else datosForm[cvs.dataset.name] = "Sin firma"; });
             }
 
@@ -713,7 +752,7 @@
             else { 
                 let dHTML = '<div class="row g-2">';
                 if(docData.sysType === 'excel') { dHTML += `<div class="col-12"><div class="table-responsive bg-white border rounded"><table class="table table-sm mb-0"><thead><tr>`; if(docData.datosExcel && docData.datosExcel.length > 0) { Object.keys(docData.datosExcel[0]).forEach(k => dHTML += `<th>${k}</th>`); dHTML += `</tr></thead><tbody>`; docData.datosExcel.forEach(row => { dHTML += `<tr>`; Object.values(row).forEach(v => dHTML += `<td>${v}</td>`); dHTML += `</tr>`; }); } dHTML += `</tbody></table></div></div>`; }
-                else { Object.keys(docData.datos).forEach(k => { const val = docData.datos[k]; if(val && val.toString().startsWith('data:image')) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><img src="${val}" style="max-height:80px"></div>`; else if(val && (val.toString().startsWith('data:') || val.toString().startsWith('https://firebasestorage'))) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><a href="${val}" target="_blank" class="btn btn-sm btn-outline-primary mt-1"><i class="bi bi-box-arrow-up-right"></i> Ver Adjunto</a></div>`; else dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><span class="fw-bold">${val}</span></div>`; }); } dHTML += '</div>'; el('det-contexto-datos').innerHTML = dHTML; 
+                else { Object.keys(docData.datos).forEach(k => { const val = docData.datos[k]; if(val && val.toString().startsWith('data:image')) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><img src="${val}" style="max-height:80px"></div>`; else if(val && (val.toString().startsWith('data:') || val.toString().includes('res.cloudinary.com'))) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><a href="${val}" target="_blank" class="btn btn-sm btn-outline-primary mt-1"><i class="bi bi-box-arrow-up-right"></i> Ver Adjunto</a></div>`; else dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><span class="fw-bold">${val}</span></div>`; }); } dHTML += '</div>'; el('det-contexto-datos').innerHTML = dHTML; 
             }
 
             const selEstado = el('det-estado'); selEstado.innerHTML = '';
@@ -735,7 +774,7 @@
             }).join(''); el('det-timeline').scrollTop = el('det-timeline').scrollHeight;
         }
 
-        // CHAT CON STORAGE Y ALERTAS
+        // CHAT CON CLOUDINARY
         window.enviarInteraccion = async () => { 
             const txt = el('det-comentario').value.trim(); 
             if(!txt && !currentChatFile) return; 
@@ -744,7 +783,7 @@
             let adjuntoData = null;
             if(currentChatFile) {
                 Swal.fire({ title: 'Enviando Archivo...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                const fileUrl = await uploadFileToStorage(currentChatFile, 'chat_adjuntos');
+                const fileUrl = await uploadFileToCloudinary(currentChatFile);
                 const fileType = currentChatFile.type.startsWith('image/') ? 'image' : 'doc';
                 adjuntoData = { data: fileUrl, type: fileType, name: currentChatFile.name };
                 Swal.close();
@@ -754,7 +793,6 @@
             el('det-comentario').value = ''; clearFileChat(); 
         };
         
-        // SWEETALERT AL CAMBIAR METADATOS (SOLUCIONAR/REABRIR/ETC)
         window.cambiarMetadato = async (campo, valor) => { 
             const coleccion = interaccionActual.tipo === 'tarea' ? "am_tareas" : "am_registros"; const cReal = campo === 'estado' && interaccionActual.tipo === 'tarea' ? 'estadoTarea' : campo; 
             
@@ -771,7 +809,7 @@
                 });
 
                 if (!isConfirmed || !motivo) { 
-                    renderizarPanelInteraccion(); // Revierte el select si cancela
+                    renderizarPanelInteraccion(); 
                     return; 
                 }
 
@@ -788,7 +826,7 @@
             if(docData.sysType === 'excel') {
                 el('edicion-campos-dinamicos').classList.add('d-none'); el('edicion-excel-dinamico').classList.remove('d-none'); const formTpl = cache.templates.find(t => t.id === docData.plantillaId); gridColumns = formTpl ? formTpl.campos : []; el('grid-header-edit').innerHTML = `<tr>${gridColumns.map(c=>`<th>${c.name}</th>`).join('')}<th width="40"></th></tr>`; if(docData.datosExcel) { docData.datosExcel.forEach(row => { let rowHtml = `<tr>`; gridColumns.forEach(c => rowHtml += `<td><input type="text" class="grid-input border-primary bg-light" data-col="${c.name}" value="${row[c.name]||''}"></td>`); rowHtml += `<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`; el('grid-body-edit').insertAdjacentHTML('beforeend', rowHtml); }); }
             } else {
-                el('edicion-campos-dinamicos').classList.remove('d-none'); el('edicion-excel-dinamico').classList.add('d-none'); let html = ''; Object.keys(currentEditData).forEach(k => { const val = currentEditData[k]; if(val && (val.toString().startsWith('data:') || val.toString().startsWith('https://'))) { html += `<div class="col-12 border rounded p-2"><label class="small fw-bold text-muted">${k}</label><p class="small text-danger mb-0">Archivo no editable desde aquí.</p></div>`; } else { html += `<div class="col-md-6"><label class="small fw-bold text-dark">${k}</label><input type="text" class="form-control edit-dyn-field border-primary" data-name="${k}" value="${val}"></div>`; } }); el('edicion-campos-dinamicos').innerHTML = html;
+                el('edicion-campos-dinamicos').classList.remove('d-none'); el('edicion-excel-dinamico').classList.add('d-none'); let html = ''; Object.keys(currentEditData).forEach(k => { const val = currentEditData[k]; if(val && (val.toString().startsWith('data:') || val.toString().includes('res.cloudinary.com'))) { html += `<div class="col-12 border rounded p-2"><label class="small fw-bold text-muted">${k}</label><p class="small text-danger mb-0">Archivo no editable desde aquí.</p></div>`; } else { html += `<div class="col-md-6"><label class="small fw-bold text-dark">${k}</label><input type="text" class="form-control edit-dyn-field border-primary" data-name="${k}" value="${val}"></div>`; } }); el('edicion-campos-dinamicos').innerHTML = html;
             } el('edicion-motivo').value = ''; new bootstrap.Modal(el('modalEditarRegistro')).show();
         };
         window.addFilaEdicionExcel = () => { el('grid-body-edit').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td><input type="text" class="grid-input border-primary bg-light" data-col="${c.name}"></td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); };
@@ -797,7 +835,7 @@
             const formFilter = el('filter-form').value, textFilter = el('filter-text').value.toLowerCase(); let filtered = cache.records.filter(r => !r.eliminado);
             if(formFilter && formFilter !== 'ALL') filtered = filtered.filter(r => r.plantillaId === formFilter);
             if(textFilter) { filtered = filtered.filter(r => { const stringData = JSON.stringify(r.datos || {}).toLowerCase() + JSON.stringify(r.datosExcel || []).toLowerCase() + r.estado.toLowerCase() + r.plantillaNombre.toLowerCase(); return stringData.includes(textFilter); }); }
-            el('body-global').innerHTML = filtered.map(r => { let resumenStr = ''; if(r.sysType === 'excel') resumenStr = `<i class="bi bi-table text-success"></i> ${r.datosExcel?.length || 0} filas Excel`; else { const k = Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`<span class="text-muted">${key}:</span> <b class="text-dark">${r.datos[key] && (r.datos[key].toString().startsWith('data:')||r.datos[key].toString().startsWith('http'))?'[Archivo/Firma]':r.datos[key]}</b>`).join('<br>'); } let stClass = r.estado.includes('Pendiente') ? 'st-pendiente' : (r.estado==='Aprobado'?'st-aprobado':(r.estado==='Rechazado'?'st-rechazado':'st-registrado')); let btnAction = r.seguimiento ? `<button class="btn btn-sm btn-primary border-0 fw-bold shadow-sm" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-chat-text"></i> Evaluar</button>` : `<button class="btn btn-sm btn-light border" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i> Detalles</button>`; let delAction = currentUser.rol === 'admin' ? `<button class="btn btn-sm text-danger ms-2 border-0" onclick="delRegConMotivo('${r.id}')"><i class="bi bi-trash"></i></button>` : ''; return `<tr><td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td><td><span class="badge bg-primary bg-opacity-10 text-primary border">${(r.sysType||'FORM').toUpperCase()}</span><br><b class="small">${r.plantillaNombre}</b></td><td class="small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${resumenStr}</td><td><span class="status-badge ${stClass}">${r.estado}</span></td><td>${btnAction}${delAction}</td></tr>`; }).join('');
+            el('body-global').innerHTML = filtered.map(r => { let resumenStr = ''; if(r.sysType === 'excel') resumenStr = `<i class="bi bi-table text-success"></i> ${r.datosExcel?.length || 0} filas Excel`; else { const k = Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`<span class="text-muted">${key}:</span> <b class="text-dark">${r.datos[key] && (r.datos[key].toString().startsWith('data:')||r.datos[key].toString().includes('res.cloudinary.com'))?'[Archivo/Firma]':r.datos[key]}</b>`).join('<br>'); } let stClass = r.estado.includes('Pendiente') ? 'st-pendiente' : (r.estado==='Aprobado'?'st-aprobado':(r.estado==='Rechazado'?'st-rechazado':'st-registrado')); let btnAction = r.seguimiento ? `<button class="btn btn-sm btn-primary border-0 fw-bold shadow-sm" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-chat-text"></i> Evaluar</button>` : `<button class="btn btn-sm btn-light border" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i> Detalles</button>`; let delAction = currentUser.rol === 'admin' ? `<button class="btn btn-sm text-danger ms-2 border-0" onclick="delRegConMotivo('${r.id}')"><i class="bi bi-trash"></i></button>` : ''; return `<tr><td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td><td><span class="badge bg-primary bg-opacity-10 text-primary border">${(r.sysType||'FORM').toUpperCase()}</span><br><b class="small">${r.plantillaNombre}</b></td><td class="small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${resumenStr}</td><td><span class="status-badge ${stClass}">${r.estado}</span></td><td>${btnAction}${delAction}</td></tr>`; }).join('');
         };
 
         // --- REALTIME LISTENERS ---
