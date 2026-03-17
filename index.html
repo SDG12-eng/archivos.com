@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyControl OS - Colaboración y Cumplimiento</title>
+    <title>Compliance Record</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
@@ -75,7 +75,7 @@
 
     <div id="login-screen" class="vh-100 d-flex justify-content-center align-items-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
         <div class="card-panel p-5 border-0 shadow-lg" style="width: 100%; max-width: 400px; margin: 15px;">
-            <div class="text-center mb-4"><i class="bi bi-stack fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">SkyControl</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">COLLAB OS</span></div>
+            <div class="text-center mb-4"><i class="bi bi-stack fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">Compliance Record</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">COLLAB OS</span></div>
             <form id="login-form">
                 <input type="text" class="form-control mb-3" id="login-user" placeholder="ID de Usuario" required>
                 <input type="password" class="form-control mb-4" id="login-pass" placeholder="Contraseña" required>
@@ -89,7 +89,7 @@
         
         <aside id="sidebar" class="shadow-lg">
             <div class="p-4 d-flex align-items-center justify-content-between border-bottom border-secondary border-opacity-25">
-                <div class="d-flex align-items-center gap-3"><i class="bi bi-stack text-primary fs-3"></i><h5 class="mb-0 fw-bold">SkyControl</h5></div>
+                <div class="d-flex align-items-center gap-3"><i class="bi bi-stack text-primary fs-3"></i><h5 class="mb-0 fw-bold">Compliance Record</h5></div>
                 <i class="bi bi-x-lg d-lg-none pointer text-white fs-4" onclick="toggleMenu()"></i>
             </div>
             <div class="p-4"><div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(255,255,255,0.05);"><div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold fs-5" style="width:42px;height:42px;" id="avatar-initial"></div><div style="line-height:1.2;"><h6 class="mb-1 fw-bold text-white" id="user-display">User</h6><span class="badge bg-info bg-opacity-25 text-info text-uppercase" id="role-display" style="font-size:0.65rem;">ROL</span></div></div></div>
@@ -149,8 +149,7 @@
                     <div class="card-panel mt-4 border-0 shadow-sm">
                         <div class="card-header-panel bg-white border-bottom"><i class="bi bi-grid-3x3-gap text-primary me-2"></i> Tablero de Cumplimiento Mensual Anual</div>
                         <div class="card-body p-4 bg-light">
-                            <div class="row g-3" id="grid-meses-cumplimiento">
-                                </div>
+                            <div class="row g-3" id="grid-meses-cumplimiento"></div>
                         </div>
                     </div>
                 </div>
@@ -435,6 +434,25 @@
         const tipoLabels = { text:'Texto Corto', textarea:'Párrafo', number:'Número', date:'Fecha', time:'Hora', radio:'Única Opción', checkbox:'Sel. Múltiple', boolean:'Sí/No', file:'Archivo', image:'Imagen', video:'Video', signature:'Firma Digital', select:'Desplegable' };
         const placeHolders = { text:'Ingrese el texto...', number:'Digite un número...', date:'Seleccione la fecha...', time:'Seleccione la hora...' };
 
+        // --- NUEVA FUNCIÓN: GENERAR INPUT PARA LA GRILLA DE EXCEL ---
+        window.generarInputGrilla = (col, valor = '') => {
+            const valAttr = valor ? `value="${valor}"` : '';
+            // Si es un desplegable o boolean, renderizamos un select
+            if (col.type === 'select' || col.type === 'radio' || col.type === 'boolean') {
+                let opciones = col.type === 'boolean' ? ['Sí', 'No'] : (col.options || []);
+                let optsHtml = `<option value="">-</option>` + opciones.map(o => `<option value="${o}" ${valor === o ? 'selected' : ''}>${o}</option>`).join('');
+                return `<select class="grid-input border-primary bg-light" data-col="${col.name}">${optsHtml}</select>`;
+            } 
+            // Si es fecha, hora o numero, inyectamos el type exacto
+            else if (['date', 'time', 'number'].includes(col.type)) {
+                return `<input type="${col.type}" class="grid-input border-primary bg-light" data-col="${col.name}" ${valAttr}>`;
+            } 
+            // Por defecto, texto (incluso para archivos/firmas que son complejos en grid)
+            else {
+                return `<input type="text" class="grid-input border-primary bg-light" data-col="${col.name}" ${valAttr}>`;
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             setInterval(() => { el('datetime-display').innerText = new Date().toLocaleString('es-ES', { dateStyle:'short', timeStyle:'short' }); }, 1000);
             const s = localStorage.getItem("am_enterprise_session"); if(s) initApp(JSON.parse(s));
@@ -516,7 +534,10 @@
             el('form-meta').addEventListener('submit', async e => { e.preventDefault(); const tit = el('meta-titulo').value.trim(), f = el('meta-fecha').value, asig = el('meta-asignado').value; if(currentMetaItemsBuilder.length===0) return showToast("Agregue ítems a cumplir", "warning"); await addDoc(collection(db, "am_metas"), { titulo: tit, fechaLimite: f, asignadoA: asig, items: currentMetaItemsBuilder, completados: {}, autor: currentUser.id, timestamp: Date.now() }); showToast("Meta Mensual Creada"); e.target.reset(); currentMetaItemsBuilder=[]; el('meta-items-list').innerHTML=''; });
 
             el('form-nuevo-tiquete').addEventListener('submit', async e => { e.preventDefault(); const asig = el('tq-man-asignado').value; await addDoc(collection(db, "am_tareas"), { titulo: el('tq-man-titulo').value, descripcion: el('tq-man-desc').value, asignadoA: asig, reportadoPor: currentUser.id, prioridad: el('tq-man-pri').value, fechaLimite: el('tq-man-sla').value.replace('T', ' '), estadoTarea: 'Abierto', eliminado: false, historial: [{ tipo: 'comentario', texto: 'Tiquete creado manualmente.', autor: currentUser.id, fecha: new Date().toLocaleString() }], timestamp: Date.now() }); showToast("Tiquete Creado"); e.target.reset(); bootstrap.Modal.getInstance(el('modalNuevoTiquete')).hide(); });
-            el('btn-add-row').addEventListener('click', () => { el('grid-body').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td><input type="text" class="grid-input" data-col="${c.name}"></td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); });
+            
+            // EL BOTÓN PARA AÑADIR FILAS AHORA USA generarInputGrilla()
+            el('btn-add-row').addEventListener('click', () => { el('grid-body').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td>${generarInputGrilla(c)}</td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); });
+            
             el('dynamic-form').addEventListener('submit', procesarRegistro);
             el('btn-volver-interaccion').addEventListener('click', () => { window.navigateTo(interaccionActual.tipo==='tarea'?'mistareas':'historial'); });
             
@@ -600,7 +621,6 @@
             let metasV = cache.metas;
             if(currentUser.rol !== 'admin') metasV = metasV.filter(m => m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
             
-            // Si elige "ALL" mostramos todas (o las pendientes), si elige un mes filtramos por mes
             if(mesFilter !== 'ALL') metasV = metasV.filter(m => m.fechaLimite.split('-')[1] === mesFilter);
 
             let html = ''; let totalItems = 0, totalCompletados = 0;
@@ -785,7 +805,7 @@
             contenedorOculto.style.padding = '30px';
             contenedorOculto.style.fontFamily = 'Arial, sans-serif';
             contenedorOculto.innerHTML = `
-                <h1 style="color:#0f62fe; text-align:center;">SkyControl OS - Reporte Oficial</h1>
+                <h1 style="color:#0f62fe; text-align:center;">Compliance Record - Reporte Oficial</h1>
                 <hr>
                 <h2>${isTiquete ? 'Detalle de Tiquete / Tarea' : 'Registro de Datos'}</h2>
                 <p><strong>ID del Documento:</strong> ${el('det-id-doc').innerText}</p>
@@ -881,6 +901,23 @@
             await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `El sistema actualizó: ${campo} -> ${valor}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); 
         };
 
+        window.abrirModalEdicion = () => {
+            if(interaccionActual.tipo !== 'registro') return; const docData = cache.records.find(r=>r.id===interaccionActual.id); el('edicion-campos-dinamicos').innerHTML = ''; el('grid-body-edit').innerHTML = '';
+            if(docData.sysType === 'excel') {
+                el('edicion-campos-dinamicos').classList.add('d-none'); el('edicion-excel-dinamico').classList.remove('d-none'); const formTpl = cache.templates.find(t => t.id === docData.plantillaId); gridColumns = formTpl ? formTpl.campos : []; el('grid-header-edit').innerHTML = `<tr>${gridColumns.map(c=>`<th>${c.name}</th>`).join('')}<th width="40"></th></tr>`; if(docData.datosExcel) { docData.datosExcel.forEach(row => { let rowHtml = `<tr>`; gridColumns.forEach(c => rowHtml += `<td>${generarInputGrilla(c, row[c.name]||'')}</td>`); rowHtml += `<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`; el('grid-body-edit').insertAdjacentHTML('beforeend', rowHtml); }); }
+            } else {
+                el('edicion-campos-dinamicos').classList.remove('d-none'); el('edicion-excel-dinamico').classList.add('d-none'); let html = ''; Object.keys(currentEditData).forEach(k => { const val = currentEditData[k]; if(val && (val.toString().startsWith('data:') || val.toString().includes('res.cloudinary.com'))) { html += `<div class="col-12 border rounded p-2"><label class="small fw-bold text-muted">${k}</label><p class="small text-danger mb-0">Archivo no editable desde aquí.</p></div>`; } else { html += `<div class="col-md-6"><label class="small fw-bold text-dark">${k}</label><input type="text" class="form-control edit-dyn-field border-primary" data-name="${k}" value="${val}"></div>`; } }); el('edicion-campos-dinamicos').innerHTML = html;
+            } el('edicion-motivo').value = ''; new bootstrap.Modal(el('modalEditarRegistro')).show();
+        };
+        window.addFilaEdicionExcel = () => { el('grid-body-edit').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td>${generarInputGrilla(c)}</td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); };
+
+        window.renderMasterData = () => {
+            const formFilter = el('filter-form').value, textFilter = el('filter-text').value.toLowerCase(); let filtered = cache.records.filter(r => !r.eliminado);
+            if(formFilter && formFilter !== 'ALL') filtered = filtered.filter(r => r.plantillaId === formFilter);
+            if(textFilter) { filtered = filtered.filter(r => { const stringData = JSON.stringify(r.datos || {}).toLowerCase() + JSON.stringify(r.datosExcel || []).toLowerCase() + r.estado.toLowerCase() + r.plantillaNombre.toLowerCase(); return stringData.includes(textFilter); }); }
+            el('body-global').innerHTML = filtered.map(r => { let resumenStr = ''; if(r.sysType === 'excel') resumenStr = `<i class="bi bi-table text-success"></i> ${r.datosExcel?.length || 0} filas Excel`; else { const k = Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`<span class="text-muted">${key}:</span> <b class="text-dark">${r.datos[key] && (r.datos[key].toString().startsWith('data:')||r.datos[key].toString().includes('res.cloudinary.com'))?'[Archivo/Firma]':r.datos[key]}</b>`).join('<br>'); } let stClass = r.estado.includes('Pendiente') ? 'st-pendiente' : (r.estado==='Aprobado'?'st-aprobado':(r.estado==='Rechazado'?'st-rechazado':'st-registrado')); let btnAction = r.seguimiento ? `<button class="btn btn-sm btn-primary border-0 fw-bold shadow-sm" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-chat-text"></i> Evaluar</button>` : `<button class="btn btn-sm btn-light border" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i> Detalles</button>`; let delAction = currentUser.rol === 'admin' ? `<button class="btn btn-sm text-danger ms-2 border-0" onclick="delRegConMotivo('${r.id}')"><i class="bi bi-trash"></i></button>` : ''; return `<tr><td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td><td><span class="badge bg-primary bg-opacity-10 text-primary border">${(r.sysType||'FORM').toUpperCase()}</span><br><b class="small">${r.plantillaNombre}</b></td><td class="small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${resumenStr}</td><td><span class="status-badge ${stClass}">${r.estado}</span></td><td>${btnAction}${delAction}</td></tr>`; }).join('');
+        };
+
         function startRealtime() {
             onSnapshot(collection(db, "am_metas"), s => {
                 cache.metas = s.docs.map(d=>({id:d.id,...d.data()}));
@@ -953,6 +990,7 @@
                 if(interaccionActual.tipo === 'registro') renderizarPanelInteraccion();
             });
         }
+        window.exportarTabla = (tId, n) => { const t = el(tId); if(!t) return; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body><table border="1">${t.innerHTML}</table></body></html>`], {type: 'application/vnd.ms-excel'})); a.download = `${n}.xls`; a.click(); };
     </script>
 </body>
 </html>
