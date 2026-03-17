@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyControl OS - Enterprise & Compliance Suite</title>
+    <title>SkyControl OS - Colaboración y Cumplimiento</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -72,7 +72,7 @@
 
     <div id="login-screen" class="vh-100 d-flex justify-content-center align-items-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
         <div class="card-panel p-5 border-0 shadow-lg" style="width: 100%; max-width: 400px; margin: 15px;">
-            <div class="text-center mb-4"><i class="bi bi-stack fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">SkyControl</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">COMPLIANCE OS</span></div>
+            <div class="text-center mb-4"><i class="bi bi-stack fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">SkyControl</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">COLLAB OS</span></div>
             <form id="login-form">
                 <input type="text" class="form-control mb-3" id="login-user" placeholder="ID de Usuario" required>
                 <input type="password" class="form-control mb-4" id="login-pass" placeholder="Contraseña" required>
@@ -97,16 +97,12 @@
         <main id="main-content">
             <header class="bg-white py-3 px-4 d-flex justify-content-between align-items-center sticky-top border-bottom shadow-sm">
                 <div class="d-flex align-items-center gap-3"><button class="btn btn-light d-lg-none" onclick="toggleMenu()"><i class="bi bi-list fs-4"></i></button><h5 class="mb-0 fw-bold text-dark" id="section-title">Dashboard</h5></div>
-                
                 <div class="d-flex align-items-center gap-3">
                     <div class="dropdown">
                         <button class="btn btn-light position-relative rounded-circle p-2 shadow-sm" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-bell-fill text-primary"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notif-count" style="font-size: 0.6rem;">0</span>
+                            <i class="bi bi-bell-fill text-primary"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notif-count" style="font-size: 0.6rem;">0</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-0" style="width: 320px; max-height: 400px; overflow-y: auto;" id="notif-list">
-                            <li class="p-3 text-center text-muted small">No hay notificaciones</li>
-                        </ul>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-0" style="width: 320px; max-height: 400px; overflow-y: auto;" id="notif-list"></ul>
                     </div>
                     <div class="text-muted small fw-bold bg-light px-3 py-2 rounded-pill border d-none d-sm-block" id="datetime-display"></div>
                 </div>
@@ -118,7 +114,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3"><div class="card-panel p-4 text-center"><i class="bi bi-hdd-stack fs-1 text-primary mb-2"></i><h2 class="fw-black mb-0" id="dash-total">0</h2><small class="text-muted fw-bold">Registros</small></div></div>
                         <div class="col-6 col-md-3"><div class="card-panel p-4 text-center"><i class="bi bi-calendar-check fs-1 text-success mb-2"></i><h2 class="fw-black mb-0" id="dash-metas">0</h2><small class="text-muted fw-bold">Metas Logradas</small></div></div>
-                        <div class="col-12 col-md-6"><div class="card-panel p-4 text-center"><i class="bi bi-ticket-detailed fs-1 text-warning mb-2"></i><h2 class="fw-black mb-0" id="dash-tasks">0</h2><small class="text-muted fw-bold">Mis Tareas Pendientes</small></div></div>
+                        <div class="col-12 col-md-6"><div class="card-panel p-4 text-center"><i class="bi bi-people-fill fs-1 text-warning mb-2"></i><h2 class="fw-black mb-0" id="dash-tasks">0</h2><small class="text-muted fw-bold">Tareas (Mías y de mi Grupo)</small></div></div>
                     </div>
                 </div>
 
@@ -127,7 +123,7 @@
                         <div class="col-lg-8">
                             <div class="card-panel h-100">
                                 <div class="card-header-panel d-flex justify-content-between align-items-center">
-                                    <span><i class="bi bi-calendar-range text-primary me-2"></i> Calendario de Cumplimiento</span>
+                                    <span><i class="bi bi-calendar-range text-primary me-2"></i> Metas y Asignaciones Compartidas</span>
                                     <select class="form-select form-select-sm w-auto border-primary text-primary fw-bold" id="filtro-mes-meta" onchange="renderMetas()">
                                         <option value="ALL">Todo el Año</option>
                                         <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
@@ -138,10 +134,10 @@
                         </div>
                         <div class="col-lg-4">
                             <div class="card-panel h-100">
-                                <div class="card-header-panel bg-light"><i class="bi bi-pie-chart-fill text-success me-2"></i> Progreso del Mes</div>
+                                <div class="card-header-panel bg-light"><i class="bi bi-pie-chart-fill text-success me-2"></i> Progreso del Equipo</div>
                                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
                                     <div style="position: relative; width: 200px; height: 200px; margin: 0 auto;"><canvas id="cumplimientoChart"></canvas><div class="position-absolute top-50 start-50 translate-middle fw-black fs-3 text-dark" id="chart-percent">0%</div></div>
-                                    <div class="mt-4"><span class="badge bg-success px-3 py-2 fs-6" id="metric-completados">0 Completados</span> <span class="badge bg-warning text-dark px-3 py-2 fs-6" id="metric-pendientes">0 Pendientes</span></div>
+                                    <div class="mt-4"><span class="badge bg-success px-3 py-2 fs-6" id="metric-completados">0 Logrados</span> <span class="badge bg-warning text-dark px-3 py-2 fs-6" id="metric-pendientes">0 Pendientes</span></div>
                                 </div>
                             </div>
                         </div>
@@ -156,15 +152,14 @@
                                 <label class="form-label small fw-bold text-muted text-uppercase mb-3">Seleccione el Formato a Llenar</label>
                                 <div id="template-cards-container" class="row g-3 mb-4"></div>
                             </div>
-
                             <form id="dynamic-form" class="d-none">
                                 <div class="bg-light p-4 rounded-4 border mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3"><h5 class="fw-bold text-primary mb-0" id="form-active-title">Llenando Formulario...</h5><button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="cancelarRegistro()"><i class="bi bi-arrow-left me-1"></i> Cambiar Formato</button></div>
+                                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3"><h5 class="fw-bold text-primary mb-0" id="form-active-title">Llenando...</h5><button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="cancelarRegistro()"><i class="bi bi-arrow-left me-1"></i> Cambiar Formato</button></div>
                                     <input type="hidden" id="current-tpl-type">
                                     <div id="standard-fields-container" class="row g-4 mb-4"></div>
                                     <div id="grid-container" class="d-none mb-4"><div class="table-responsive border rounded-3 overflow-hidden bg-white"><table class="table grid-table mb-0" id="grid-table"><thead id="grid-header"></thead><tbody id="grid-body"></tbody></table></div><button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" id="btn-add-row"><i class="bi bi-plus-lg"></i> Añadir Fila a la Tabla</button></div>
                                 </div>
-                                <div class="text-end pt-2"><button type="submit" class="btn-brand px-5 shadow w-100 w-md-auto py-3"><i class="bi bi-send-fill me-2"></i> ENVIAR DATOS AL SISTEMA</button></div>
+                                <div class="text-end pt-2"><button type="submit" class="btn-brand px-5 shadow w-100 w-md-auto py-3"><i class="bi bi-send-fill me-2"></i> ENVIAR DATOS</button></div>
                             </form>
                         </div>
                     </div>
@@ -173,14 +168,14 @@
                 <div id="sec-mistareas" class="content-section d-none fade-in">
                     <div class="card-panel">
                         <div class="card-header-panel d-flex justify-content-between align-items-center flex-wrap gap-3">
-                            <span><i class="bi bi-ticket-detailed text-primary me-2"></i> Centro de Tiquetes y Tareas</span>
-                            <button class="btn btn-sm btn-dark shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoTiquete"><i class="bi bi-plus-lg me-1"></i> Crear Tiquete Directo</button>
+                            <span><i class="bi bi-ticket-detailed text-primary me-2"></i> Helpdesk y Tareas de Equipo</span>
+                            <button class="btn btn-sm btn-dark shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoTiquete"><i class="bi bi-plus-lg me-1"></i> Crear Tiquete</button>
                         </div>
                         <div class="card-body p-0">
                             <ul class="nav nav-tabs px-4 pt-3 bg-light" role="tablist">
-                                <li class="nav-item"><a class="nav-link active fw-bold text-dark" data-bs-toggle="tab" href="#tab-asignados-mi"><i class="bi bi-inbox me-1"></i> Asignados a Mí / Mi Grupo</a></li>
+                                <li class="nav-item"><a class="nav-link active fw-bold text-dark" data-bs-toggle="tab" href="#tab-asignados-mi"><i class="bi bi-people-fill me-1"></i> Bandeja Compartida (Mías y Mi Grupo)</a></li>
                                 <li class="nav-item"><a class="nav-link fw-bold text-muted" data-bs-toggle="tab" href="#tab-mis-reportes"><i class="bi bi-clock-history me-1"></i> Creados por Mí</a></li>
-                                <li class="nav-item admin-only d-none"><a class="nav-link fw-bold text-danger" data-bs-toggle="tab" href="#tab-todos-tiquetes"><i class="bi bi-globe me-1"></i> Gestión Global (Admin)</a></li>
+                                <li class="nav-item admin-only d-none"><a class="nav-link fw-bold text-danger" data-bs-toggle="tab" href="#tab-todos-tiquetes"><i class="bi bi-globe me-1"></i> Auditoría (Admin)</a></li>
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane fade show active p-0" id="tab-asignados-mi"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="bg-light text-muted small"><tr><th class="ps-4">Reporte</th><th>Asunto / SLA</th><th>Asignado A</th><th>Estado</th><th>Prioridad</th></tr></thead><tbody id="body-tareas-asignadas"></tbody></table></div></div>
@@ -262,9 +257,9 @@
                 <div id="sec-admin" class="content-section d-none fade-in">
                     <ul class="nav nav-pills mb-4 bg-white p-2 rounded-3 shadow-sm border overflow-auto flex-nowrap" role="tablist">
                         <li class="nav-item"><button class="nav-link active fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-tpls"><i class="bi bi-hammer me-1"></i> Formatos</button></li>
-                        <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-cumplimiento"><i class="bi bi-calendar-check me-1"></i> Metas / Cumplimiento</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-cumplimiento"><i class="bi bi-calendar-check me-1"></i> Metas</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-groups"><i class="bi bi-building me-1"></i> Grupos y Equipos</button></li>
                         <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-users"><i class="bi bi-people me-1"></i> Usuarios</button></li>
-                        <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-groups"><i class="bi bi-building me-1"></i> Grupos</button></li>
                     </ul>
 
                     <div class="tab-content">
@@ -290,7 +285,6 @@
                                         </div>
 
                                         <div class="mb-4"><label class="fw-bold small text-dark mb-2 border-bottom pb-1 d-block">Visibilidad para Grupos:</label><div id="tpl-groups-container" class="row g-2 px-1"></div></div>
-                                        
                                         <div class="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 p-3 p-md-4 mb-4">
                                             <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="tpl-enable-tracking" checked><label class="form-check-label fw-bold text-primary">Habilitar Seguimiento (Chat/Edición del registro).</label></div>
                                             <h6 class="fw-bold text-primary mb-3"><i class="bi bi-diagram-3-fill me-2"></i> Flujo Automático</h6>
@@ -311,16 +305,8 @@
                                         <h5 class="fw-bold text-dark mb-4"><i class="bi bi-calendar-check text-primary me-2"></i> Crear Meta Mensual</h5>
                                         <form id="form-meta">
                                             <div class="mb-3"><label class="small fw-bold text-muted">Título de la Meta</label><input type="text" id="meta-titulo" class="form-control fw-bold" placeholder="Ej. Inspección de Flota Mensual" required></div>
-                                            <div class="row g-2 mb-3">
-                                                <div class="col-6"><label class="small fw-bold text-muted">Fecha Límite</label><input type="date" id="meta-fecha" class="form-control" required></div>
-                                                <div class="col-6"><label class="small fw-bold text-muted">Asignado A</label><select id="meta-asignado" class="form-select border-primary" required></select></div>
-                                            </div>
-                                            
-                                            <div class="bg-light border rounded p-3 mb-4">
-                                                <label class="small fw-bold text-dark mb-2">Añadir Ítems que deben cumplirse (Ej. Camión 1, Local 2)</label>
-                                                <div class="input-group input-group-sm mb-2"><input type="text" id="meta-item-input" class="form-control" placeholder="Escriba ítem..."><button class="btn btn-dark" type="button" onclick="addMetaItem()">Añadir Ítem</button></div>
-                                                <div id="meta-items-list" class="d-flex flex-column gap-1"></div>
-                                            </div>
+                                            <div class="row g-2 mb-3"><div class="col-6"><label class="small fw-bold text-muted">Fecha Límite</label><input type="date" id="meta-fecha" class="form-control" required></div><div class="col-6"><label class="small fw-bold text-muted">Asignado A (Equipo/Usuario)</label><select id="meta-asignado" class="form-select border-primary" required></select></div></div>
+                                            <div class="bg-light border rounded p-3 mb-4"><label class="small fw-bold text-dark mb-2">Añadir Ítems que deben cumplirse (Ej. Camión 1, Local 2)</label><div class="input-group input-group-sm mb-2"><input type="text" id="meta-item-input" class="form-control" placeholder="Escriba ítem..."><button class="btn btn-dark" type="button" onclick="addMetaItem()">Añadir Ítem</button></div><div id="meta-items-list" class="d-flex flex-column gap-1"></div></div>
                                             <button type="submit" class="btn-brand w-100 py-3 shadow-sm">Establecer Meta</button>
                                         </form>
                                     </div>
@@ -329,8 +315,31 @@
                             </div>
                         </div>
 
-                        <div class="tab-pane fade" id="tab-users"><div class="row g-4"><div class="col-lg-5"><div class="card-panel h-100 position-relative"><div id="usr-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 fw-bold d-none">Modo Edición</div><div class="card-header-panel">Ficha de Usuario</div><div class="card-body p-4"><form id="form-user"><div class="mb-3"><input type="text" id="usr-id" class="form-control fw-bold" placeholder="ID Usuario" required></div><div class="mb-3"><input type="password" id="usr-pass" class="form-control" placeholder="Contraseña" required></div><div class="mb-3"><select id="usr-rol" class="form-select fw-bold"><option value="usuario">Usuario Regular</option><option value="revisor">Supervisor/Revisor</option><option value="admin">Administrador Global</option></select></div><div class="mb-3"><label class="fw-bold small mb-2 d-block">Grupos:</label><div id="usr-groups-container" class="row g-2 px-1"></div></div><div class="mb-4 bg-light p-3 rounded border"><label class="fw-bold small mb-2 d-block">Módulos Permitidos:</label><div class="d-flex flex-wrap gap-2"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash" checked> Dash <input class="form-check-input perm-chk" type="checkbox" value="cumplimiento" id="p-cump" checked> Metas <input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked> Reg <input class="form-check-input perm-chk" type="checkbox" value="mistareas" id="p-task" checked> Tiquetes <input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist" checked> BD <input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm" checked> Admin</div></div><div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-usr-edit" onclick="cancelEditUsr()">Cancelar</button><button type="submit" class="btn btn-dark flex-grow-1 fw-bold" id="btn-save-usr">Guardar Usuario</button></div></form></div></div></div><div class="col-lg-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel">Directorio Activo</div><div class="card-body p-0"><ul id="list-users" class="list-group list-group-flush"></ul></div></div></div></div></div>
-                        <div class="tab-pane fade" id="tab-groups"><div class="row g-4"><div class="col-md-5"><div class="card-panel h-100 position-relative"><div id="grp-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 fw-bold d-none">Modo Edición</div><div class="card-header-panel">Gestión de Grupo</div><div class="card-body p-4"><form id="form-group"><div class="mb-3"><input type="text" id="grp-id" class="form-control fw-bold" placeholder="ID (ej. g_soporte)" required></div><div class="mb-4"><input type="text" id="grp-name" class="form-control" placeholder="Nombre Público (ej. Soporte TI)" required></div><div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-grp-edit" onclick="cancelEditGrp()">Cancelar</button><button type="submit" class="btn-brand flex-grow-1" id="btn-save-grp">Guardar Grupo</button></div></form></div></div></div><div class="col-md-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel">Departamentos</div><div class="card-body p-0"><ul id="list-groups" class="list-group list-group-flush"></ul></div></div></div></div></div>
+                        <div class="tab-pane fade" id="tab-groups">
+                            <div class="row g-4">
+                                <div class="col-lg-5">
+                                    <div class="card-panel h-100 position-relative">
+                                        <div id="grp-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 fw-bold d-none" style="border-bottom-left-radius: 12px; border-top-right-radius: 12px;">Modo Edición</div>
+                                        <div class="card-header-panel">Gestión de Equipo / Grupo</div>
+                                        <div class="card-body p-4">
+                                            <form id="form-group">
+                                                <div class="mb-3"><input type="text" id="grp-id" class="form-control fw-bold" placeholder="ID (ej. g_soporte)" required></div>
+                                                <div class="mb-4"><input type="text" id="grp-name" class="form-control" placeholder="Nombre Público (ej. Soporte TI)" required></div>
+                                                <div class="mb-4">
+                                                    <label class="fw-bold small mb-2 d-block text-primary"><i class="bi bi-person-lines-fill"></i> Asignar Miembros a este Equipo:</label>
+                                                    <div id="grp-users-container" class="row g-2 px-1 border p-2 rounded bg-light" style="max-height: 200px; overflow-y: auto;">
+                                                        </div>
+                                                </div>
+                                                <div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-grp-edit" onclick="cancelEditGrp()">Cancelar</button><button type="submit" class="btn-brand flex-grow-1" id="btn-save-grp">Guardar Grupo y Miembros</button></div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel">Departamentos</div><div class="card-body p-0"><ul id="list-groups" class="list-group list-group-flush"></ul></div></div></div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-users"><div class="row g-4"><div class="col-lg-5"><div class="card-panel h-100 position-relative"><div id="usr-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 fw-bold d-none" style="border-bottom-left-radius: 12px; border-top-right-radius: 12px;">Modo Edición</div><div class="card-header-panel">Ficha de Usuario</div><div class="card-body p-4"><form id="form-user"><div class="mb-3"><input type="text" id="usr-id" class="form-control fw-bold" placeholder="ID Usuario" required></div><div class="mb-3"><input type="password" id="usr-pass" class="form-control" placeholder="Contraseña" required></div><div class="mb-3"><select id="usr-rol" class="form-select fw-bold"><option value="usuario">Usuario Regular</option><option value="revisor">Supervisor/Revisor</option><option value="admin">Administrador Global</option></select></div><div class="mb-4 bg-light p-3 rounded border"><label class="fw-bold small mb-2 d-block">Módulos Permitidos:</label><div class="d-flex flex-wrap gap-2"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash" checked> Dash <input class="form-check-input perm-chk" type="checkbox" value="cumplimiento" id="p-cump" checked> Metas <input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked> Reg <input class="form-check-input perm-chk" type="checkbox" value="mistareas" id="p-task" checked> Tiquetes <input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist" checked> BD <input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm" checked> Admin</div></div><div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-usr-edit" onclick="cancelEditUsr()">Cancelar</button><button type="submit" class="btn btn-dark flex-grow-1 fw-bold" id="btn-save-usr">Guardar Usuario</button></div></form></div></div></div><div class="col-lg-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel">Directorio Activo</div><div class="card-body p-0"><ul id="list-users" class="list-group list-group-flush"></ul></div></div></div></div></div>
                     </div>
                 </div>
 
@@ -346,11 +355,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, query, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-        // Your web app's Firebase configuration (UPDATED TO YOUR PROJECT)
         const firebaseConfig = {
             apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
             authDomain: "archivos-351d3.firebaseapp.com",
@@ -360,7 +367,6 @@
             appId: "1:1024267964788:web:27b02f5c6a5ac8256c1c21"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -384,7 +390,6 @@
             setupEvents();
         });
 
-        // ================= SISTEMA DE NOTIFICACIONES EN VIVO =================
         function procesarNotificacionesMetas() {
             if(!currentUser) return;
             const hoy = new Date(); hoy.setHours(0,0,0,0); let notifs = [];
@@ -427,8 +432,38 @@
             el('flow-assignment-type').addEventListener('change', e => el('flow-fixed-user-container').classList.toggle('d-none', e.target.value === 'dinamico'));
 
             el('btn-save-tpl').addEventListener('click', async () => { const nom = el('tpl-name').value.trim(), sysType = el('tpl-sys-type').value; let grps = []; document.querySelectorAll('.tpl-grp-chk:checked').forEach(c => grps.push(c.value)); if(!nom || tempFields.length === 0 && sysType !== 'excel') return showToast("Faltan datos", "warning"); const flowT = el('flow-type').value, assignT = el('flow-assignment-type').value, fixedU = el('flow-fixed-user').value; const idEdicion = el('tpl-edit-id').value; const docRef = idEdicion ? doc(db, "am_plantillas", idEdicion) : doc(collection(db, "am_plantillas")); await setDoc(docRef, { nombre: nom, sysType: sysType, gruposPermitidos: grps, campos: tempFields, habilitarSeguimiento: el('tpl-enable-tracking').checked, flujoConfig: { tipo: flowT, asignacion: assignT, usuarioFijo: fixedU }, timestamp: Date.now() }, {merge:true}); showToast("Formulario Guardado"); window.cancelEditTpl(); });
-            el('form-user').addEventListener('submit', async e => { e.preventDefault(); const id=el('usr-id').value.trim().toLowerCase(), pass=el('usr-pass').value.trim(); let acc=[], grps=[]; document.querySelectorAll('.perm-chk:checked').forEach(c=>acc.push(c.value)); document.querySelectorAll('.usr-grp-chk:checked').forEach(c=>grps.push(c.value)); await setDoc(doc(db,"am_usuarios",id), {pass, rol:el('usr-rol').value, accesos:acc, grupos:grps}, {merge:true}); showToast("Usuario Guardado"); window.cancelEditUsr(); e.target.reset(); });
-            el('form-group').addEventListener('submit', async e => { e.preventDefault(); await setDoc(doc(db,"am_grupos",el('grp-id').value.trim()),{nombre:el('grp-name').value.trim()}); showToast("Grupo Guardado"); window.cancelEditGrp(); e.target.reset(); });
+            
+            // ADMIN USUARIOS/GRUPOS
+            el('form-user').addEventListener('submit', async e => { e.preventDefault(); const id=el('usr-id').value.trim().toLowerCase(), pass=el('usr-pass').value.trim(); let acc=[]; document.querySelectorAll('.perm-chk:checked').forEach(c=>acc.push(c.value)); await setDoc(doc(db,"am_usuarios",id), {pass, rol:el('usr-rol').value, accesos:acc}, {merge:true}); showToast("Usuario Guardado"); window.cancelEditUsr(); e.target.reset(); });
+            
+            // *NUEVO* GESTIÓN DE GRUPOS Y SUS MIEMBROS
+            el('form-group').addEventListener('submit', async e => { 
+                e.preventDefault(); 
+                const grpId = el('grp-id').value.trim();
+                await setDoc(doc(db,"am_grupos",grpId),{nombre:el('grp-name').value.trim()}); 
+                
+                // Actualizar a los usuarios que pertenecen o dejan de pertenecer a este grupo
+                const selectedUsers = Array.from(document.querySelectorAll('.grp-usr-chk:checked')).map(c => c.value);
+                const allUsers = Array.from(document.querySelectorAll('.grp-usr-chk')).map(c => c.value);
+                
+                const updates = allUsers.map(uid => {
+                    const userRef = doc(db, "am_usuarios", uid);
+                    const userDoc = cache.users.find(u => u.id === uid);
+                    let currentGroups = userDoc.grupos || [];
+                    let changed = false;
+                    
+                    if (selectedUsers.includes(uid)) {
+                        if (!currentGroups.includes(grpId)) { currentGroups.push(grpId); changed = true; }
+                    } else {
+                        if (currentGroups.includes(grpId)) { currentGroups = currentGroups.filter(g => g !== grpId); changed = true; }
+                    }
+                    return changed ? updateDoc(userRef, { grupos: currentGroups }) : Promise.resolve();
+                });
+                
+                await Promise.all(updates);
+
+                showToast("Grupo y Miembros Actualizados"); window.cancelEditGrp(); e.target.reset(); 
+            });
 
             // ADMIN CUMPLIMIENTO
             window.addMetaItem = () => { const i = el('meta-item-input').value.trim(); if(i) { currentMetaItemsBuilder.push(i); el('meta-items-list').innerHTML = currentMetaItemsBuilder.map((it, idx) => `<div class="bg-white border rounded px-2 py-1 small d-flex justify-content-between"><span>${it}</span><i class="bi bi-x text-danger pointer" onclick="currentMetaItemsBuilder.splice(${idx},1); el('meta-items-list').innerHTML=''; currentMetaItemsBuilder.forEach(x=>addMetaItem(x));"></i></div>`).join(''); el('meta-item-input').value=''; } };
@@ -448,7 +483,7 @@
                 await updateDoc(doc(db, "am_registros", interaccionActual.id), updatePayload); showToast("Datos actualizados exitosamente"); e.target.reset(); bootstrap.Modal.getInstance(el('modalEditarRegistro')).hide(); btn.disabled = false; btn.innerHTML = "Confirmar y Actualizar Base de Datos";
             });
 
-            // SUBIDA EVIDENCIA
+            // SUBIDA DE EVIDENCIA (CUMPLIMIENTO)
             el('form-cumplir-meta').addEventListener('submit', async e => {
                 e.preventDefault(); const metaId = el('cump-meta-id').value, item = el('cump-meta-item').value, com = el('cump-comentario').value, btn = e.target.querySelector('button'); btn.disabled=true; btn.innerHTML="Subiendo...";
                 try {
@@ -456,23 +491,38 @@
                     const mRef = doc(db, "am_metas", metaId);
                     await updateDoc(mRef, { [`completados.${item}`]: { fecha: new Date().toLocaleString(), autor: currentUser.id, comentario: com, evidencia: b64 } });
                     showToast("Ítem Reportado como Completado"); e.target.reset(); bootstrap.Modal.getInstance(el('modalCumplirMeta')).hide();
-                } catch(e) { showToast("Error al subir archivo", "danger"); }
+                } catch(err) { showToast("Error al subir archivo", "danger"); }
                 btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Marcar como Completado';
             });
         }
 
         // --- FUNCIONES DE EDICIÓN ADMIN ---
-        window.editUser = (id) => { const u = cache.users.find(x=>x.id===id); if(!u)return; el('usr-id').value = u.id; el('usr-id').disabled = true; el('usr-pass').value = u.pass; el('usr-rol').value = u.rol; document.querySelectorAll('.perm-chk').forEach(c=>c.checked=u.accesos?.includes(c.value)); document.querySelectorAll('.usr-grp-chk').forEach(c=>c.checked=u.grupos?.includes(c.value)); el('usr-edit-badge').classList.remove('d-none'); el('btn-cancel-usr-edit').classList.remove('d-none'); el('btn-save-usr').innerText = 'Actualizar Usuario'; };
+        window.editUser = (id) => { const u = cache.users.find(x=>x.id===id); if(!u)return; el('usr-id').value = u.id; el('usr-id').disabled = true; el('usr-pass').value = u.pass; el('usr-rol').value = u.rol; document.querySelectorAll('.perm-chk').forEach(c=>c.checked=u.accesos?.includes(c.value)); el('usr-edit-badge').classList.remove('d-none'); el('btn-cancel-usr-edit').classList.remove('d-none'); el('btn-save-usr').innerText = 'Actualizar Usuario'; };
         window.cancelEditUsr = () => { el('form-user').reset(); el('usr-id').disabled = false; el('usr-edit-badge').classList.add('d-none'); el('btn-cancel-usr-edit').classList.add('d-none'); el('btn-save-usr').innerText = 'Guardar Usuario'; };
-        window.editGroup = (id) => { const g = cache.groups.find(x=>x.id===id); if(!g)return; el('grp-id').value = g.id; el('grp-id').disabled = true; el('grp-name').value = g.nombre; el('grp-edit-badge').classList.remove('d-none'); el('btn-cancel-grp-edit').classList.remove('d-none'); el('btn-save-grp').innerText = 'Actualizar Grupo'; };
-        window.cancelEditGrp = () => { el('form-group').reset(); el('grp-id').disabled = false; el('grp-edit-badge').classList.add('d-none'); el('btn-cancel-grp-edit').classList.add('d-none'); el('btn-save-grp').innerText = 'Guardar Grupo'; };
+        
+        window.editGroup = (id) => { 
+            const g = cache.groups.find(x=>x.id===id); if(!g)return; 
+            el('grp-id').value = g.id; el('grp-id').disabled = true; el('grp-name').value = g.nombre; 
+            
+            // Marcar los usuarios que pertenecen a este grupo
+            document.querySelectorAll('.grp-usr-chk').forEach(chk => {
+                const usr = cache.users.find(u => u.id === chk.value);
+                chk.checked = usr && usr.grupos && usr.grupos.includes(id);
+            });
+            
+            el('grp-edit-badge').classList.remove('d-none'); el('btn-cancel-grp-edit').classList.remove('d-none'); el('btn-save-grp').innerText = 'Actualizar Grupo y Miembros'; 
+        };
+        window.cancelEditGrp = () => { el('form-group').reset(); el('grp-id').disabled = false; el('grp-edit-badge').classList.add('d-none'); el('btn-cancel-grp-edit').classList.add('d-none'); el('btn-save-grp').innerText = 'Guardar Grupo y Miembros'; document.querySelectorAll('.grp-usr-chk').forEach(c=>c.checked=false); };
+        
         window.editTpl = (id) => { const t = cache.templates.find(x=>x.id===id); if(!t)return; el('tpl-edit-id').value = t.id; el('tpl-name').value = t.nombre; el('tpl-sys-type').value = t.sysType; tempFields = [...t.campos]; renderBuilderFields(); document.querySelectorAll('.tpl-grp-chk').forEach(c=>c.checked=t.gruposPermitidos?.includes(c.value)); el('tpl-enable-tracking').checked = t.habilitarSeguimiento; if(t.flujoConfig) { el('flow-type').value = t.flujoConfig.tipo; el('flow-assignment-type').value = t.flujoConfig.asignacion; el('flow-fixed-user').value = t.flujoConfig.usuarioFijo||''; el('flow-config-details').classList.toggle('d-none', t.flujoConfig.tipo==='solo_registro'); el('flow-fixed-user-container').classList.toggle('d-none', t.flujoConfig.asignacion==='dinamico'); } el('tpl-edit-badge').classList.remove('d-none'); el('btn-cancel-tpl-edit').classList.remove('d-none'); el('btn-save-tpl').innerText = 'Actualizar Formato'; window.scrollTo(0,0); };
         window.cancelEditTpl = () => { el('tpl-edit-id').value = ''; el('tpl-name').value = ''; el('tpl-sys-type').value = 'formulario'; tempFields = []; renderBuilderFields(); document.querySelectorAll('.tpl-grp-chk').forEach(c=>c.checked=false); el('tpl-edit-badge').classList.add('d-none'); el('btn-cancel-tpl-edit').classList.add('d-none'); el('btn-save-tpl').innerText = 'PUBLICAR FORMATO Y FLUJO'; };
 
-        // Soft Delete Tiquetes y Registros
         window.delTareaConMotivo = async (id) => { const motivo = prompt("ADMINISTRADOR: Ingrese el motivo de la ELIMINACIÓN de este tiquete:"); if(!motivo) return; await updateDoc(doc(db,"am_tareas",id), { estadoTarea: 'Eliminado', eliminado: true, historial: arrayUnion({tipo:'sistema', texto:`❌ ELIMINADO GLOBALMENTE. Motivo: ${motivo}`, autor:currentUser.id, fecha:new Date().toLocaleString()}) }); };
         window.delRegConMotivo = async (id) => { const motivo = prompt("ADMINISTRADOR: Ingrese el motivo para ELIMINAR este registro maestro:"); if(!motivo) return; await updateDoc(doc(db,"am_registros",id), { estado: 'Eliminado', eliminado: true, historial: arrayUnion({tipo:'sistema', texto:`❌ REGISTRO ELIMINADO. Motivo: ${motivo}`, autor:currentUser.id, fecha:new Date().toLocaleString()}) }); };
         window.delMeta = async (id) => { if(confirm("¿Eliminar esta meta de cumplimiento globalmente?")) await deleteDoc(doc(db,"am_metas",id)); };
+        window.delUser = async (id) => { if(confirm("¿Eliminar usuario?")) await deleteDoc(doc(db,"am_usuarios",id)); };
+        window.delGroup = async (id) => { if(confirm("¿Eliminar grupo?")) await deleteDoc(doc(db,"am_grupos",id)); };
+        window.delTpl = async (id) => { if(confirm("¿Eliminar formato/formulario?")) await deleteDoc(doc(db,"am_plantillas",id)); };
 
         // --- CORE UI FUNCTIONS ---
         function renderOptionsBuilder() { el('options-list').innerHTML = currentOptionsBuilder.map((o, i) => `<span class="badge bg-primary bg-opacity-10 text-primary border">${o} <i class="bi bi-x pointer" onclick="removeOptionFromBuilder(${i})"></i></span>`).join(''); }
@@ -486,7 +536,7 @@
             if(u.accesos.length > 0) window.navigateTo(u.accesos[0]); startRealtime(); 
         }
 
-        window.navigateTo = (sId) => { document.querySelectorAll(".content-section").forEach(e => e.classList.add("d-none")); document.querySelectorAll(".nav-link-menu").forEach(e => e.classList.remove("active")); const sectionMap = {dashboard:'sec-dashboard', cumplimiento:'sec-cumplimiento', registrar:'sec-registrar', mistareas:'sec-mistareas', historial:'sec-historial', admin:'sec-admin'}; el(sectionMap[sId])?.classList.remove("d-none"); el(`nav-${sId}`)?.classList.add("active"); if(window.innerWidth < 992) toggleMenu(); if(sId==='cumplimiento') renderMetas(); };
+        window.navigateTo = (sId) => { document.querySelectorAll(".content-section").forEach(e => e.classList.add("d-none")); document.querySelectorAll(".nav-link-menu").forEach(e => e.classList.remove("active")); const sectionMap = {dashboard:'sec-dashboard', cumplimiento:'sec-cumplimiento', registrar:'sec-registrar', mistareas:'sec-mistareas', historial:'sec-historial', admin:'sec-admin'}; el(sectionMap[sId])?.classList.remove("d-none"); el(`nav-${sId}`)?.classList.add("active"); if(window.innerWidth < 992) toggleMenu(); if(sId==='cumplimiento') window.renderMetas(); };
 
         // --- CUMPLIMIENTO / CALENDARIO ---
         window.renderMetas = () => {
@@ -498,7 +548,7 @@
             let html = ''; let totalItems = 0, totalCompletados = 0;
 
             metasV.forEach(m => {
-                const asig = (m.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 ');
+                const asig = (m.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 Equipo: ');
                 totalItems += m.items.length; totalCompletados += Object.keys(m.completados||{}).length;
                 const isFullComplete = Object.keys(m.completados||{}).length >= m.items.length;
                 
@@ -507,7 +557,7 @@
                         <h6 class="fw-bold mb-0 text-dark">${m.titulo}</h6>
                         <span class="badge ${isFullComplete?'bg-success':'bg-warning text-dark'}"><i class="bi bi-calendar"></i> Límite: ${m.fechaLimite}</span>
                     </div>
-                    <div class="small text-muted mb-2">Asignado a: <b class="text-dark">${asig}</b></div>
+                    <div class="small text-muted mb-2">Asignado a: <b class="text-primary">${asig}</b></div>
                     <div class="row g-2 mt-2">`;
                 
                 m.items.forEach(it => {
@@ -515,7 +565,7 @@
                     if(compData) {
                         html += `<div class="col-md-6"><div class="bg-success bg-opacity-10 border border-success rounded p-2 small"><div class="d-flex justify-content-between text-success fw-bold"><span class="text-truncate" style="max-width:120px">${it}</span> <span><i class="bi bi-check-circle-fill"></i> Ok</span></div><div class="text-muted" style="font-size:0.65rem">${compData.fecha} por ${compData.autor}</div><a href="${compData.evidencia}" download="${it}_evidencia" class="badge bg-success mt-1 d-inline-block text-decoration-none"><i class="bi bi-download"></i> Ver Sustento</a></div></div>`;
                     } else {
-                        html += `<div class="col-md-6"><div class="bg-white border rounded p-2 small d-flex justify-content-between align-items-center"><span class="fw-bold text-dark text-truncate" style="max-width:150px">${it}</span> <button class="btn btn-sm btn-outline-primary py-0" onclick="abrirModalCumplimiento('${m.id}','${it}')">Reportar</button></div></div>`;
+                        html += `<div class="col-md-6"><div class="bg-white border rounded p-2 small d-flex justify-content-between align-items-center"><span class="fw-bold text-dark text-truncate" style="max-width:150px">${it}</span> <button class="btn btn-sm btn-outline-primary py-0 fw-bold" onclick="abrirModalCumplimiento('${m.id}','${it}')">Reportar Tarea</button></div></div>`;
                     }
                 });
                 html += `</div></div>`;
@@ -589,7 +639,7 @@
             if(tpl.flujoConfig && tpl.flujoConfig.tipo === 'tarea') { await addDoc(collection(db, "am_tareas"), { registroPadreId: ref.id, titulo: titulo, descripcion: "Datos registrados en Base de Datos Principal.", asignadoA: asignado, reportadoPor: currentUser.id, prioridad: prioridad, estadoTarea: 'Abierto', eliminado: false, historial: [{ tipo: 'comentario', texto: 'Tiquete generado automáticamente vía Formulario.', autor: 'Sistema', fecha: new Date().toLocaleString() }], fechaCreacion: new Date().toLocaleString(), timestamp: Date.now() }); showToast(`Registro guardado y Tiquete asignado a ${asignado}`); } 
             else { showToast("Guardado en Base de Datos Principal"); }
 
-            e.target.reset(); window.cancelarRegistro(); btn.disabled=false; btn.innerHTML='<i class="bi bi-send-fill me-2"></i> ENVIAR DATOS AL SISTEMA';
+            e.target.reset(); window.cancelarRegistro(); btn.disabled=false; btn.innerHTML='<i class="bi bi-send-fill me-2"></i> ENVIAR DATOS';
         }
 
         // --- INTERACCIÓN Y EDICIÓN ---
@@ -667,26 +717,51 @@
             onSnapshot(collection(db, "am_metas"), s => {
                 cache.metas = s.docs.map(d=>({id:d.id,...d.data()}));
                 el('list-metas-admin').innerHTML = cache.metas.map(m=>`<li class="list-group-item d-flex justify-content-between align-items-center"><div><b class="d-block text-dark">${m.titulo}</b><small class="text-muted">Asig: ${m.asignadoA} | Límite: ${m.fechaLimite}</small></div><i class="bi bi-trash text-danger pointer" onclick="delMeta('${m.id}')"></i></li>`).join('');
-                if(!el('sec-cumplimiento').classList.contains('d-none')) renderMetas();
+                if(!el('sec-cumplimiento').classList.contains('d-none')) window.renderMetas();
                 procesarNotificacionesMetas();
             });
 
             onSnapshot(collection(db, "am_grupos"), s => {
                 cache.groups = s.docs.map(d=>({id:d.id,...d.data()}));
+                
+                // --- AQUI RENDERIZAMOS LOS USUARIOS DENTRO DEL FORMULARIO DE GRUPO ---
+                // Para que el administrador vea a quién está asignando a este grupo.
+                let usersHtml = cache.users.map(u => `
+                    <div class="col-6 col-md-4">
+                        <div class="border rounded p-2 bg-light">
+                            <input class="form-check-input grp-usr-chk" type="checkbox" value="${u.id}" id="chk-grp-usr-${u.id}">
+                            <label class="small fw-bold text-secondary" for="chk-grp-usr-${u.id}">${u.id} (${u.rol})</label>
+                        </div>
+                    </div>
+                `).join('');
+                el('grp-users-container').innerHTML = usersHtml;
+
                 const cHtml = (cls) => cache.groups.map(g => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input ${cls}" type="checkbox" value="${g.id}"> <label class="small fw-bold">${g.nombre}</label></div></div>`).join('');
-                el('tpl-groups-container').innerHTML = cHtml('tpl-grp-chk'); el('usr-groups-container').innerHTML = cHtml('usr-grp-chk');
-                el('list-groups').innerHTML = cache.groups.map(g=>`<li class="list-group-item d-flex justify-content-between"><div><b>${g.nombre}</b> <small class="text-muted">(GRP_${g.id})</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editGroup('${g.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delGroup('${g.id}')"></i></div></li>`).join('');
+                el('tpl-groups-container').innerHTML = cHtml('tpl-grp-chk'); 
+                el('usr-groups-container').innerHTML = cHtml('usr-grp-chk');
+                
+                // Mostrar cuántos miembros tiene cada grupo
+                el('list-groups').innerHTML = cache.groups.map(g=>{
+                    const count = cache.users.filter(u => u.grupos && u.grupos.includes(g.id)).length;
+                    return `<li class="list-group-item d-flex justify-content-between"><div><b>${g.nombre}</b> <small class="text-muted d-block">👥 ${count} Miembro(s) asignado(s)</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editGroup('${g.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delGroup('${g.id}')"></i></div></li>`;
+                }).join('');
                 actualizarSelects();
             });
 
             onSnapshot(collection(db, "am_usuarios"), s => {
                 cache.users = s.docs.map(d=>({id:d.id,...d.data()}));
                 el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><div><b>${u.id}</b> <span class="badge bg-light text-dark">${u.rol}</span></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delUser('${u.id}')"></i></div></li>`).join('');
+                
+                // Forzar re-render de checkboxes de usuarios en el tab de grupos si ya se habían cargado
+                if(cache.groups.length > 0) {
+                    let usersHtml = cache.users.map(u => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input grp-usr-chk" type="checkbox" value="${u.id}" id="chk-grp-usr-${u.id}"> <label class="small fw-bold text-secondary" for="chk-grp-usr-${u.id}">${u.id} (${u.rol})</label></div></div>`).join('');
+                    el('grp-users-container').innerHTML = usersHtml;
+                }
                 actualizarSelects();
             });
 
             function actualizarSelects() {
-                const allOpts = '<option value="">- Asignar A -</option>' + cache.users.map(u=>`<option value="USR_${u.id}">👤 ${u.id}</option>`).join('') + cache.groups.map(g=>`<option value="GRP_${g.id}">👥 Grp: ${g.nombre}</option>`).join('');
+                const allOpts = '<option value="">- Asignar A -</option>' + cache.users.map(u=>`<option value="USR_${u.id}">👤 ${u.id}</option>`).join('') + cache.groups.map(g=>`<option value="GRP_${g.id}">👥 Grupo: ${g.nombre}</option>`).join('');
                 el('tq-man-asignado').innerHTML = allOpts; el('det-asignado').innerHTML = allOpts; el('flow-fixed-user').innerHTML = allOpts; el('meta-asignado').innerHTML = allOpts;
             }
 
@@ -697,12 +772,11 @@
                 el('filter-form').innerHTML = '<option value="ALL">Mostrar Todos los Formularios</option>' + cache.templates.map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
 
                 el('template-cards-container').innerHTML = ms.map(t => `<div class="col-md-4 col-sm-6"><div class="card-panel p-4 pointer hover-scale border-primary h-100 d-flex flex-column justify-content-center align-items-center text-center" onclick="seleccionarPlantilla('${t.id}')"><i class="bi ${t.sysType==='excel' ? 'bi-file-earmark-spreadsheet text-success' : 'bi-file-earmark-text text-primary'} fs-1 mb-2"></i><h6 class="fw-bold mb-1">${t.nombre}</h6><span class="badge bg-light text-dark border">${(t.sysType||'formulario').toUpperCase()}</span></div></div>`).join('');
-                el('list-templates').innerHTML = cache.templates.map(t=>`<li class="list-group-item d-flex justify-content-between"><div><b class="d-block">${t.nombre}</b><small class="text-primary">Sys: ${t.sysType||'form'}</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editTpl('${t.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delTpl('${t.id}')"></i></div></li>`).join('');
+                el('list-templates').innerHTML = cache.templates.map(t=>`<li class="list-group-item d-flex justify-content-between"><div><b class="d-block">${t.nombre}</b><small class="text-primary">Sys: ${t.sysType||'form'} | Interactivo: ${t.habilitarSeguimiento?'Sí':'No'}</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editTpl('${t.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delTpl('${t.id}')"></i></div></li>`).join('');
             });
 
              onSnapshot(query(collection(db, "am_tareas"), orderBy('timestamp', 'desc')), s => {
                 cache.tickets = s.docs.map(d=>({id:d.id,...d.data()}));
-                
                 const activos = cache.tickets.filter(t => !t.eliminado); 
                 const reportadosPorMi = activos.filter(t => t.reportadoPor === currentUser.id);
                 const asignadosAmi = activos.filter(t => t.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => t.asignadoA === `GRP_${g}`));
@@ -710,7 +784,7 @@
                 el('dash-tasks').innerText = asignadosAmi.filter(t=>t.estadoTarea!=='Solucionado' && t.estadoTarea!=='Anulado').length;
                 
                 const drawTable = (arr, isAdminView = false) => arr.map(t => {
-                    let stClass = 'st-abierto'; if(t.estadoTarea==='En Proceso') stClass='st-en-proceso'; else if(t.estadoTarea==='En espera') stClass='st-en-espera'; else if(t.estadoTarea==='Solucionado') stClass='st-solucionado'; else if(t.estadoTarea==='Anulado') stClass='st-anulado'; if(t.eliminado) stClass='st-eliminado'; let slaHtml = t.fechaLimite ? (new Date(t.fechaLimite) < new Date() && !['Solucionado','Anulado'].includes(t.estadoTarea) ? `<span class="badge st-vencido ms-2">VENCIDO</span>` : `<span class="badge bg-light text-dark border ms-2">${t.fechaLimite.split(' ')[0]}</span>`) : ''; let actionAdmin = isAdminView ? (!t.eliminado ? `<button class="btn btn-sm btn-outline-danger border-0 ms-2 hover-scale" onclick="event.stopPropagation(); delTareaConMotivo('${t.id}')"><i class="bi bi-trash"></i></button>` : `<span class="badge bg-danger ms-2">ELIMINADO</span>`) : ''; return `<tr class="pointer hover-scale" onclick="abrirInteraccion('tarea','${t.id}')"><td class="ps-4"><div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:35px;height:35px">${t.reportadoPor.substring(0,2).toUpperCase()}</div></td><td><b class="text-dark d-block">${t.titulo}</b>${slaHtml}</td><td><small class="text-muted fw-bold">${(t.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 ')}</small></td><td><span class="status-badge ${stClass}">${t.eliminado?'ELIMINADO':t.estadoTarea}</span></td><td><span class="status-badge pri-${t.prioridad}">${t.prioridad}</span>${actionAdmin}</td></tr>`;
+                    let stClass = 'st-abierto'; if(t.estadoTarea==='En Proceso') stClass='st-en-proceso'; else if(t.estadoTarea==='En espera') stClass='st-en-espera'; else if(t.estadoTarea==='Solucionado') stClass='st-solucionado'; else if(t.estadoTarea==='Anulado') stClass='st-anulado'; if(t.eliminado) stClass='st-eliminado'; let slaHtml = t.fechaLimite ? (new Date(t.fechaLimite) < new Date() && !['Solucionado','Anulado'].includes(t.estadoTarea) ? `<span class="badge st-vencido ms-2">VENCIDO</span>` : `<span class="badge bg-light text-dark border ms-2">${t.fechaLimite.split(' ')[0]}</span>`) : ''; let actionAdmin = isAdminView ? (!t.eliminado ? `<button class="btn btn-sm btn-outline-danger border-0 ms-2 hover-scale" onclick="event.stopPropagation(); delTareaConMotivo('${t.id}')"><i class="bi bi-trash"></i></button>` : `<span class="badge bg-danger ms-2">ELIMINADO</span>`) : ''; return `<tr class="pointer hover-scale" onclick="abrirInteraccion('tarea','${t.id}')"><td class="ps-4"><div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:35px;height:35px">${t.reportadoPor.substring(0,2).toUpperCase()}</div></td><td><b class="text-dark d-block">${t.titulo}</b>${slaHtml}</td><td><small class="text-muted fw-bold">${(t.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 Equipo: ')}</small></td><td><span class="status-badge ${stClass}">${t.eliminado?'ELIMINADO':t.estadoTarea}</span></td><td><span class="status-badge pri-${t.prioridad}">${t.prioridad}</span>${actionAdmin}</td></tr>`;
                 }).join('');
 
                 el('body-tareas-asignadas').innerHTML = drawTable(asignadosAmi); el('body-tareas-reportadas').innerHTML = drawTable(reportadosPorMi); el('body-todos-tiquetes').innerHTML = drawTable(cache.tickets, true); 
