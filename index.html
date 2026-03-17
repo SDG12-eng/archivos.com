@@ -60,7 +60,6 @@
         .grid-input { border: 1px solid transparent; background: transparent; width: 100%; padding: 6px; outline: none; transition: 0.2s; border-radius: 4px; }
         .grid-input:focus, .grid-input:hover { background-color: #eff6ff; border-color: #bfdbfe; }
         
-        /* Calendario de Metas */
         .meta-item { border-left: 4px solid var(--primary); background: #fff; transition: 0.2s; cursor: pointer; }
         .meta-item:hover { background: #f8fafc; border-left-width: 6px; }
         .meta-item.completada { border-left-color: #16a34a; opacity: 0.7; }
@@ -131,31 +130,18 @@
                                     <span><i class="bi bi-calendar-range text-primary me-2"></i> Calendario de Cumplimiento</span>
                                     <select class="form-select form-select-sm w-auto border-primary text-primary fw-bold" id="filtro-mes-meta" onchange="renderMetas()">
                                         <option value="ALL">Todo el Año</option>
-                                        <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
-                                        <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
-                                        <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
-                                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                                        <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
                                     </select>
                                 </div>
-                                <div class="card-body p-4 bg-light">
-                                    <div id="lista-metas-container" class="d-flex flex-column gap-3">
-                                        </div>
-                                </div>
+                                <div class="card-body p-4 bg-light"><div id="lista-metas-container" class="d-flex flex-column gap-3"></div></div>
                             </div>
                         </div>
-                        
                         <div class="col-lg-4">
                             <div class="card-panel h-100">
                                 <div class="card-header-panel bg-light"><i class="bi bi-pie-chart-fill text-success me-2"></i> Progreso del Mes</div>
                                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
-                                    <div style="position: relative; width: 200px; height: 200px; margin: 0 auto;">
-                                        <canvas id="cumplimientoChart"></canvas>
-                                        <div class="position-absolute top-50 start-50 translate-middle fw-black fs-3 text-dark" id="chart-percent">0%</div>
-                                    </div>
-                                    <div class="mt-4">
-                                        <span class="badge bg-success px-3 py-2 fs-6" id="metric-completados">0 Completados</span>
-                                        <span class="badge bg-warning text-dark px-3 py-2 fs-6" id="metric-pendientes">0 Pendientes</span>
-                                    </div>
+                                    <div style="position: relative; width: 200px; height: 200px; margin: 0 auto;"><canvas id="cumplimientoChart"></canvas><div class="position-absolute top-50 start-50 translate-middle fw-black fs-3 text-dark" id="chart-percent">0%</div></div>
+                                    <div class="mt-4"><span class="badge bg-success px-3 py-2 fs-6" id="metric-completados">0 Completados</span> <span class="badge bg-warning text-dark px-3 py-2 fs-6" id="metric-pendientes">0 Pendientes</span></div>
                                 </div>
                             </div>
                         </div>
@@ -173,18 +159,10 @@
 
                             <form id="dynamic-form" class="d-none">
                                 <div class="bg-light p-4 rounded-4 border mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                                        <h5 class="fw-bold text-primary mb-0" id="form-active-title">Llenando Formulario...</h5>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="cancelarRegistro()"><i class="bi bi-arrow-left me-1"></i> Cambiar Formato</button>
-                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3"><h5 class="fw-bold text-primary mb-0" id="form-active-title">Llenando Formulario...</h5><button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="cancelarRegistro()"><i class="bi bi-arrow-left me-1"></i> Cambiar Formato</button></div>
                                     <input type="hidden" id="current-tpl-type">
                                     <div id="standard-fields-container" class="row g-4 mb-4"></div>
-                                    <div id="grid-container" class="d-none mb-4">
-                                        <div class="table-responsive border rounded-3 overflow-hidden bg-white">
-                                            <table class="table grid-table mb-0" id="grid-table"><thead id="grid-header"></thead><tbody id="grid-body"></tbody></table>
-                                        </div>
-                                        <button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" id="btn-add-row"><i class="bi bi-plus-lg"></i> Añadir Fila a la Tabla</button>
-                                    </div>
+                                    <div id="grid-container" class="d-none mb-4"><div class="table-responsive border rounded-3 overflow-hidden bg-white"><table class="table grid-table mb-0" id="grid-table"><thead id="grid-header"></thead><tbody id="grid-body"></tbody></table></div><button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" id="btn-add-row"><i class="bi bi-plus-lg"></i> Añadir Fila a la Tabla</button></div>
                                 </div>
                                 <div class="text-end pt-2"><button type="submit" class="btn-brand px-5 shadow w-100 w-md-auto py-3"><i class="bi bi-send-fill me-2"></i> ENVIAR DATOS AL SISTEMA</button></div>
                             </form>
@@ -360,25 +338,31 @@
         </main>
     </div>
 
-    <div class="modal fade" id="modalNuevoTiquete" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 rounded-4 shadow"><div class="modal-header bg-light border-bottom-0"><h5 class="modal-title fw-bold"><i class="bi bi-ticket-perforated text-primary me-2"></i> Crear Tiquete Directo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="form-nuevo-tiquete"><div class="mb-3"><label class="small fw-bold text-muted">Asunto / Título</label><input type="text" id="tq-man-titulo" class="form-control" required></div><div class="mb-3"><label class="small fw-bold text-muted">Descripción Extendida</label><textarea id="tq-man-desc" class="form-control" rows="3" required></textarea></div><div class="row g-3 mb-3"><div class="col-6"><label class="small fw-bold text-muted">Prioridad</label><select id="tq-man-pri" class="form-select"><option value="baja">Baja</option><option value="normal" selected>Normal</option><option value="alta">Alta</option></select></div><div class="col-6"><label class="small fw-bold text-muted">SLA (Límite)</label><input type="datetime-local" id="tq-man-sla" class="form-control"></div></div><div class="mb-4"><label class="small fw-bold text-muted">Asignar a</label><select id="tq-man-asignado" class="form-select" required></select></div><button type="submit" class="btn-brand w-100">Levantar Tiquete</button></form></div></div></div>
-    </div>
+    <div class="modal fade" id="modalNuevoTiquete" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 rounded-4 shadow"><div class="modal-header bg-light border-bottom-0"><h5 class="modal-title fw-bold"><i class="bi bi-ticket-perforated text-primary me-2"></i> Crear Tiquete Directo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="form-nuevo-tiquete"><div class="mb-3"><label class="small fw-bold text-muted">Asunto / Título</label><input type="text" id="tq-man-titulo" class="form-control" required></div><div class="mb-3"><label class="small fw-bold text-muted">Descripción Extendida</label><textarea id="tq-man-desc" class="form-control" rows="3" required></textarea></div><div class="row g-3 mb-3"><div class="col-6"><label class="small fw-bold text-muted">Prioridad</label><select id="tq-man-pri" class="form-select"><option value="baja">Baja</option><option value="normal" selected>Normal</option><option value="alta">Alta</option></select></div><div class="col-6"><label class="small fw-bold text-muted">SLA (Límite)</label><input type="datetime-local" id="tq-man-sla" class="form-control"></div></div><div class="mb-4"><label class="small fw-bold text-muted">Asignar a</label><select id="tq-man-asignado" class="form-select" required></select></div><button type="submit" class="btn-brand w-100">Levantar Tiquete</button></form></div></div></div></div>
 
-    <div class="modal fade" id="modalEditarRegistro" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl"><div class="modal-content border-0 rounded-4 shadow"><div class="modal-header bg-light border-bottom-0"><h5 class="modal-title fw-bold text-danger"><i class="bi bi-pencil-square me-2"></i> Auditoría / Corrección de Datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4 bg-white"><form id="form-editar-registro"><div id="edicion-campos-dinamicos" class="row g-3 mb-4 d-none"></div><div id="edicion-excel-dinamico" class="d-none mb-4"><div class="table-responsive border rounded-3 overflow-hidden bg-white"><table class="table grid-table mb-0" id="grid-table-edit"><thead id="grid-header-edit"></thead><tbody id="grid-body-edit"></tbody></table></div><button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" onclick="addFilaEdicionExcel()"><i class="bi bi-plus-lg"></i> Añadir Fila Extra</button></div><div class="bg-danger bg-opacity-10 border border-danger border-opacity-25 p-3 rounded mt-2"><label class="small fw-bold text-danger mb-1">Motivo obligatorio de la modificación / auditoría:</label><input type="text" id="edicion-motivo" class="form-control border-danger" placeholder="Ej. El usuario digitó valores incorrectos..." required></div><div class="text-end mt-4"><button type="submit" class="btn btn-danger px-4 fw-bold shadow-sm">Confirmar y Actualizar Base de Datos</button></div></form></div></div></div>
-    </div>
+    <div class="modal fade" id="modalEditarRegistro" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-xl"><div class="modal-content border-0 rounded-4 shadow"><div class="modal-header bg-light border-bottom-0"><h5 class="modal-title fw-bold text-danger"><i class="bi bi-pencil-square me-2"></i> Auditoría / Corrección de Datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4 bg-white"><form id="form-editar-registro"><div id="edicion-campos-dinamicos" class="row g-3 mb-4 d-none"></div><div id="edicion-excel-dinamico" class="d-none mb-4"><div class="table-responsive border rounded-3 overflow-hidden bg-white"><table class="table grid-table mb-0" id="grid-table-edit"><thead id="grid-header-edit"></thead><tbody id="grid-body-edit"></tbody></table></div><button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" onclick="addFilaEdicionExcel()"><i class="bi bi-plus-lg"></i> Añadir Fila Extra</button></div><div class="bg-danger bg-opacity-10 border border-danger border-opacity-25 p-3 rounded mt-2"><label class="small fw-bold text-danger mb-1">Motivo obligatorio de la modificación / auditoría:</label><input type="text" id="edicion-motivo" class="form-control border-danger" placeholder="Ej. El usuario digitó valores incorrectos..." required></div><div class="text-end mt-4"><button type="submit" class="btn btn-danger px-4 fw-bold shadow-sm">Confirmar y Actualizar Base de Datos</button></div></form></div></div></div></div>
 
-    <div class="modal fade" id="modalCumplirMeta" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 rounded-4 shadow"><div class="modal-header bg-light border-bottom-0"><h5 class="modal-title fw-bold text-success"><i class="bi bi-check-circle-fill me-2"></i> Reportar Cumplimiento</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="form-cumplir-meta"><input type="hidden" id="cump-meta-id"><input type="hidden" id="cump-meta-item"><div class="mb-3"><label class="small fw-bold text-muted d-block mb-1">Evidencia (Sustento Obligatorio)</label><input type="file" id="cump-file" class="form-control" accept="image/*,.pdf,.doc,.docx" required></div><div class="mb-4"><label class="small fw-bold text-muted d-block mb-1">Comentario / Observación</label><textarea id="cump-comentario" class="form-control" rows="2" required></textarea></div><button type="submit" class="btn btn-success w-100 fw-bold shadow-sm"><i class="bi bi-check-lg"></i> Marcar como Completado</button></form></div></div></div>
-    </div>
+    <div class="modal fade" id="modalCumplirMeta" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 rounded-4 shadow"><div class="modal-header bg-light border-bottom-0"><h5 class="modal-title fw-bold text-success"><i class="bi bi-check-circle-fill me-2"></i> Reportar Cumplimiento</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="form-cumplir-meta"><input type="hidden" id="cump-meta-id"><input type="hidden" id="cump-meta-item"><div class="mb-3"><label class="small fw-bold text-muted d-block mb-1">Evidencia (Sustento Obligatorio)</label><input type="file" id="cump-file" class="form-control" accept="image/*,.pdf,.doc,.docx" required></div><div class="mb-4"><label class="small fw-bold text-muted d-block mb-1">Comentario / Observación</label><textarea id="cump-comentario" class="form-control" rows="2" required></textarea></div><button type="submit" class="btn btn-success w-100 fw-bold shadow-sm"><i class="bi bi-check-lg"></i> Marcar como Completado</button></form></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
+        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, query, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-        
-        const firebaseConfig = { apiKey: "AIzaSyA3cRmakg2dV2YRuNV1fY7LE87artsLmB8", authDomain: "mi-web-db.firebaseapp.com", projectId: "mi-web-db", storageBucket: "mi-web-db.appspot.com" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+
+        // Your web app's Firebase configuration (UPDATED TO YOUR PROJECT)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
+            authDomain: "archivos-351d3.firebaseapp.com",
+            projectId: "archivos-351d3",
+            storageBucket: "archivos-351d3.firebasestorage.app",
+            messagingSenderId: "1024267964788",
+            appId: "1:1024267964788:web:27b02f5c6a5ac8256c1c21"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         let currentUser=null, tempFields=[], currentOptionsBuilder=[], gridColumns=[], currentMetaItemsBuilder=[];
         let cache = { templates:[], groups:[], users:[], records:[], tickets:[], metas:[] };
@@ -403,55 +387,36 @@
         // ================= SISTEMA DE NOTIFICACIONES EN VIVO =================
         function procesarNotificacionesMetas() {
             if(!currentUser) return;
-            const hoy = new Date();
-            hoy.setHours(0,0,0,0);
-            let notifs = [];
-
-            // Filtrar metas asignadas a mí o a mi grupo
+            const hoy = new Date(); hoy.setHours(0,0,0,0); let notifs = [];
             const misMetas = cache.metas.filter(m => m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
 
             misMetas.forEach(m => {
-                // Verificar si todos los items ya están completados, si sí, no notificar
-                const completadosArr = Object.keys(m.completados || {});
-                if(completadosArr.length >= m.items.length) return; // Meta 100% cumplida
-
-                const limite = new Date(`${m.fechaLimite}T00:00:00`);
-                const diffTime = limite - hoy;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                let icon = 'bi-info-circle text-primary';
-                let msg = '';
-                
-                if(diffDays === 7) { icon = 'bi-calendar-event text-warning'; msg = `Recordatorio: Falta 1 semana para la meta "${m.titulo}".`; }
-                else if(diffDays === 1) { icon = 'bi-exclamation-circle text-danger'; msg = `¡Atención! Mañana vence la meta "${m.titulo}".`; }
-                else if(diffDays === 0) { icon = 'bi-exclamation-triangle-fill text-danger'; msg = `¡URGENTE! HOY vence la meta "${m.titulo}".`; }
+                const completadosArr = Object.keys(m.completados || {}); if(completadosArr.length >= m.items.length) return; 
+                const limite = new Date(`${m.fechaLimite}T00:00:00`); const diffDays = Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
+                let icon = 'bi-info-circle text-primary', msg = '';
+                if(diffDays === 7) { icon = 'bi-calendar-event text-warning'; msg = `Falta 1 semana para la meta "${m.titulo}".`; }
+                else if(diffDays === 1) { icon = 'bi-exclamation-circle text-danger'; msg = `¡Atención! Mañana vence "${m.titulo}".`; }
+                else if(diffDays === 0) { icon = 'bi-exclamation-triangle-fill text-danger'; msg = `¡URGENTE! HOY vence "${m.titulo}".`; }
                 else if(diffDays < 0) { icon = 'bi-x-circle-fill text-dark'; msg = `Meta VENCIDA: "${m.titulo}".`; }
-
                 if(msg) notifs.push(`<li><a class="dropdown-item py-2 px-3 border-bottom small pointer" onclick="navigateTo('cumplimiento')"><i class="bi ${icon} me-2 fs-6"></i><span class="text-wrap">${msg}</span></a></li>`);
             });
 
             const nList = el('notif-list');
             if(notifs.length > 0) {
-                el('notif-count').innerText = notifs.length;
-                nList.innerHTML = notifs.join('');
-                
-                // Mostrar solo un toast de resumen al entrar (si la sesión acaba de cargar)
-                if(!window.notifsMostradas) {
-                    showToast(`Tienes ${notifs.length} alertas de cumplimiento pendientes. Revisa la campana.`, "warning");
-                    window.notifsMostradas = true;
-                }
-            } else {
-                el('notif-count').innerText = '0';
-                nList.innerHTML = '<li class="p-3 text-center text-muted small">No hay notificaciones</li>';
-            }
+                el('notif-count').innerText = notifs.length; nList.innerHTML = notifs.join('');
+                if(!window.notifsMostradas) { showToast(`Tienes ${notifs.length} alertas de cumplimiento.`, "warning"); window.notifsMostradas = true; }
+            } else { el('notif-count').innerText = '0'; nList.innerHTML = '<li class="p-3 text-center text-muted small">No hay notificaciones</li>'; }
         }
-        // ====================================================================
 
         function setupEvents() {
-            el('login-form').addEventListener('submit', async e => { e.preventDefault(); const u=el('login-user').value.trim().toLowerCase(), p=el('login-pass').value.trim(); if(u==="admin"&&p==="1130"){ const uD={id:"admin",rol:"admin",accesos:["dashboard","cumplimiento","registrar","mistareas","historial","admin"], grupos:[]}; localStorage.setItem("am_enterprise_session", JSON.stringify(uD)); initApp(uD); return; } try { const s=await getDoc(doc(db,"am_usuarios",u)); if(s.exists()&&s.data().pass===p) { const uD={id:u,...s.data()}; localStorage.setItem("am_enterprise_session", JSON.stringify(uD)); initApp(uD); } else showToast("Error de credenciales", "danger"); } catch(err) {} });
+            el('login-form').addEventListener('submit', async e => { 
+                e.preventDefault(); const u=el('login-user').value.trim().toLowerCase(), p=el('login-pass').value.trim(); 
+                if(u==="admin"&&p==="1130"){ const uD={id:"admin",rol:"admin",accesos:["dashboard","cumplimiento","registrar","mistareas","historial","admin"], grupos:[]}; localStorage.setItem("am_enterprise_session", JSON.stringify(uD)); initApp(uD); return; } 
+                try { const s=await getDoc(doc(db,"am_usuarios",u)); if(s.exists()&&s.data().pass===p) { const uD={id:u,...s.data()}; localStorage.setItem("am_enterprise_session", JSON.stringify(uD)); initApp(uD); } else showToast("Error de credenciales", "danger"); } catch(err) {} 
+            });
             el('btn-logout').addEventListener('click', () => { localStorage.removeItem("am_enterprise_session"); location.reload(); });
 
-            // ADMIN BUILDER (Formularios)
+            // ADMIN BUILDER
             el('field-type').addEventListener('change', e => { if(['select', 'radio', 'checkbox'].includes(e.target.value)) { el('options-builder-container').classList.remove('d-none'); currentOptionsBuilder = []; renderOptionsBuilder(); } else el('options-builder-container').classList.add('d-none'); });
             window.addOptionToBuilder = () => { const o = el('new-option-input').value.trim(); if(o) { currentOptionsBuilder.push(o); renderOptionsBuilder(); el('new-option-input').value = ''; } };
             window.removeOptionFromBuilder = (i) => { currentOptionsBuilder.splice(i,1); renderOptionsBuilder(); };
@@ -465,7 +430,7 @@
             el('form-user').addEventListener('submit', async e => { e.preventDefault(); const id=el('usr-id').value.trim().toLowerCase(), pass=el('usr-pass').value.trim(); let acc=[], grps=[]; document.querySelectorAll('.perm-chk:checked').forEach(c=>acc.push(c.value)); document.querySelectorAll('.usr-grp-chk:checked').forEach(c=>grps.push(c.value)); await setDoc(doc(db,"am_usuarios",id), {pass, rol:el('usr-rol').value, accesos:acc, grupos:grps}, {merge:true}); showToast("Usuario Guardado"); window.cancelEditUsr(); e.target.reset(); });
             el('form-group').addEventListener('submit', async e => { e.preventDefault(); await setDoc(doc(db,"am_grupos",el('grp-id').value.trim()),{nombre:el('grp-name').value.trim()}); showToast("Grupo Guardado"); window.cancelEditGrp(); e.target.reset(); });
 
-            // ADMIN CUMPLIMIENTO (Crear Meta)
+            // ADMIN CUMPLIMIENTO
             window.addMetaItem = () => { const i = el('meta-item-input').value.trim(); if(i) { currentMetaItemsBuilder.push(i); el('meta-items-list').innerHTML = currentMetaItemsBuilder.map((it, idx) => `<div class="bg-white border rounded px-2 py-1 small d-flex justify-content-between"><span>${it}</span><i class="bi bi-x text-danger pointer" onclick="currentMetaItemsBuilder.splice(${idx},1); el('meta-items-list').innerHTML=''; currentMetaItemsBuilder.forEach(x=>addMetaItem(x));"></i></div>`).join(''); el('meta-item-input').value=''; } };
             el('form-meta').addEventListener('submit', async e => { e.preventDefault(); const tit = el('meta-titulo').value.trim(), f = el('meta-fecha').value, asig = el('meta-asignado').value; if(currentMetaItemsBuilder.length===0) return showToast("Agregue ítems a cumplir", "warning"); await addDoc(collection(db, "am_metas"), { titulo: tit, fechaLimite: f, asignadoA: asig, items: currentMetaItemsBuilder, completados: {}, autor: currentUser.id, timestamp: Date.now() }); showToast("Meta Mensual Creada"); e.target.reset(); currentMetaItemsBuilder=[]; el('meta-items-list').innerHTML=''; });
 
@@ -483,7 +448,7 @@
                 await updateDoc(doc(db, "am_registros", interaccionActual.id), updatePayload); showToast("Datos actualizados exitosamente"); e.target.reset(); bootstrap.Modal.getInstance(el('modalEditarRegistro')).hide(); btn.disabled = false; btn.innerHTML = "Confirmar y Actualizar Base de Datos";
             });
 
-            // SUBIDA DE EVIDENCIA (CUMPLIMIENTO)
+            // SUBIDA EVIDENCIA
             el('form-cumplir-meta').addEventListener('submit', async e => {
                 e.preventDefault(); const metaId = el('cump-meta-id').value, item = el('cump-meta-item').value, com = el('cump-comentario').value, btn = e.target.querySelector('button'); btn.disabled=true; btn.innerHTML="Subiendo...";
                 try {
@@ -523,22 +488,18 @@
 
         window.navigateTo = (sId) => { document.querySelectorAll(".content-section").forEach(e => e.classList.add("d-none")); document.querySelectorAll(".nav-link-menu").forEach(e => e.classList.remove("active")); const sectionMap = {dashboard:'sec-dashboard', cumplimiento:'sec-cumplimiento', registrar:'sec-registrar', mistareas:'sec-mistareas', historial:'sec-historial', admin:'sec-admin'}; el(sectionMap[sId])?.classList.remove("d-none"); el(`nav-${sId}`)?.classList.add("active"); if(window.innerWidth < 992) toggleMenu(); if(sId==='cumplimiento') renderMetas(); };
 
-        // --- CUMPLIMIENTO / CALENDARIO (NUEVO) ---
+        // --- CUMPLIMIENTO / CALENDARIO ---
         window.renderMetas = () => {
             const mesFilter = el('filtro-mes-meta').value;
-            // Filtro por usuario (solo admin ve todas por defecto, o los asignados)
             let metasV = cache.metas;
             if(currentUser.rol !== 'admin') metasV = metasV.filter(m => m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
-            
             if(mesFilter !== 'ALL') metasV = metasV.filter(m => m.fechaLimite.split('-')[1] === mesFilter);
 
-            let html = '';
-            let totalItems = 0, totalCompletados = 0;
+            let html = ''; let totalItems = 0, totalCompletados = 0;
 
             metasV.forEach(m => {
                 const asig = (m.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 ');
-                totalItems += m.items.length;
-                totalCompletados += Object.keys(m.completados||{}).length;
+                totalItems += m.items.length; totalCompletados += Object.keys(m.completados||{}).length;
                 const isFullComplete = Object.keys(m.completados||{}).length >= m.items.length;
                 
                 html += `<div class="meta-item rounded shadow-sm p-3 border mb-3 ${isFullComplete?'completada':''}">
@@ -561,28 +522,18 @@
             });
             
             el('lista-metas-container').innerHTML = html || '<div class="text-center text-muted p-4">No hay metas asignadas para este filtro.</div>';
-
-            // Actualizar Dashboard Circular
             actualizarGraficoCumplimiento(totalCompletados, totalItems - totalCompletados);
         };
 
         window.abrirModalCumplimiento = (metaId, item) => { el('cump-meta-id').value = metaId; el('cump-meta-item').value = item; new bootstrap.Modal(el('modalCumplirMeta')).show(); };
 
         function actualizarGraficoCumplimiento(completados, pendientes) {
-            if(pendientes < 0) pendientes = 0;
-            const total = completados + pendientes;
-            const percent = total === 0 ? 0 : Math.round((completados / total) * 100);
-            el('chart-percent').innerText = `${percent}%`;
-            el('metric-completados').innerText = `${completados} Logrados`; el('metric-pendientes').innerText = `${pendientes} Pendientes`;
-            el('dash-metas').innerText = completados;
+            if(pendientes < 0) pendientes = 0; const total = completados + pendientes; const percent = total === 0 ? 0 : Math.round((completados / total) * 100);
+            el('chart-percent').innerText = `${percent}%`; el('metric-completados').innerText = `${completados} Logrados`; el('metric-pendientes').innerText = `${pendientes} Pendientes`; el('dash-metas').innerText = completados;
 
             const ctx = el('cumplimientoChart').getContext('2d');
             if(chartCumplimiento) chartCumplimiento.destroy();
-            chartCumplimiento = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: ['Completados', 'Pendientes'], datasets: [{ data: [completados, pendientes], backgroundColor: ['#16a34a', '#e2e8f0'], borderWidth: 0, cutout: '80%' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateScale: true } }
-            });
+            chartCumplimiento = new Chart(ctx, { type: 'doughnut', data: { labels: ['Completados', 'Pendientes'], datasets: [{ data: [completados, pendientes], backgroundColor: ['#16a34a', '#e2e8f0'], borderWidth: 0, cutout: '80%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateScale: true } } });
         }
 
         // --- SELECCION DE FORMULARIO ---
@@ -642,7 +593,14 @@
         }
 
         // --- INTERACCIÓN Y EDICIÓN ---
-        window.previewFileChat = (input) => { if(input.files && input.files[0]) { const f = input.files[0]; el('chat-file-name').innerText = f.name; el('chat-file-preview').classList.remove('d-none'); if(f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (e) => chatFileBase64 = { data: e.target.result, type: 'image', name: f.name }; r.readAsDataURL(f); } else { const r = new FileReader(); r.onload = (e) => chatFileBase64 = { data: e.target.result, type: 'doc', name: f.name }; r.readAsDataURL(f); } } };
+        window.previewFileChat = (input) => {
+            if(input.files && input.files[0]) {
+                const f = input.files[0]; el('chat-file-name').innerText = f.name; el('chat-file-preview').classList.remove('d-none');
+                if(f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (e) => chatFileBase64 = { data: e.target.result, type: 'image', name: f.name }; r.readAsDataURL(f); }
+                else if(f.type.startsWith('video/')) { chatFileBase64 = `[Video Adjunto: ${f.name} - Enlace sim]`; } 
+                else { const r = new FileReader(); r.onload = (e) => chatFileBase64 = { data: e.target.result, type: 'doc', name: f.name }; r.readAsDataURL(f); }
+            }
+        };
         window.clearFileChat = () => { el('det-file-input').value = ""; chatFileBase64 = null; el('chat-file-preview').classList.add('d-none'); };
 
         window.abrirInteraccion = (tipo, id) => { interaccionActual = { tipo, id }; el('sec-mistareas').classList.add('d-none'); el('sec-historial').classList.add('d-none'); el('sec-interaccion-detalle').classList.remove('d-none'); renderizarPanelInteraccion(); };
@@ -680,7 +638,12 @@
         }
 
         window.enviarInteraccion = async () => { const txt = el('det-comentario').value.trim(); if(!txt && !chatFileBase64) return; const coleccion = interaccionActual.tipo === 'tarea' ? "am_tareas" : "am_registros"; await updateDoc(doc(db, coleccion, interaccionActual.id), { historial: arrayUnion({ tipo: 'comentario', texto: txt || 'Documento adjunto enviado', autor: currentUser.id, fecha: new Date().toLocaleString(), adjunto: chatFileBase64 }) }); el('det-comentario').value = ''; clearFileChat(); };
-        window.cambiarMetadato = async (campo, valor) => { const coleccion = interaccionActual.tipo === 'tarea' ? "am_tareas" : "am_registros"; const cReal = campo === 'estado' && interaccionActual.tipo === 'tarea' ? 'estadoTarea' : campo; if (valor === 'Anulado') { const motivo = prompt("Ingrese el MOTIVO OBLIGATORIO para Anular este tiquete:"); if(!motivo) { renderizarPanelInteraccion(); return; } await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `⚠️ Tiquete ANULADO. Motivo: ${motivo}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); return; } await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `El sistema actualizó: ${campo} -> ${valor}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); };
+        
+        window.cambiarMetadato = async (campo, valor) => { 
+            const coleccion = interaccionActual.tipo === 'tarea' ? "am_tareas" : "am_registros"; const cReal = campo === 'estado' && interaccionActual.tipo === 'tarea' ? 'estadoTarea' : campo; 
+            if (valor === 'Anulado') { const motivo = prompt("Ingrese el MOTIVO OBLIGATORIO para Anular este tiquete:"); if(!motivo) { renderizarPanelInteraccion(); return; } await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `⚠️ Tiquete ANULADO. Motivo: ${motivo}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); return; } 
+            await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `El sistema actualizó: ${campo} -> ${valor}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); 
+        };
 
         window.abrirModalEdicion = () => {
             if(interaccionActual.tipo !== 'registro') return; const docData = cache.records.find(r=>r.id===interaccionActual.id); el('edicion-campos-dinamicos').innerHTML = ''; el('grid-body-edit').innerHTML = '';
@@ -703,34 +666,63 @@
         function startRealtime() {
             onSnapshot(collection(db, "am_metas"), s => {
                 cache.metas = s.docs.map(d=>({id:d.id,...d.data()}));
-                // Vista Admin
                 el('list-metas-admin').innerHTML = cache.metas.map(m=>`<li class="list-group-item d-flex justify-content-between align-items-center"><div><b class="d-block text-dark">${m.titulo}</b><small class="text-muted">Asig: ${m.asignadoA} | Límite: ${m.fechaLimite}</small></div><i class="bi bi-trash text-danger pointer" onclick="delMeta('${m.id}')"></i></li>`).join('');
                 if(!el('sec-cumplimiento').classList.contains('d-none')) renderMetas();
                 procesarNotificacionesMetas();
             });
 
-            onSnapshot(collection(db, "am_grupos"), s => { cache.groups = s.docs.map(d=>({id:d.id,...d.data()})); const cHtml = (cls) => cache.groups.map(g => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input ${cls}" type="checkbox" value="${g.id}"> <label class="small fw-bold">${g.nombre}</label></div></div>`).join(''); el('tpl-groups-container').innerHTML = cHtml('tpl-grp-chk'); el('usr-groups-container').innerHTML = cHtml('usr-grp-chk'); el('list-groups').innerHTML = cache.groups.map(g=>`<li class="list-group-item d-flex justify-content-between"><div><b>${g.nombre}</b> <small class="text-muted">(GRP_${g.id})</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editGroup('${g.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delGroup('${g.id}')"></i></div></li>`).join(''); actualizarSelects(); });
-            onSnapshot(collection(db, "am_usuarios"), s => { cache.users = s.docs.map(d=>({id:d.id,...d.data()})); el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><div><b>${u.id}</b> <span class="badge bg-light text-dark">${u.rol}</span></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delUser('${u.id}')"></i></div></li>`).join(''); actualizarSelects(); });
-            function actualizarSelects() { const allOpts = '<option value="">- Asignar A -</option>' + cache.users.map(u=>`<option value="USR_${u.id}">👤 ${u.id}</option>`).join('') + cache.groups.map(g=>`<option value="GRP_${g.id}">👥 Grp: ${g.nombre}</option>`).join(''); el('tq-man-asignado').innerHTML = allOpts; el('det-asignado').innerHTML = allOpts; el('flow-fixed-user').innerHTML = allOpts; el('meta-asignado').innerHTML = allOpts; }
+            onSnapshot(collection(db, "am_grupos"), s => {
+                cache.groups = s.docs.map(d=>({id:d.id,...d.data()}));
+                const cHtml = (cls) => cache.groups.map(g => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input ${cls}" type="checkbox" value="${g.id}"> <label class="small fw-bold">${g.nombre}</label></div></div>`).join('');
+                el('tpl-groups-container').innerHTML = cHtml('tpl-grp-chk'); el('usr-groups-container').innerHTML = cHtml('usr-grp-chk');
+                el('list-groups').innerHTML = cache.groups.map(g=>`<li class="list-group-item d-flex justify-content-between"><div><b>${g.nombre}</b> <small class="text-muted">(GRP_${g.id})</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editGroup('${g.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delGroup('${g.id}')"></i></div></li>`).join('');
+                actualizarSelects();
+            });
+
+            onSnapshot(collection(db, "am_usuarios"), s => {
+                cache.users = s.docs.map(d=>({id:d.id,...d.data()}));
+                el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><div><b>${u.id}</b> <span class="badge bg-light text-dark">${u.rol}</span></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delUser('${u.id}')"></i></div></li>`).join('');
+                actualizarSelects();
+            });
+
+            function actualizarSelects() {
+                const allOpts = '<option value="">- Asignar A -</option>' + cache.users.map(u=>`<option value="USR_${u.id}">👤 ${u.id}</option>`).join('') + cache.groups.map(g=>`<option value="GRP_${g.id}">👥 Grp: ${g.nombre}</option>`).join('');
+                el('tq-man-asignado').innerHTML = allOpts; el('det-asignado').innerHTML = allOpts; el('flow-fixed-user').innerHTML = allOpts; el('meta-asignado').innerHTML = allOpts;
+            }
 
             onSnapshot(collection(db, "am_plantillas"), s => {
                 cache.templates = s.docs.map(d=>({id:d.id,...d.data()}));
                 const ms = currentUser.rol==='admin' ? cache.templates : cache.templates.filter(t => (t.gruposPermitidos||[]).some(g => (currentUser.grupos||[]).includes(g)));
+                
                 el('filter-form').innerHTML = '<option value="ALL">Mostrar Todos los Formularios</option>' + cache.templates.map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
+
                 el('template-cards-container').innerHTML = ms.map(t => `<div class="col-md-4 col-sm-6"><div class="card-panel p-4 pointer hover-scale border-primary h-100 d-flex flex-column justify-content-center align-items-center text-center" onclick="seleccionarPlantilla('${t.id}')"><i class="bi ${t.sysType==='excel' ? 'bi-file-earmark-spreadsheet text-success' : 'bi-file-earmark-text text-primary'} fs-1 mb-2"></i><h6 class="fw-bold mb-1">${t.nombre}</h6><span class="badge bg-light text-dark border">${(t.sysType||'formulario').toUpperCase()}</span></div></div>`).join('');
                 el('list-templates').innerHTML = cache.templates.map(t=>`<li class="list-group-item d-flex justify-content-between"><div><b class="d-block">${t.nombre}</b><small class="text-primary">Sys: ${t.sysType||'form'}</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editTpl('${t.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delTpl('${t.id}')"></i></div></li>`).join('');
             });
 
              onSnapshot(query(collection(db, "am_tareas"), orderBy('timestamp', 'desc')), s => {
                 cache.tickets = s.docs.map(d=>({id:d.id,...d.data()}));
-                const activos = cache.tickets.filter(t => !t.eliminado); const reportadosPorMi = activos.filter(t => t.reportadoPor === currentUser.id); const asignadosAmi = activos.filter(t => t.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => t.asignadoA === `GRP_${g}`));
+                
+                const activos = cache.tickets.filter(t => !t.eliminado); 
+                const reportadosPorMi = activos.filter(t => t.reportadoPor === currentUser.id);
+                const asignadosAmi = activos.filter(t => t.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => t.asignadoA === `GRP_${g}`));
+                
                 el('dash-tasks').innerText = asignadosAmi.filter(t=>t.estadoTarea!=='Solucionado' && t.estadoTarea!=='Anulado').length;
-                const drawTable = (arr, isAdminView = false) => arr.map(t => { let stClass = 'st-abierto'; if(t.estadoTarea==='En Proceso') stClass='st-en-proceso'; else if(t.estadoTarea==='En espera') stClass='st-en-espera'; else if(t.estadoTarea==='Solucionado') stClass='st-solucionado'; else if(t.estadoTarea==='Anulado') stClass='st-anulado'; if(t.eliminado) stClass='st-eliminado'; let slaHtml = t.fechaLimite ? (new Date(t.fechaLimite) < new Date() && !['Solucionado','Anulado'].includes(t.estadoTarea) ? `<span class="badge st-vencido ms-2">VENCIDO</span>` : `<span class="badge bg-light text-dark border ms-2">${t.fechaLimite.split(' ')[0]}</span>`) : ''; let actionAdmin = isAdminView ? (!t.eliminado ? `<button class="btn btn-sm btn-outline-danger border-0 ms-2 hover-scale" onclick="event.stopPropagation(); delTareaConMotivo('${t.id}')"><i class="bi bi-trash"></i></button>` : `<span class="badge bg-danger ms-2">ELIMINADO</span>`) : ''; return `<tr class="pointer hover-scale" onclick="abrirInteraccion('tarea','${t.id}')"><td class="ps-4"><div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:35px;height:35px">${t.reportadoPor.substring(0,2).toUpperCase()}</div></td><td><b class="text-dark d-block">${t.titulo}</b>${slaHtml}</td><td><small class="text-muted fw-bold">${(t.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 ')}</small></td><td><span class="status-badge ${stClass}">${t.eliminado?'ELIMINADO':t.estadoTarea}</span></td><td><span class="status-badge pri-${t.prioridad}">${t.prioridad}</span>${actionAdmin}</td></tr>`; }).join('');
+                
+                const drawTable = (arr, isAdminView = false) => arr.map(t => {
+                    let stClass = 'st-abierto'; if(t.estadoTarea==='En Proceso') stClass='st-en-proceso'; else if(t.estadoTarea==='En espera') stClass='st-en-espera'; else if(t.estadoTarea==='Solucionado') stClass='st-solucionado'; else if(t.estadoTarea==='Anulado') stClass='st-anulado'; if(t.eliminado) stClass='st-eliminado'; let slaHtml = t.fechaLimite ? (new Date(t.fechaLimite) < new Date() && !['Solucionado','Anulado'].includes(t.estadoTarea) ? `<span class="badge st-vencido ms-2">VENCIDO</span>` : `<span class="badge bg-light text-dark border ms-2">${t.fechaLimite.split(' ')[0]}</span>`) : ''; let actionAdmin = isAdminView ? (!t.eliminado ? `<button class="btn btn-sm btn-outline-danger border-0 ms-2 hover-scale" onclick="event.stopPropagation(); delTareaConMotivo('${t.id}')"><i class="bi bi-trash"></i></button>` : `<span class="badge bg-danger ms-2">ELIMINADO</span>`) : ''; return `<tr class="pointer hover-scale" onclick="abrirInteraccion('tarea','${t.id}')"><td class="ps-4"><div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:35px;height:35px">${t.reportadoPor.substring(0,2).toUpperCase()}</div></td><td><b class="text-dark d-block">${t.titulo}</b>${slaHtml}</td><td><small class="text-muted fw-bold">${(t.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 ')}</small></td><td><span class="status-badge ${stClass}">${t.eliminado?'ELIMINADO':t.estadoTarea}</span></td><td><span class="status-badge pri-${t.prioridad}">${t.prioridad}</span>${actionAdmin}</td></tr>`;
+                }).join('');
+
                 el('body-tareas-asignadas').innerHTML = drawTable(asignadosAmi); el('body-tareas-reportadas').innerHTML = drawTable(reportadosPorMi); el('body-todos-tiquetes').innerHTML = drawTable(cache.tickets, true); 
                 if(interaccionActual.tipo === 'tarea') renderizarPanelInteraccion();
              });
 
-            onSnapshot(query(collection(db, "am_registros"), orderBy('timestamp', 'desc')), s => { cache.records = s.docs.map(d=>({id:d.id,...d.data()})); el('dash-total').innerText = cache.records.filter(r=>!r.eliminado).length; window.renderMasterData(); if(interaccionActual.tipo === 'registro') renderizarPanelInteraccion(); });
+            onSnapshot(query(collection(db, "am_registros"), orderBy('timestamp', 'desc')), s => {
+                cache.records = s.docs.map(d=>({id:d.id,...d.data()}));
+                el('dash-total').innerText = cache.records.filter(r=>!r.eliminado).length;
+                window.renderMasterData();
+                if(interaccionActual.tipo === 'registro') renderizarPanelInteraccion();
+            });
         }
         window.exportarTabla = (tId, n) => { const t = el(tId); if(!t) return; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body><table border="1">${t.innerHTML}</table></body></html>`], {type: 'application/vnd.ms-excel'})); a.download = `${n}.xls`; a.click(); };
     </script>
