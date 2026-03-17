@@ -6,7 +6,10 @@
     <title>SkyControl OS - Colaboración y Cumplimiento</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -189,7 +192,11 @@
                 <div id="sec-interaccion-detalle" class="content-section d-none fade-in">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <button class="btn btn-light fw-bold border shadow-sm" id="btn-volver-interaccion"><i class="bi bi-arrow-left me-2"></i> Volver</button>
-                        <div class="d-flex gap-2"><span class="badge bg-secondary px-3 py-2" id="det-tipo-doc">TIPO</span><span class="badge bg-dark px-3 py-2" id="det-id-doc">#ID</span></div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-danger fw-bold shadow-sm bg-white" onclick="descargarPdfInteraccion()"><i class="bi bi-file-pdf"></i> PDF</button>
+                            <span class="badge bg-secondary px-3 py-2" id="det-tipo-doc">TIPO</span>
+                            <span class="badge bg-dark px-3 py-2" id="det-id-doc">#ID</span>
+                        </div>
                     </div>
                     <div class="row g-4">
                         <div class="col-lg-8">
@@ -275,9 +282,10 @@
 
                                         <div id="custom-fields-builder" class="bg-light border rounded-3 p-3 p-md-4 mb-4">
                                             <h6 class="fw-bold small text-muted text-uppercase mb-3">Definir Columnas / Campos</h6>
-                                            <div class="row g-2 mb-2">
-                                                <div class="col-sm-6"><input type="text" id="field-name" class="form-control" placeholder="Nombre Campo"></div>
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <div class="col-sm-4"><input type="text" id="field-name" class="form-control" placeholder="Nombre Campo"></div>
                                                 <div class="col-sm-4"><select id="field-type" class="form-select text-primary fw-bold"><option value="text">A Letra (Texto Corto)</option><option value="textarea">¶ Párrafo</option><option value="number">123 Número</option><option value="date">📅 Fecha</option><option value="time">🕒 Hora</option><option value="radio">◉ Sel. Única</option><option value="checkbox">☑ Sel. Múltiple</option><option value="boolean">👍 Sí/No</option><option value="file">📎 Archivo/Doc Genérico</option><option value="image">📷 Imagen Fija</option><option value="video">🎥 Video Fijo</option><option value="signature">✍️ Firma Digital</option></select></div>
+                                                <div class="col-sm-2 text-center pt-1"><input type="checkbox" id="field-req" class="form-check-input border-dark" checked><label class="form-check-label small ms-1 fw-bold">Oblig.</label></div>
                                                 <div class="col-sm-2"><button type="button" class="btn btn-dark w-100" id="btn-add-field"><i class="bi bi-plus-lg"></i></button></div>
                                             </div>
                                             <div id="options-builder-container" class="d-none bg-white p-3 rounded border mb-3"><div id="options-list" class="d-flex flex-wrap gap-2 mb-2"></div><div class="input-group input-group-sm"><input type="text" id="new-option-input" class="form-control" placeholder="Opción..."><button class="btn btn-primary" type="button" onclick="addOptionToBuilder()">Añadir</button></div></div>
@@ -328,7 +336,7 @@
                                                 <div class="mb-4">
                                                     <label class="fw-bold small mb-2 d-block text-primary"><i class="bi bi-person-lines-fill"></i> Asignar Miembros a este Equipo:</label>
                                                     <div id="grp-users-container" class="row g-2 px-1 border p-2 rounded bg-light" style="max-height: 200px; overflow-y: auto;">
-                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-grp-edit" onclick="cancelEditGrp()">Cancelar</button><button type="submit" class="btn-brand flex-grow-1" id="btn-save-grp">Guardar Grupo y Miembros</button></div>
                                             </form>
@@ -357,6 +365,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, query, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        // IMPORT STORAGE PARA SOLUCIONAR LÍMITE DE 11MB
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
@@ -369,17 +379,25 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app); // Inicializar Storage
 
         let currentUser=null, tempFields=[], currentOptionsBuilder=[], gridColumns=[], currentMetaItemsBuilder=[];
         let cache = { templates:[], groups:[], users:[], records:[], tickets:[], metas:[] };
         let interaccionActual = { tipo: null, id: null }; 
-        let chatFileBase64 = null, chatFileName = null, currentEditData = null;
+        let currentChatFile = null, currentEditData = null;
         let chartCumplimiento = null;
 
         const el = id => document.getElementById(id);
         const showToast = (msg, type='success') => { const c = el('toast-container'); c.innerHTML += `<div class="toast show align-items-center text-bg-${type} border-0 p-2 mb-2 shadow"><div class="d-flex"><div class="toast-body fw-bold">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`; setTimeout(() => { if(c.firstChild) c.firstChild.remove(); }, 4000); };
         window.toggleMenu = () => { el('sidebar').classList.toggle('show'); el('sidebar-overlay').classList.toggle('show'); };
-        const fileToBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
+        
+        // Función de Subida a Storage (Evita límite de 11MB en Base de Datos)
+        const uploadFileToStorage = async (file, pathFolder) => {
+            const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+            const storageRef = ref(storage, `${pathFolder}/${Date.now()}_${cleanName}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            return await getDownloadURL(snapshot.ref);
+        };
 
         const tipoLabels = { text:'Texto Corto', textarea:'Párrafo', number:'Número', date:'Fecha', time:'Hora', radio:'Única Opción', checkbox:'Sel. Múltiple', boolean:'Sí/No', file:'Archivo', image:'Imagen', video:'Video', signature:'Firma Digital', select:'Desplegable' };
         const placeHolders = { text:'Ingrese el texto...', number:'Digite un número...', date:'Seleccione la fecha...', time:'Seleccione la hora...' };
@@ -421,11 +439,17 @@
             });
             el('btn-logout').addEventListener('click', () => { localStorage.removeItem("am_enterprise_session"); location.reload(); });
 
-            // ADMIN BUILDER
+            // ADMIN BUILDER (Campos Obligatorios añadido aquí)
             el('field-type').addEventListener('change', e => { if(['select', 'radio', 'checkbox'].includes(e.target.value)) { el('options-builder-container').classList.remove('d-none'); currentOptionsBuilder = []; renderOptionsBuilder(); } else el('options-builder-container').classList.add('d-none'); });
             window.addOptionToBuilder = () => { const o = el('new-option-input').value.trim(); if(o) { currentOptionsBuilder.push(o); renderOptionsBuilder(); el('new-option-input').value = ''; } };
             window.removeOptionFromBuilder = (i) => { currentOptionsBuilder.splice(i,1); renderOptionsBuilder(); };
-            el('btn-add-field').addEventListener('click', () => { const n = el('field-name').value.trim(), t = el('field-type').value; if(!n) return; let opts = []; if(['select', 'radio', 'checkbox'].includes(t)) { if(currentOptionsBuilder.length===0) return showToast("Añade opciones","warning"); opts=[...currentOptionsBuilder]; } tempFields.push({ name:n, type:t, options:opts }); renderBuilderFields(); el('field-name').value=''; el('options-builder-container').classList.add('d-none'); el('field-type').value='text'; currentOptionsBuilder=[]; });
+            el('btn-add-field').addEventListener('click', () => { 
+                const n = el('field-name').value.trim(), t = el('field-type').value, req = el('field-req').checked; 
+                if(!n) return; let opts = []; 
+                if(['select', 'radio', 'checkbox'].includes(t)) { if(currentOptionsBuilder.length===0) return showToast("Añade opciones","warning"); opts=[...currentOptionsBuilder]; } 
+                tempFields.push({ name:n, type:t, options:opts, required:req }); 
+                renderBuilderFields(); el('field-name').value=''; el('options-builder-container').classList.add('d-none'); el('field-type').value='text'; el('field-req').checked=true; currentOptionsBuilder=[]; 
+            });
             window.removerCampoTemp = (i) => { tempFields.splice(i, 1); renderBuilderFields(); };
             el('tpl-sys-type').addEventListener('change', e => { if(e.target.value === 'excel') { tempFields = []; renderBuilderFields(); } });
             el('flow-type').addEventListener('change', e => el('flow-config-details').classList.toggle('d-none', e.target.value === 'solo_registro'));
@@ -436,13 +460,11 @@
             // ADMIN USUARIOS/GRUPOS
             el('form-user').addEventListener('submit', async e => { e.preventDefault(); const id=el('usr-id').value.trim().toLowerCase(), pass=el('usr-pass').value.trim(); let acc=[]; document.querySelectorAll('.perm-chk:checked').forEach(c=>acc.push(c.value)); await setDoc(doc(db,"am_usuarios",id), {pass, rol:el('usr-rol').value, accesos:acc}, {merge:true}); showToast("Usuario Guardado"); window.cancelEditUsr(); e.target.reset(); });
             
-            // *NUEVO* GESTIÓN DE GRUPOS Y SUS MIEMBROS
             el('form-group').addEventListener('submit', async e => { 
                 e.preventDefault(); 
                 const grpId = el('grp-id').value.trim();
                 await setDoc(doc(db,"am_grupos",grpId),{nombre:el('grp-name').value.trim()}); 
                 
-                // Actualizar a los usuarios que pertenecen o dejan de pertenecer a este grupo
                 const selectedUsers = Array.from(document.querySelectorAll('.grp-usr-chk:checked')).map(c => c.value);
                 const allUsers = Array.from(document.querySelectorAll('.grp-usr-chk')).map(c => c.value);
                 
@@ -461,7 +483,6 @@
                 });
                 
                 await Promise.all(updates);
-
                 showToast("Grupo y Miembros Actualizados"); window.cancelEditGrp(); e.target.reset(); 
             });
 
@@ -483,15 +504,15 @@
                 await updateDoc(doc(db, "am_registros", interaccionActual.id), updatePayload); showToast("Datos actualizados exitosamente"); e.target.reset(); bootstrap.Modal.getInstance(el('modalEditarRegistro')).hide(); btn.disabled = false; btn.innerHTML = "Confirmar y Actualizar Base de Datos";
             });
 
-            // SUBIDA DE EVIDENCIA (CUMPLIMIENTO)
+            // SUBIDA DE EVIDENCIA DE CUMPLIMIENTO CON STORAGE
             el('form-cumplir-meta').addEventListener('submit', async e => {
-                e.preventDefault(); const metaId = el('cump-meta-id').value, item = el('cump-meta-item').value, com = el('cump-comentario').value, btn = e.target.querySelector('button'); btn.disabled=true; btn.innerHTML="Subiendo...";
+                e.preventDefault(); const metaId = el('cump-meta-id').value, item = el('cump-meta-item').value, com = el('cump-comentario').value, btn = e.target.querySelector('button'); btn.disabled=true; btn.innerHTML="Subiendo Evidencia...";
                 try {
-                    const b64 = await fileToBase64(el('cump-file').files[0]);
+                    const fileUrl = await uploadFileToStorage(el('cump-file').files[0], 'metas_evidencia');
                     const mRef = doc(db, "am_metas", metaId);
-                    await updateDoc(mRef, { [`completados.${item}`]: { fecha: new Date().toLocaleString(), autor: currentUser.id, comentario: com, evidencia: b64 } });
+                    await updateDoc(mRef, { [`completados.${item}`]: { fecha: new Date().toLocaleString(), autor: currentUser.id, comentario: com, evidencia: fileUrl } });
                     showToast("Ítem Reportado como Completado"); e.target.reset(); bootstrap.Modal.getInstance(el('modalCumplirMeta')).hide();
-                } catch(err) { showToast("Error al subir archivo", "danger"); }
+                } catch(err) { console.log(err); showToast("Error al subir archivo a la nube", "danger"); }
                 btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Marcar como Completado';
             });
         }
@@ -503,13 +524,7 @@
         window.editGroup = (id) => { 
             const g = cache.groups.find(x=>x.id===id); if(!g)return; 
             el('grp-id').value = g.id; el('grp-id').disabled = true; el('grp-name').value = g.nombre; 
-            
-            // Marcar los usuarios que pertenecen a este grupo
-            document.querySelectorAll('.grp-usr-chk').forEach(chk => {
-                const usr = cache.users.find(u => u.id === chk.value);
-                chk.checked = usr && usr.grupos && usr.grupos.includes(id);
-            });
-            
+            document.querySelectorAll('.grp-usr-chk').forEach(chk => { const usr = cache.users.find(u => u.id === chk.value); chk.checked = usr && usr.grupos && usr.grupos.includes(id); });
             el('grp-edit-badge').classList.remove('d-none'); el('btn-cancel-grp-edit').classList.remove('d-none'); el('btn-save-grp').innerText = 'Actualizar Grupo y Miembros'; 
         };
         window.cancelEditGrp = () => { el('form-group').reset(); el('grp-id').disabled = false; el('grp-edit-badge').classList.add('d-none'); el('btn-cancel-grp-edit').classList.add('d-none'); el('btn-save-grp').innerText = 'Guardar Grupo y Miembros'; document.querySelectorAll('.grp-usr-chk').forEach(c=>c.checked=false); };
@@ -526,7 +541,7 @@
 
         // --- CORE UI FUNCTIONS ---
         function renderOptionsBuilder() { el('options-list').innerHTML = currentOptionsBuilder.map((o, i) => `<span class="badge bg-primary bg-opacity-10 text-primary border">${o} <i class="bi bi-x pointer" onclick="removeOptionFromBuilder(${i})"></i></span>`).join(''); }
-        function renderBuilderFields() { el('builder-fields-container').innerHTML = tempFields.map((f, i) => `<span class="badge bg-white border text-dark p-2">${f.name} <small class="text-primary fw-bold ms-1">(${tipoLabels[f.type] || f.type})</small><i class="bi bi-x-circle-fill text-danger pointer ms-2 hover-scale" onclick="removerCampoTemp(${i})"></i></span>`).join(''); }
+        function renderBuilderFields() { el('builder-fields-container').innerHTML = tempFields.map((f, i) => `<span class="badge bg-white border text-dark p-2">${f.name} <small class="text-primary fw-bold ms-1">(${tipoLabels[f.type] || f.type}) ${f.required ? '<b class="text-danger">*</b>' : ''}</small><i class="bi bi-x-circle-fill text-danger pointer ms-2 hover-scale" onclick="removerCampoTemp(${i})"></i></span>`).join(''); }
 
         function initApp(u) { 
             currentUser = u; el('login-screen').classList.add("d-none"); el('app-screen').classList.remove("d-none"); el('user-display').innerText = u.id; el('role-display').innerText = u.rol; el('avatar-initial').innerText = u.id[0].toUpperCase(); 
@@ -563,7 +578,7 @@
                 m.items.forEach(it => {
                     const compData = (m.completados||{})[it];
                     if(compData) {
-                        html += `<div class="col-md-6"><div class="bg-success bg-opacity-10 border border-success rounded p-2 small"><div class="d-flex justify-content-between text-success fw-bold"><span class="text-truncate" style="max-width:120px">${it}</span> <span><i class="bi bi-check-circle-fill"></i> Ok</span></div><div class="text-muted" style="font-size:0.65rem">${compData.fecha} por ${compData.autor}</div><a href="${compData.evidencia}" download="${it}_evidencia" class="badge bg-success mt-1 d-inline-block text-decoration-none"><i class="bi bi-download"></i> Ver Sustento</a></div></div>`;
+                        html += `<div class="col-md-6"><div class="bg-success bg-opacity-10 border border-success rounded p-2 small"><div class="d-flex justify-content-between text-success fw-bold"><span class="text-truncate" style="max-width:120px">${it}</span> <span><i class="bi bi-check-circle-fill"></i> Ok</span></div><div class="text-muted" style="font-size:0.65rem">${compData.fecha} por ${compData.autor}</div><a href="${compData.evidencia}" target="_blank" class="badge bg-success mt-1 d-inline-block text-decoration-none"><i class="bi bi-box-arrow-up-right"></i> Ver Sustento</a></div></div>`;
                     } else {
                         html += `<div class="col-md-6"><div class="bg-white border rounded p-2 small d-flex justify-content-between align-items-center"><span class="fw-bold text-dark text-truncate" style="max-width:150px">${it}</span> <button class="btn btn-sm btn-outline-primary py-0 fw-bold" onclick="abrirModalCumplimiento('${m.id}','${it}')">Reportar Tarea</button></div></div>`;
                     }
@@ -586,7 +601,7 @@
             chartCumplimiento = new Chart(ctx, { type: 'doughnut', data: { labels: ['Completados', 'Pendientes'], datasets: [{ data: [completados, pendientes], backgroundColor: ['#16a34a', '#e2e8f0'], borderWidth: 0, cutout: '80%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateScale: true } } });
         }
 
-        // --- SELECCION DE FORMULARIO ---
+        // --- SELECCION DE FORMULARIO (Campos Obligatorios) ---
         window.seleccionarPlantilla = (id) => {
             const form = el('dynamic-form'); form.classList.remove('d-none'); el('template-selection-view').classList.add('d-none');
             const tpl = cache.templates.find(t => t.id === id); el('form-active-title').innerText = `Llenando: ${tpl.nombre}`;
@@ -598,15 +613,17 @@
                 grid.classList.add('d-none');
                 std.innerHTML = tpl.campos.map(c => {
                     let inp = ''; const placeholder = placeHolders[c.type] || 'Complete el campo...';
-                    const badgeTipo = `<span class="badge bg-primary bg-opacity-10 text-primary border ms-2 fw-normal"><i class="bi bi-info-circle"></i> ${tipoLabels[c.type] || c.type}</span>`;
-                    if(c.type === 'textarea') inp = `<textarea class="form-control dyn-field" data-name="${c.name}" placeholder="${placeholder}" required></textarea>`;
-                    else if(c.type === 'boolean') inp = `<select class="form-select dyn-field" data-name="${c.name}" required><option value="Sí">Sí</option><option value="No">No</option></select>`;
-                    else if(c.type === 'radio') inp = c.options.map(o => `<div class="form-check"><input class="form-check-input dyn-field-radio" type="radio" name="${c.name}" value="${o}" required><label class="form-check-label">${o}</label></div>`).join('');
+                    const isReq = c.required !== false ? 'required' : ''; // Validando si es obligatorio
+                    const badgeTipo = `<span class="badge bg-primary bg-opacity-10 text-primary border ms-2 fw-normal"><i class="bi bi-info-circle"></i> ${tipoLabels[c.type] || c.type} ${c.required !== false ? '*' : ''}</span>`;
+                    
+                    if(c.type === 'textarea') inp = `<textarea class="form-control dyn-field" data-name="${c.name}" placeholder="${placeholder}" ${isReq}></textarea>`;
+                    else if(c.type === 'boolean') inp = `<select class="form-select dyn-field" data-name="${c.name}" ${isReq}><option value="Sí">Sí</option><option value="No">No</option></select>`;
+                    else if(c.type === 'radio') inp = c.options.map(o => `<div class="form-check"><input class="form-check-input dyn-field-radio" type="radio" name="${c.name}" value="${o}" ${isReq}><label class="form-check-label">${o}</label></div>`).join('');
                     else if(c.type === 'checkbox') inp = c.options.map(o => `<div class="form-check"><input class="form-check-input dyn-field-checkbox" data-group="${c.name}" type="checkbox" value="${o}"><label class="form-check-label">${o}</label></div>`).join('');
-                    else if(c.type === 'select') inp = `<select class="form-select dyn-field" data-name="${c.name}" required><option value="">-Elegir Opción-</option>${c.options.map(o=>`<option>${o}</option>`).join('')}</select>`;
-                    else if(['file', 'image', 'video'].includes(c.type)) inp = `<input type="file" class="form-control dyn-field-file" data-name="${c.name}" accept="${c.type==='image'?'image/*':(c.type==='video'?'video/*':'*')}" required>`;
+                    else if(c.type === 'select') inp = `<select class="form-select dyn-field" data-name="${c.name}" ${isReq}><option value="">-Elegir Opción-</option>${c.options.map(o=>`<option>${o}</option>`).join('')}</select>`;
+                    else if(['file', 'image', 'video'].includes(c.type)) inp = `<input type="file" class="form-control dyn-field-file" data-name="${c.name}" accept="${c.type==='image'?'image/*':(c.type==='video'?'video/*':'*')}" ${isReq}>`;
                     else if(c.type === 'signature') inp = `<div class="signature-wrapper"><button type="button" class="btn btn-light btn-clear-sig shadow-sm" onclick="this.nextElementSibling.getContext('2d').clearRect(0,0,this.nextElementSibling.width,this.nextElementSibling.height)">Limpiar</button><canvas class="signature-pad dyn-field-sig" data-name="${c.name}"></canvas></div>`;
-                    else inp = `<input type="${c.type}" class="form-control dyn-field" data-name="${c.name}" placeholder="${placeholder}" required>`;
+                    else inp = `<input type="${c.type}" class="form-control dyn-field" data-name="${c.name}" placeholder="${placeholder}" ${isReq}>`;
                     return `<div class="${['textarea','signature'].includes(c.type)?'col-12':'col-md-6'}"><label class="form-label small fw-bold text-dark d-flex align-items-center mb-2">${c.name} ${badgeTipo}</label>${inp}</div>`;
                 }).join('');
                 initSignaturePads();
@@ -617,9 +634,10 @@
 
         function initSignaturePads() { document.querySelectorAll('.signature-pad').forEach(canvas => { canvas.width = canvas.offsetWidth || 300; canvas.height = canvas.offsetHeight || 150; const ctx = canvas.getContext('2d'); ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#0f172a'; let drawing = false; const getPos = (e) => { const rect = canvas.getBoundingClientRect(); const evt = e.touches ? e.touches[0] : e; return { x: evt.clientX - rect.left, y: evt.clientY - rect.top }; }; const start = (e) => { e.preventDefault(); drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }; const draw = (e) => { e.preventDefault(); if(!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }; const stop = (e) => { e.preventDefault(); drawing = false; }; canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop); canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stop); }); }
 
+        // PROCESAR REGISTRO Y SUBIDA CON STORAGE
         async function procesarRegistro(e) {
             e.preventDefault(); const nombreActivo = el('form-active-title').innerText.replace('Llenando: ', ''); const tpl = cache.templates.find(t => t.nombre === nombreActivo);
-            let btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
+            let btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>Procesando Archivos...';
             let datosForm = {}, datosExcel = [];
             
             if(tpl.sysType === 'excel') { document.querySelectorAll('#grid-body tr').forEach(tr => { let fila = {}; tr.querySelectorAll('.grid-input').forEach(input => fila[input.dataset.col] = input.value); if(Object.keys(fila).length > 0) datosExcel.push(fila); }); } 
@@ -627,7 +645,16 @@
                 document.querySelectorAll('.dyn-field').forEach(el => datosForm[el.dataset.name] = el.value);
                 document.querySelectorAll('.dyn-field-radio:checked').forEach(el => datosForm[el.name] = el.value);
                 let checks = {}; document.querySelectorAll('.dyn-field-checkbox:checked').forEach(el => { const g = el.dataset.group; if(!checks[g]) checks[g]=[]; checks[g].push(el.value); }); Object.keys(checks).forEach(k => datosForm[k] = checks[k].join(', '));
-                const fileInputs = document.querySelectorAll('.dyn-field-file'); for(let inp of fileInputs) { if(inp.files[0]) { try { datosForm[inp.dataset.name] = await fileToBase64(inp.files[0]); } catch(err) { console.error(err); } } }
+                
+                // Archivos Grandes enviados a Storage
+                const fileInputs = document.querySelectorAll('.dyn-field-file'); 
+                for(let inp of fileInputs) { 
+                    if(inp.files[0]) { 
+                        try { datosForm[inp.dataset.name] = await uploadFileToStorage(inp.files[0], 'registros_archivos'); } 
+                        catch(err) { console.error("Error subiendo archivo:", err); } 
+                    } 
+                }
+                // Firmas (son muy pequeñas, Base64 está bien aquí)
                 document.querySelectorAll('.dyn-field-sig').forEach(cvs => { const blank = document.createElement('canvas'); blank.width = cvs.width; blank.height = cvs.height; if(cvs.toDataURL() !== blank.toDataURL()) datosForm[cvs.dataset.name] = cvs.toDataURL(); else datosForm[cvs.dataset.name] = "Sin firma"; });
             }
 
@@ -642,16 +669,37 @@
             e.target.reset(); window.cancelarRegistro(); btn.disabled=false; btn.innerHTML='<i class="bi bi-send-fill me-2"></i> ENVIAR DATOS';
         }
 
-        // --- INTERACCIÓN Y EDICIÓN ---
+        // --- INTERACCIÓN Y DESCARGA PDF ---
         window.previewFileChat = (input) => {
             if(input.files && input.files[0]) {
-                const f = input.files[0]; el('chat-file-name').innerText = f.name; el('chat-file-preview').classList.remove('d-none');
-                if(f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (e) => chatFileBase64 = { data: e.target.result, type: 'image', name: f.name }; r.readAsDataURL(f); }
-                else if(f.type.startsWith('video/')) { chatFileBase64 = `[Video Adjunto: ${f.name} - Enlace sim]`; } 
-                else { const r = new FileReader(); r.onload = (e) => chatFileBase64 = { data: e.target.result, type: 'doc', name: f.name }; r.readAsDataURL(f); }
+                currentChatFile = input.files[0];
+                el('chat-file-name').innerText = currentChatFile.name; 
+                el('chat-file-preview').classList.remove('d-none');
             }
         };
-        window.clearFileChat = () => { el('det-file-input').value = ""; chatFileBase64 = null; el('chat-file-preview').classList.add('d-none'); };
+        window.clearFileChat = () => { el('det-file-input').value = ""; currentChatFile = null; el('chat-file-preview').classList.add('d-none'); };
+
+        window.descargarPdfInteraccion = () => {
+            const isTiquete = interaccionActual.tipo === 'tarea';
+            const contenedorOculto = document.createElement('div');
+            contenedorOculto.style.padding = '30px';
+            contenedorOculto.style.fontFamily = 'Arial, sans-serif';
+            contenedorOculto.innerHTML = `
+                <h1 style="color:#0f62fe; text-align:center;">SkyControl OS - Reporte Oficial</h1>
+                <hr>
+                <h2>${isTiquete ? 'Detalle de Tiquete / Tarea' : 'Registro de Datos'}</h2>
+                <p><strong>ID del Documento:</strong> ${el('det-id-doc').innerText}</p>
+                <p><strong>Asunto / Formato:</strong> ${el('det-titulo').innerText}</p>
+                <p><strong>Autor Original:</strong> ${el('det-autor').innerText}</p>
+                <p><strong>Estado Actual:</strong> ${el('det-estado').value}</p>
+                <br>
+                <h3>Información del Registro:</h3>
+                <div style="background:#f3f4f6; padding:15px; border-radius:5px; font-size:14px;">
+                    ${el('det-contexto-datos').innerHTML}
+                </div>
+            `;
+            html2pdf().set({margin:10, filename:`Reporte_${el('det-id-doc').innerText}.pdf`, image:{type:'jpeg',quality:0.98}}).from(contenedorOculto).save();
+        };
 
         window.abrirInteraccion = (tipo, id) => { interaccionActual = { tipo, id }; el('sec-mistareas').classList.add('d-none'); el('sec-historial').classList.add('d-none'); el('sec-interaccion-detalle').classList.remove('d-none'); renderizarPanelInteraccion(); };
 
@@ -665,7 +713,7 @@
             else { 
                 let dHTML = '<div class="row g-2">';
                 if(docData.sysType === 'excel') { dHTML += `<div class="col-12"><div class="table-responsive bg-white border rounded"><table class="table table-sm mb-0"><thead><tr>`; if(docData.datosExcel && docData.datosExcel.length > 0) { Object.keys(docData.datosExcel[0]).forEach(k => dHTML += `<th>${k}</th>`); dHTML += `</tr></thead><tbody>`; docData.datosExcel.forEach(row => { dHTML += `<tr>`; Object.values(row).forEach(v => dHTML += `<td>${v}</td>`); dHTML += `</tr>`; }); } dHTML += `</tbody></table></div></div>`; }
-                else { Object.keys(docData.datos).forEach(k => { const val = docData.datos[k]; if(val && val.toString().startsWith('data:image')) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><img src="${val}" style="max-height:80px"></div>`; else if(val && val.toString().startsWith('data:')) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><a href="${val}" download="${k}_doc" class="btn btn-sm btn-outline-primary mt-1"><i class="bi bi-download"></i> Descargar Adjunto</a></div>`; else dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><span class="fw-bold">${val}</span></div>`; }); } dHTML += '</div>'; el('det-contexto-datos').innerHTML = dHTML; 
+                else { Object.keys(docData.datos).forEach(k => { const val = docData.datos[k]; if(val && val.toString().startsWith('data:image')) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><img src="${val}" style="max-height:80px"></div>`; else if(val && (val.toString().startsWith('data:') || val.toString().startsWith('https://firebasestorage'))) dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><a href="${val}" target="_blank" class="btn btn-sm btn-outline-primary mt-1"><i class="bi bi-box-arrow-up-right"></i> Ver Adjunto</a></div>`; else dHTML += `<div class="col-md-6 border rounded p-2"><span class="fw-bold d-block text-muted small">${k}</span><span class="fw-bold">${val}</span></div>`; }); } dHTML += '</div>'; el('det-contexto-datos').innerHTML = dHTML; 
             }
 
             const selEstado = el('det-estado'); selEstado.innerHTML = '';
@@ -681,17 +729,57 @@
 
             el('det-timeline').innerHTML = (docData.historial || []).map(h => {
                 const isMe = h.autor === currentUser.id; let mediaHtml = ''; 
-                if(h.adjunto && h.adjunto.type === 'image') mediaHtml = `<img src="${h.adjunto.data}" class="msg-media">`; else if(h.adjunto && h.adjunto.type === 'doc') mediaHtml = `<div class="mt-2"><a href="${h.adjunto.data}" download="${h.adjunto.name}" class="btn btn-sm btn-outline-primary bg-white"><i class="bi bi-download"></i> Descargar ${h.adjunto.name}</a></div>`;
+                if(h.adjunto && h.adjunto.type === 'image') mediaHtml = `<img src="${h.adjunto.data}" class="msg-media">`; else if(h.adjunto && h.adjunto.type === 'doc') mediaHtml = `<div class="mt-2"><a href="${h.adjunto.data}" target="_blank" class="btn btn-sm btn-outline-primary bg-white"><i class="bi bi-box-arrow-up-right"></i> Ver ${h.adjunto.name}</a></div>`;
                 let iconSys = h.tipo !== 'comentario' ? '<i class="bi bi-gear-fill text-muted me-1"></i> ' : '';
                 return `<div class="msg-bubble ${isMe?'own':''} ${h.tipo==='edicion_datos'?'border-danger':''}"><div class="d-flex justify-content-between border-bottom pb-1 mb-2"><strong class="small text-${isMe?'primary':'dark'}">${iconSys}${h.autor}</strong> <span class="text-muted" style="font-size:10px">${h.fecha}</span></div><div class="small fw-medium">${h.texto}</div>${mediaHtml}</div>`;
             }).join(''); el('det-timeline').scrollTop = el('det-timeline').scrollHeight;
         }
 
-        window.enviarInteraccion = async () => { const txt = el('det-comentario').value.trim(); if(!txt && !chatFileBase64) return; const coleccion = interaccionActual.tipo === 'tarea' ? "am_tareas" : "am_registros"; await updateDoc(doc(db, coleccion, interaccionActual.id), { historial: arrayUnion({ tipo: 'comentario', texto: txt || 'Documento adjunto enviado', autor: currentUser.id, fecha: new Date().toLocaleString(), adjunto: chatFileBase64 }) }); el('det-comentario').value = ''; clearFileChat(); };
+        // CHAT CON STORAGE Y ALERTAS
+        window.enviarInteraccion = async () => { 
+            const txt = el('det-comentario').value.trim(); 
+            if(!txt && !currentChatFile) return; 
+            const coleccion = interaccionActual.tipo === 'tarea' ? "am_tareas" : "am_registros"; 
+            
+            let adjuntoData = null;
+            if(currentChatFile) {
+                Swal.fire({ title: 'Enviando Archivo...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                const fileUrl = await uploadFileToStorage(currentChatFile, 'chat_adjuntos');
+                const fileType = currentChatFile.type.startsWith('image/') ? 'image' : 'doc';
+                adjuntoData = { data: fileUrl, type: fileType, name: currentChatFile.name };
+                Swal.close();
+            }
+
+            await updateDoc(doc(db, coleccion, interaccionActual.id), { historial: arrayUnion({ tipo: 'comentario', texto: txt || 'Documento adjunto enviado', autor: currentUser.id, fecha: new Date().toLocaleString(), adjunto: adjuntoData }) }); 
+            el('det-comentario').value = ''; clearFileChat(); 
+        };
         
+        // SWEETALERT AL CAMBIAR METADATOS (SOLUCIONAR/REABRIR/ETC)
         window.cambiarMetadato = async (campo, valor) => { 
             const coleccion = interaccionActual.tipo === 'tarea' ? "am_tareas" : "am_registros"; const cReal = campo === 'estado' && interaccionActual.tipo === 'tarea' ? 'estadoTarea' : campo; 
-            if (valor === 'Anulado') { const motivo = prompt("Ingrese el MOTIVO OBLIGATORIO para Anular este tiquete:"); if(!motivo) { renderizarPanelInteraccion(); return; } await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `⚠️ Tiquete ANULADO. Motivo: ${motivo}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); return; } 
+            
+            if (campo === 'estado' && ['Solucionado', 'Anulado', 'Rechazado', 'Aprobado', 'Reabierto'].includes(valor)) {
+                const { value: motivo, isConfirmed } = await Swal.fire({
+                    title: `Cambiar estado a ${valor}`,
+                    input: 'textarea',
+                    inputLabel: 'Detalle o Motivo (Obligatorio)',
+                    inputPlaceholder: 'Escribe el motivo del cambio aquí...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirmar Cambio',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (val) => { if (!val) return '¡Debes ingresar un motivo obligatorio!' }
+                });
+
+                if (!isConfirmed || !motivo) { 
+                    renderizarPanelInteraccion(); // Revierte el select si cancela
+                    return; 
+                }
+
+                await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `El usuario cambió el estado a ${valor}. Motivo: ${motivo}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); 
+                showToast("Estado Actualizado Exitosamente");
+                return;
+            }
+
             await updateDoc(doc(db, coleccion, interaccionActual.id), { [cReal]: valor, historial: arrayUnion({ tipo: 'sistema', texto: `El sistema actualizó: ${campo} -> ${valor}`, autor: currentUser.id, fecha: new Date().toLocaleString() }) }); 
         };
 
@@ -700,7 +788,7 @@
             if(docData.sysType === 'excel') {
                 el('edicion-campos-dinamicos').classList.add('d-none'); el('edicion-excel-dinamico').classList.remove('d-none'); const formTpl = cache.templates.find(t => t.id === docData.plantillaId); gridColumns = formTpl ? formTpl.campos : []; el('grid-header-edit').innerHTML = `<tr>${gridColumns.map(c=>`<th>${c.name}</th>`).join('')}<th width="40"></th></tr>`; if(docData.datosExcel) { docData.datosExcel.forEach(row => { let rowHtml = `<tr>`; gridColumns.forEach(c => rowHtml += `<td><input type="text" class="grid-input border-primary bg-light" data-col="${c.name}" value="${row[c.name]||''}"></td>`); rowHtml += `<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`; el('grid-body-edit').insertAdjacentHTML('beforeend', rowHtml); }); }
             } else {
-                el('edicion-campos-dinamicos').classList.remove('d-none'); el('edicion-excel-dinamico').classList.add('d-none'); let html = ''; Object.keys(currentEditData).forEach(k => { const val = currentEditData[k]; if(val && val.toString().startsWith('data:')) { html += `<div class="col-12 border rounded p-2"><label class="small fw-bold text-muted">${k}</label><p class="small text-danger mb-0">No editable desde aquí.</p></div>`; } else { html += `<div class="col-md-6"><label class="small fw-bold text-dark">${k}</label><input type="text" class="form-control edit-dyn-field border-primary" data-name="${k}" value="${val}"></div>`; } }); el('edicion-campos-dinamicos').innerHTML = html;
+                el('edicion-campos-dinamicos').classList.remove('d-none'); el('edicion-excel-dinamico').classList.add('d-none'); let html = ''; Object.keys(currentEditData).forEach(k => { const val = currentEditData[k]; if(val && (val.toString().startsWith('data:') || val.toString().startsWith('https://'))) { html += `<div class="col-12 border rounded p-2"><label class="small fw-bold text-muted">${k}</label><p class="small text-danger mb-0">Archivo no editable desde aquí.</p></div>`; } else { html += `<div class="col-md-6"><label class="small fw-bold text-dark">${k}</label><input type="text" class="form-control edit-dyn-field border-primary" data-name="${k}" value="${val}"></div>`; } }); el('edicion-campos-dinamicos').innerHTML = html;
             } el('edicion-motivo').value = ''; new bootstrap.Modal(el('modalEditarRegistro')).show();
         };
         window.addFilaEdicionExcel = () => { el('grid-body-edit').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td><input type="text" class="grid-input border-primary bg-light" data-col="${c.name}"></td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); };
@@ -709,7 +797,7 @@
             const formFilter = el('filter-form').value, textFilter = el('filter-text').value.toLowerCase(); let filtered = cache.records.filter(r => !r.eliminado);
             if(formFilter && formFilter !== 'ALL') filtered = filtered.filter(r => r.plantillaId === formFilter);
             if(textFilter) { filtered = filtered.filter(r => { const stringData = JSON.stringify(r.datos || {}).toLowerCase() + JSON.stringify(r.datosExcel || []).toLowerCase() + r.estado.toLowerCase() + r.plantillaNombre.toLowerCase(); return stringData.includes(textFilter); }); }
-            el('body-global').innerHTML = filtered.map(r => { let resumenStr = ''; if(r.sysType === 'excel') resumenStr = `<i class="bi bi-table text-success"></i> ${r.datosExcel?.length || 0} filas Excel`; else { const k = Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`<span class="text-muted">${key}:</span> <b class="text-dark">${r.datos[key] && r.datos[key].toString().startsWith('data:')?'[Archivo/Firma]':r.datos[key]}</b>`).join('<br>'); } let stClass = r.estado.includes('Pendiente') ? 'st-pendiente' : (r.estado==='Aprobado'?'st-aprobado':(r.estado==='Rechazado'?'st-rechazado':'st-registrado')); let btnAction = r.seguimiento ? `<button class="btn btn-sm btn-primary border-0 fw-bold shadow-sm" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-chat-text"></i> Evaluar</button>` : `<button class="btn btn-sm btn-light border" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i> Detalles</button>`; let delAction = currentUser.rol === 'admin' ? `<button class="btn btn-sm text-danger ms-2 border-0" onclick="delRegConMotivo('${r.id}')"><i class="bi bi-trash"></i></button>` : ''; return `<tr><td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td><td><span class="badge bg-primary bg-opacity-10 text-primary border">${(r.sysType||'FORM').toUpperCase()}</span><br><b class="small">${r.plantillaNombre}</b></td><td class="small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${resumenStr}</td><td><span class="status-badge ${stClass}">${r.estado}</span></td><td>${btnAction}${delAction}</td></tr>`; }).join('');
+            el('body-global').innerHTML = filtered.map(r => { let resumenStr = ''; if(r.sysType === 'excel') resumenStr = `<i class="bi bi-table text-success"></i> ${r.datosExcel?.length || 0} filas Excel`; else { const k = Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`<span class="text-muted">${key}:</span> <b class="text-dark">${r.datos[key] && (r.datos[key].toString().startsWith('data:')||r.datos[key].toString().startsWith('http'))?'[Archivo/Firma]':r.datos[key]}</b>`).join('<br>'); } let stClass = r.estado.includes('Pendiente') ? 'st-pendiente' : (r.estado==='Aprobado'?'st-aprobado':(r.estado==='Rechazado'?'st-rechazado':'st-registrado')); let btnAction = r.seguimiento ? `<button class="btn btn-sm btn-primary border-0 fw-bold shadow-sm" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-chat-text"></i> Evaluar</button>` : `<button class="btn btn-sm btn-light border" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i> Detalles</button>`; let delAction = currentUser.rol === 'admin' ? `<button class="btn btn-sm text-danger ms-2 border-0" onclick="delRegConMotivo('${r.id}')"><i class="bi bi-trash"></i></button>` : ''; return `<tr><td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td><td><span class="badge bg-primary bg-opacity-10 text-primary border">${(r.sysType||'FORM').toUpperCase()}</span><br><b class="small">${r.plantillaNombre}</b></td><td class="small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${resumenStr}</td><td><span class="status-badge ${stClass}">${r.estado}</span></td><td>${btnAction}${delAction}</td></tr>`; }).join('');
         };
 
         // --- REALTIME LISTENERS ---
@@ -724,23 +812,12 @@
             onSnapshot(collection(db, "am_grupos"), s => {
                 cache.groups = s.docs.map(d=>({id:d.id,...d.data()}));
                 
-                // --- AQUI RENDERIZAMOS LOS USUARIOS DENTRO DEL FORMULARIO DE GRUPO ---
-                // Para que el administrador vea a quién está asignando a este grupo.
-                let usersHtml = cache.users.map(u => `
-                    <div class="col-6 col-md-4">
-                        <div class="border rounded p-2 bg-light">
-                            <input class="form-check-input grp-usr-chk" type="checkbox" value="${u.id}" id="chk-grp-usr-${u.id}">
-                            <label class="small fw-bold text-secondary" for="chk-grp-usr-${u.id}">${u.id} (${u.rol})</label>
-                        </div>
-                    </div>
-                `).join('');
+                let usersHtml = cache.users.map(u => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input grp-usr-chk" type="checkbox" value="${u.id}" id="chk-grp-usr-${u.id}"><label class="small fw-bold text-secondary ms-1" for="chk-grp-usr-${u.id}">${u.id} (${u.rol})</label></div></div>`).join('');
                 el('grp-users-container').innerHTML = usersHtml;
 
                 const cHtml = (cls) => cache.groups.map(g => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input ${cls}" type="checkbox" value="${g.id}"> <label class="small fw-bold">${g.nombre}</label></div></div>`).join('');
                 el('tpl-groups-container').innerHTML = cHtml('tpl-grp-chk'); 
-                el('usr-groups-container').innerHTML = cHtml('usr-grp-chk');
                 
-                // Mostrar cuántos miembros tiene cada grupo
                 el('list-groups').innerHTML = cache.groups.map(g=>{
                     const count = cache.users.filter(u => u.grupos && u.grupos.includes(g.id)).length;
                     return `<li class="list-group-item d-flex justify-content-between"><div><b>${g.nombre}</b> <small class="text-muted d-block">👥 ${count} Miembro(s) asignado(s)</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editGroup('${g.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delGroup('${g.id}')"></i></div></li>`;
@@ -751,10 +828,8 @@
             onSnapshot(collection(db, "am_usuarios"), s => {
                 cache.users = s.docs.map(d=>({id:d.id,...d.data()}));
                 el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><div><b>${u.id}</b> <span class="badge bg-light text-dark">${u.rol}</span></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delUser('${u.id}')"></i></div></li>`).join('');
-                
-                // Forzar re-render de checkboxes de usuarios en el tab de grupos si ya se habían cargado
                 if(cache.groups.length > 0) {
-                    let usersHtml = cache.users.map(u => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input grp-usr-chk" type="checkbox" value="${u.id}" id="chk-grp-usr-${u.id}"> <label class="small fw-bold text-secondary" for="chk-grp-usr-${u.id}">${u.id} (${u.rol})</label></div></div>`).join('');
+                    let usersHtml = cache.users.map(u => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input grp-usr-chk" type="checkbox" value="${u.id}" id="chk-grp-usr-${u.id}"> <label class="small fw-bold text-secondary ms-1" for="chk-grp-usr-${u.id}">${u.id} (${u.rol})</label></div></div>`).join('');
                     el('grp-users-container').innerHTML = usersHtml;
                 }
                 actualizarSelects();
