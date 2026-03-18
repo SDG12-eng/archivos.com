@@ -33,7 +33,7 @@
         .nav-link-menu:hover, .nav-link-menu.active { background: rgba(255,255,255,0.1); color: #fff; }
         .nav-link-menu.active { background: var(--primary); box-shadow: 0 4px 12px rgba(15, 98, 254, 0.4); color: white; }
 
-        .card-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .card-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: max-width 0.4s ease; }
         .card-header-panel { background: #fff; border-bottom: 1px solid #f1f5f9; padding: 18px 24px; font-weight: 700; font-size: 1.05rem; border-top-left-radius: 12px; border-top-right-radius: 12px;}
         .btn-brand { background-color: var(--primary); color: white; font-weight: 600; border-radius: 8px; border: none; padding: 10px 20px; transition: 0.2s; }
         .btn-brand:hover { background-color: var(--primary-hover); color: white; }
@@ -59,8 +59,8 @@
         .msg-bubble.own { background: #eff6ff; border-color: #bfdbfe; align-self: flex-end; }
         .msg-media { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #cbd5e1; object-fit: contain; }
         
-        .grid-table th { background: #f1f5f9; font-size: 0.8rem; text-transform: uppercase; color: #64748b; font-weight: 800; }
-        .grid-input { border: 1px solid transparent; background: transparent; width: 100%; padding: 6px; outline: none; transition: 0.2s; border-radius: 4px; }
+        .grid-table th { background: #0f172a; color: white; font-size: 0.8rem; text-transform: uppercase; font-weight: 700; padding: 12px; border-right: 1px solid #334155; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+        .grid-input { border: 1px solid transparent; background: transparent; width: 100%; padding: 8px; outline: none; transition: 0.2s; border-radius: 4px; font-weight: 500; min-width: 150px; }
         .grid-input:focus, .grid-input:hover { background-color: #eff6ff; border-color: #bfdbfe; }
         
         .meta-item { border-left: 4px solid var(--primary); background: #fff; transition: 0.2s; cursor: pointer; }
@@ -75,7 +75,7 @@
 
     <div id="login-screen" class="vh-100 d-flex justify-content-center align-items-center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
         <div class="card-panel p-5 border-0 shadow-lg" style="width: 100%; max-width: 400px; margin: 15px;">
-            <div class="text-center mb-4"><i class="bi bi-stack fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">Compliance Record</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">COLLAB OS</span></div>
+            <div class="text-center mb-4"><i class="bi bi-shield-check fs-1 text-primary"></i><h3 class="fw-bold mt-2 text-dark">Compliance Record</h3><span class="badge bg-primary bg-opacity-10 text-primary fw-bold">COLLAB OS</span></div>
             <form id="login-form">
                 <input type="text" class="form-control mb-3" id="login-user" placeholder="ID de Usuario" required>
                 <input type="password" class="form-control mb-4" id="login-pass" placeholder="Contraseña" required>
@@ -89,7 +89,7 @@
         
         <aside id="sidebar" class="shadow-lg">
             <div class="p-4 d-flex align-items-center justify-content-between border-bottom border-secondary border-opacity-25">
-                <div class="d-flex align-items-center gap-3"><i class="bi bi-stack text-primary fs-3"></i><h5 class="mb-0 fw-bold">Compliance Record</h5></div>
+                <div class="d-flex align-items-center gap-3"><i class="bi bi-shield-check text-primary fs-3"></i><h5 class="mb-0 fw-bold" style="font-size:1rem;">Compliance Record</h5></div>
                 <i class="bi bi-x-lg d-lg-none pointer text-white fs-4" onclick="toggleMenu()"></i>
             </div>
             <div class="p-4"><div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(255,255,255,0.05);"><div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold fs-5" style="width:42px;height:42px;" id="avatar-initial"></div><div style="line-height:1.2;"><h6 class="mb-1 fw-bold text-white" id="user-display">User</h6><span class="badge bg-info bg-opacity-25 text-info text-uppercase" id="role-display" style="font-size:0.65rem;">ROL</span></div></div></div>
@@ -126,9 +126,9 @@
                         <div class="col-lg-8">
                             <div class="card-panel h-100">
                                 <div class="card-header-panel d-flex justify-content-between align-items-center">
-                                    <span><i class="bi bi-calendar-range text-primary me-2"></i> Metas y Asignaciones Compartidas</span>
+                                    <span><i class="bi bi-calendar-range text-primary me-2"></i> Reporte y Asignaciones</span>
                                     <select class="form-select form-select-sm w-auto border-primary text-primary fw-bold" id="filtro-mes-meta" onchange="renderMetas()">
-                                        <option value="ALL">Mes Actual / Pendientes</option>
+                                        <option value="ALL">Todo el Historial</option>
                                         <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
                                     </select>
                                 </div>
@@ -137,7 +137,7 @@
                         </div>
                         <div class="col-lg-4">
                             <div class="card-panel h-100">
-                                <div class="card-header-panel bg-light"><i class="bi bi-pie-chart-fill text-success me-2"></i> Progreso del Filtro</div>
+                                <div class="card-header-panel bg-light"><i class="bi bi-pie-chart-fill text-success me-2"></i> Progreso del Mes Filtrado</div>
                                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
                                     <div style="position: relative; width: 200px; height: 200px; margin: 0 auto;"><canvas id="cumplimientoChart"></canvas><div class="position-absolute top-50 start-50 translate-middle fw-black fs-3 text-dark" id="chart-percent">0%</div></div>
                                     <div class="mt-4"><span class="badge bg-success px-3 py-2 fs-6" id="metric-completados">0 Logrados</span> <span class="badge bg-warning text-dark px-3 py-2 fs-6" id="metric-pendientes">0 Pendientes</span></div>
@@ -155,7 +155,7 @@
                 </div>
 
                 <div id="sec-registrar" class="content-section d-none fade-in">
-                    <div class="card-panel mx-auto shadow-sm" style="max-width: 1000px;">
+                    <div class="card-panel mx-auto shadow-sm" id="registro-card-panel" style="max-width: 1000px;">
                         <div class="card-header-panel bg-light"><i class="bi bi-file-earmark-plus text-primary me-2"></i> Captura de Datos Oficial</div>
                         <div class="card-body p-4 p-md-5">
                             <div id="template-selection-view">
@@ -163,13 +163,13 @@
                                 <div id="template-cards-container" class="row g-3 mb-4"></div>
                             </div>
                             <form id="dynamic-form" class="d-none">
-                                <div class="bg-light p-4 rounded-4 border mb-4">
+                                <div class="bg-light p-4 rounded-4 border mb-4 w-100">
                                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3"><h5 class="fw-bold text-primary mb-0" id="form-active-title">Llenando...</h5><button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="cancelarRegistro()"><i class="bi bi-arrow-left me-1"></i> Cambiar Formato</button></div>
                                     <input type="hidden" id="current-tpl-type">
                                     <div id="standard-fields-container" class="row g-4 mb-4"></div>
-                                    <div id="grid-container" class="d-none mb-4"><div class="table-responsive border rounded-3 overflow-hidden bg-white"><table class="table grid-table mb-0" id="grid-table"><thead id="grid-header"></thead><tbody id="grid-body"></tbody></table></div><button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" id="btn-add-row"><i class="bi bi-plus-lg"></i> Añadir Fila a la Tabla</button></div>
+                                    <div id="grid-container" class="d-none mb-4"></div>
                                 </div>
-                                <div class="text-end pt-2"><button type="submit" class="btn-brand px-5 shadow w-100 w-md-auto py-3"><i class="bi bi-send-fill me-2"></i> ENVIAR DATOS</button></div>
+                                <div class="text-end pt-2"><button type="submit" class="btn-brand px-5 shadow w-100 w-md-auto py-3"><i class="bi bi-send-fill me-2"></i> ENVIAR DATOS / GUARDAR EXCEL</button></div>
                             </form>
                         </div>
                     </div>
@@ -200,7 +200,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <button class="btn btn-light fw-bold border shadow-sm" id="btn-volver-interaccion"><i class="bi bi-arrow-left me-2"></i> Volver</button>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-danger fw-bold shadow-sm bg-white" onclick="descargarPdfInteraccion()"><i class="bi bi-file-pdf"></i> PDF</button>
+                            <button class="btn btn-outline-danger fw-bold shadow-sm bg-white hover-scale" onclick="descargarPdfInteraccion()"><i class="bi bi-file-pdf"></i> Descargar Reporte PDF</button>
                             <span class="badge bg-secondary px-3 py-2" id="det-tipo-doc">TIPO</span>
                             <span class="badge bg-dark px-3 py-2" id="det-id-doc">#ID</span>
                         </div>
@@ -248,19 +248,19 @@
                 <div id="sec-historial" class="content-section d-none fade-in">
                     <div class="card-panel">
                         <div class="card-header-panel d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                            <span><i class="bi bi-database text-primary me-2"></i> Base de Datos Maestra</span>
-                            <button class="btn btn-sm btn-dark shadow-sm" onclick="exportarTabla('table-global', 'MasterData')"><i class="bi bi-file-excel"></i> Exportar Vista a Excel</button>
+                            <span><i class="bi bi-database text-primary me-2"></i> Base de Datos Maestra Extensa</span>
+                            <button class="btn btn-sm btn-dark shadow-sm hover-scale" onclick="exportarTabla('table-global', 'ComplianceMasterData')"><i class="bi bi-file-excel"></i> Descargar Datos en Excel</button>
                         </div>
                         <div class="p-3 bg-light border-bottom">
                             <div class="row g-2">
-                                <div class="col-md-4"><label class="small fw-bold text-muted mb-1">Filtrar por Formulario:</label><select id="filter-form" class="form-select" onchange="renderMasterData()"><option value="ALL">Mostrar Todos</option></select></div>
-                                <div class="col-md-8"><label class="small fw-bold text-muted mb-1">Búsqueda Global en Datos:</label><input type="text" id="filter-text" class="form-control" placeholder="Buscar valores, estados, nombres..." onkeyup="renderMasterData()"></div>
+                                <div class="col-md-4"><label class="small fw-bold text-muted mb-1">Selecciona para ver TODAS las columnas:</label><select id="filter-form" class="form-select border-primary" onchange="renderMasterData()"><option value="ALL">Vista Resumida General</option></select></div>
+                                <div class="col-md-8"><label class="small fw-bold text-muted mb-1">Búsqueda Global:</label><input type="text" id="filter-text" class="form-control" placeholder="Buscar valores, estados, nombres..." onkeyup="renderMasterData()"></div>
                             </div>
                         </div>
                         <div class="card-body p-0">
-                            <div class="table-responsive scroll-y">
-                                <table class="table table-hover align-middle mb-0" id="table-global">
-                                    <thead class="bg-white text-muted small sticky-top"><tr><th class="ps-4">Fecha</th><th>Formato</th><th>Datos Extraídos</th><th>Estado</th><th>Gestión / Ver</th></tr></thead>
+                            <div class="table-responsive scroll-y" style="max-height: 70vh;">
+                                <table class="table table-hover align-middle mb-0 table-bordered" id="table-global" style="font-size: 0.85rem;">
+                                    <thead class="bg-dark text-white sticky-top" id="head-global"><tr><th class="ps-4">Fecha</th><th>Formato</th><th>Datos Extraídos</th><th>Estado</th><th>Gestión / Ver</th></tr></thead>
                                     <tbody id="body-global"></tbody>
                                 </table>
                             </div>
@@ -271,7 +271,7 @@
                 <div id="sec-admin" class="content-section d-none fade-in">
                     <ul class="nav nav-pills mb-4 bg-white p-2 rounded-3 shadow-sm border overflow-auto flex-nowrap" role="tablist">
                         <li class="nav-item"><button class="nav-link active fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-tpls"><i class="bi bi-hammer me-1"></i> Formatos</button></li>
-                        <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-cumplimiento-admin"><i class="bi bi-calendar-check me-1"></i> Metas</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-cumplimiento-admin"><i class="bi bi-calendar-check me-1"></i> Metas y Asignaciones</button></li>
                         <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-groups"><i class="bi bi-building me-1"></i> Grupos y Equipos</button></li>
                         <li class="nav-item"><button class="nav-link fw-bold whitespace-nowrap" data-bs-toggle="pill" data-bs-target="#tab-users"><i class="bi bi-people me-1"></i> Usuarios</button></li>
                     </ul>
@@ -326,7 +326,7 @@
                                         </form>
                                     </div>
                                 </div>
-                                <div class="col-lg-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel bg-light">Metas Establecidas</div><div class="card-body p-0"><ul id="list-metas-admin" class="list-group list-group-flush"></ul></div></div></div>
+                                <div class="col-lg-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel bg-light">Metas Establecidas (Admin)</div><div class="card-body p-0"><ul id="list-metas-admin" class="list-group list-group-flush"></ul></div></div></div>
                             </div>
                         </div>
 
@@ -354,7 +354,30 @@
                             </div>
                         </div>
 
-                        <div class="tab-pane fade" id="tab-users"><div class="row g-4"><div class="col-lg-5"><div class="card-panel h-100 position-relative"><div id="usr-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 fw-bold d-none" style="border-bottom-left-radius: 12px; border-top-right-radius: 12px;">Modo Edición</div><div class="card-header-panel">Ficha de Usuario</div><div class="card-body p-4"><form id="form-user"><div class="mb-3"><input type="text" id="usr-id" class="form-control fw-bold" placeholder="ID Usuario" required></div><div class="mb-3"><input type="password" id="usr-pass" class="form-control" placeholder="Contraseña" required></div><div class="mb-3"><select id="usr-rol" class="form-select fw-bold"><option value="usuario">Usuario Regular</option><option value="revisor">Supervisor/Revisor</option><option value="admin">Administrador Global</option></select></div><div class="mb-4 bg-light p-3 rounded border"><label class="fw-bold small mb-2 d-block">Módulos Permitidos:</label><div class="d-flex flex-wrap gap-2"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash" checked> Dash <input class="form-check-input perm-chk" type="checkbox" value="cumplimiento" id="p-cump" checked> Metas <input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked> Reg <input class="form-check-input perm-chk" type="checkbox" value="mistareas" id="p-task" checked> Tiquetes <input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist" checked> BD <input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm" checked> Admin</div></div><div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-usr-edit" onclick="cancelEditUsr()">Cancelar</button><button type="submit" class="btn btn-dark flex-grow-1 fw-bold" id="btn-save-usr">Guardar Usuario</button></div></form></div></div></div><div class="col-lg-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel">Directorio Activo</div><div class="card-body p-0"><ul id="list-users" class="list-group list-group-flush"></ul></div></div></div></div></div>
+                        <div class="tab-pane fade" id="tab-users">
+                            <div class="row g-4">
+                                <div class="col-lg-5">
+                                    <div class="card-panel h-100 position-relative">
+                                        <div id="usr-edit-badge" class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 fw-bold d-none" style="border-bottom-left-radius: 12px; border-top-right-radius: 12px;">Modo Edición</div>
+                                        <div class="card-header-panel">Ficha de Usuario</div>
+                                        <div class="card-body p-4">
+                                            <form id="form-user">
+                                                <div class="mb-3"><input type="text" id="usr-id" class="form-control fw-bold" placeholder="ID Usuario" required></div>
+                                                <div class="mb-3"><input type="password" id="usr-pass" class="form-control" placeholder="Contraseña" required></div>
+                                                <div class="mb-3"><input type="email" id="usr-email" class="form-control" placeholder="Correo Electrónico (Para notificaciones)" required></div>
+                                                <div class="mb-3"><select id="usr-rol" class="form-select fw-bold"><option value="usuario">Usuario Regular</option><option value="revisor">Supervisor/Revisor</option><option value="admin">Administrador Global</option></select></div>
+                                                <div class="mb-4 bg-light p-3 rounded border">
+                                                    <label class="fw-bold small mb-2 d-block">Módulos Permitidos:</label>
+                                                    <div class="d-flex flex-wrap gap-2"><input class="form-check-input perm-chk" type="checkbox" value="dashboard" id="p-dash" checked> Dash <input class="form-check-input perm-chk" type="checkbox" value="cumplimiento" id="p-cump" checked> Metas <input class="form-check-input perm-chk" type="checkbox" value="registrar" id="p-reg" checked> Reg <input class="form-check-input perm-chk" type="checkbox" value="mistareas" id="p-task" checked> Tiquetes <input class="form-check-input perm-chk" type="checkbox" value="historial" id="p-hist" checked> BD <input class="form-check-input perm-chk" type="checkbox" value="admin" id="p-adm" checked> Admin</div>
+                                                </div>
+                                                <div class="d-flex gap-2"><button type="button" class="btn btn-secondary d-none fw-bold" id="btn-cancel-usr-edit" onclick="cancelEditUsr()">Cancelar</button><button type="submit" class="btn btn-dark flex-grow-1 fw-bold" id="btn-save-usr">Guardar Usuario</button></div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-7"><div class="card-panel h-100 scroll-y"><div class="card-header-panel">Directorio Activo</div><div class="card-body p-0"><ul id="list-users" class="list-group list-group-flush"></ul></div></div></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -389,10 +412,31 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalMoverItem" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-light border-bottom-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-arrow-left-right text-primary me-2"></i> Mover Ítem a otra Meta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="mover-origen-id">
+                    <input type="hidden" id="mover-item-text">
+                    <div class="alert alert-primary p-2 small mb-3">Moviendo: <b id="mover-item-display" class="text-dark"></b></div>
+                    <div class="mb-4">
+                        <label class="small fw-bold text-muted mb-2">Seleccione la Meta Destino:</label>
+                        <select id="mover-destino-id" class="form-select border-primary fw-bold"></select>
+                    </div>
+                    <button class="btn-brand w-100 py-2 shadow-sm" onclick="confirmarMoverItem()"><i class="bi bi-check2-circle"></i> Confirmar Movimiento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, query, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc, addDoc, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBdRea_F8YpEuwPiXiH5c6V3mqRC-jA18g",
@@ -405,20 +449,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // CONFIGURACIÓN DE CLOUDINARY
+        // CLOUDINARY
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dlpigdcle/auto/upload";
         const CLOUDINARY_PRESET = "SKysistem";
-
         const uploadFileToCloudinary = async (file) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_PRESET);
-            try {
-                const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-                if (!response.ok) throw new Error("Error en la subida a Cloudinary");
-                const data = await response.json();
-                return data.secure_url;
-            } catch (error) { console.error("Cloudinary Error:", error); throw error; }
+            const formData = new FormData(); formData.append('file', file); formData.append('upload_preset', CLOUDINARY_PRESET);
+            try { const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData }); if (!response.ok) throw new Error("Error Cloudinary"); const data = await response.json(); return data.secure_url; } catch (error) { throw error; }
         };
 
         let currentUser=null, tempFields=[], currentOptionsBuilder=[], gridColumns=[], currentMetaItemsBuilder=[];
@@ -434,22 +470,17 @@
         const tipoLabels = { text:'Texto Corto', textarea:'Párrafo', number:'Número', date:'Fecha', time:'Hora', radio:'Única Opción', checkbox:'Sel. Múltiple', boolean:'Sí/No', file:'Archivo', image:'Imagen', video:'Video', signature:'Firma Digital', select:'Desplegable' };
         const placeHolders = { text:'Ingrese el texto...', number:'Digite un número...', date:'Seleccione la fecha...', time:'Seleccione la hora...' };
 
-        // --- NUEVA FUNCIÓN: GENERAR INPUT PARA LA GRILLA DE EXCEL ---
+        // GENERAR INPUT PARA EXCEL GRID
         window.generarInputGrilla = (col, valor = '') => {
             const valAttr = valor ? `value="${valor}"` : '';
-            // Si es un desplegable o boolean, renderizamos un select
             if (col.type === 'select' || col.type === 'radio' || col.type === 'boolean') {
                 let opciones = col.type === 'boolean' ? ['Sí', 'No'] : (col.options || []);
                 let optsHtml = `<option value="">-</option>` + opciones.map(o => `<option value="${o}" ${valor === o ? 'selected' : ''}>${o}</option>`).join('');
-                return `<select class="grid-input border-primary bg-light" data-col="${col.name}">${optsHtml}</select>`;
-            } 
-            // Si es fecha, hora o numero, inyectamos el type exacto
-            else if (['date', 'time', 'number'].includes(col.type)) {
-                return `<input type="${col.type}" class="grid-input border-primary bg-light" data-col="${col.name}" ${valAttr}>`;
-            } 
-            // Por defecto, texto (incluso para archivos/firmas que son complejos en grid)
-            else {
-                return `<input type="text" class="grid-input border-primary bg-light" data-col="${col.name}" ${valAttr}>`;
+                return `<select class="grid-input bg-light" style="border: 1px solid #cbd5e1;" data-col="${col.name}">${optsHtml}</select>`;
+            } else if (['date', 'time', 'number'].includes(col.type)) {
+                return `<input type="${col.type}" class="grid-input bg-light" style="border: 1px solid #cbd5e1;" data-col="${col.name}" ${valAttr}>`;
+            } else {
+                return `<input type="text" class="grid-input bg-light" style="border: 1px solid #cbd5e1;" data-col="${col.name}" ${valAttr}>`;
             }
         };
 
@@ -476,10 +507,8 @@
             });
 
             const nList = el('notif-list');
-            if(notifs.length > 0) {
-                el('notif-count').innerText = notifs.length; nList.innerHTML = notifs.join('');
-                if(!window.notifsMostradas) { showToast(`Tienes ${notifs.length} alertas de cumplimiento.`, "warning"); window.notifsMostradas = true; }
-            } else { el('notif-count').innerText = '0'; nList.innerHTML = '<li class="p-3 text-center text-muted small">No hay notificaciones</li>'; }
+            if(notifs.length > 0) { el('notif-count').innerText = notifs.length; nList.innerHTML = notifs.join(''); if(!window.notifsMostradas) { showToast(`Tienes ${notifs.length} alertas de cumplimiento.`, "warning"); window.notifsMostradas = true; } } 
+            else { el('notif-count').innerText = '0'; nList.innerHTML = '<li class="p-3 text-center text-muted small">No hay notificaciones</li>'; }
         }
 
         function setupEvents() {
@@ -509,34 +538,27 @@
 
             el('btn-save-tpl').addEventListener('click', async () => { const nom = el('tpl-name').value.trim(), sysType = el('tpl-sys-type').value; let grps = []; document.querySelectorAll('.tpl-grp-chk:checked').forEach(c => grps.push(c.value)); if(!nom || tempFields.length === 0 && sysType !== 'excel') return showToast("Faltan datos", "warning"); const flowT = el('flow-type').value, assignT = el('flow-assignment-type').value, fixedU = el('flow-fixed-user').value; const idEdicion = el('tpl-edit-id').value; const docRef = idEdicion ? doc(db, "am_plantillas", idEdicion) : doc(collection(db, "am_plantillas")); await setDoc(docRef, { nombre: nom, sysType: sysType, gruposPermitidos: grps, campos: tempFields, habilitarSeguimiento: el('tpl-enable-tracking').checked, flujoConfig: { tipo: flowT, asignacion: assignT, usuarioFijo: fixedU }, timestamp: Date.now() }, {merge:true}); showToast("Formulario Guardado"); window.cancelEditTpl(); });
             
-            el('form-user').addEventListener('submit', async e => { e.preventDefault(); const id=el('usr-id').value.trim().toLowerCase(), pass=el('usr-pass').value.trim(); let acc=[]; document.querySelectorAll('.perm-chk:checked').forEach(c=>acc.push(c.value)); await setDoc(doc(db,"am_usuarios",id), {pass, rol:el('usr-rol').value, accesos:acc}, {merge:true}); showToast("Usuario Guardado"); window.cancelEditUsr(); e.target.reset(); });
+            // ADMIN USUARIOS + CORREO
+            el('form-user').addEventListener('submit', async e => { e.preventDefault(); const id=el('usr-id').value.trim().toLowerCase(), pass=el('usr-pass').value.trim(), email=el('usr-email').value.trim(); let acc=[]; document.querySelectorAll('.perm-chk:checked').forEach(c=>acc.push(c.value)); await setDoc(doc(db,"am_usuarios",id), {pass, correo:email, rol:el('usr-rol').value, accesos:acc}, {merge:true}); showToast("Usuario Guardado"); window.cancelEditUsr(); e.target.reset(); });
             
             el('form-group').addEventListener('submit', async e => { 
-                e.preventDefault(); 
-                const grpId = el('grp-id').value.trim();
-                await setDoc(doc(db,"am_grupos",grpId),{nombre:el('grp-name').value.trim()}); 
-                const selectedUsers = Array.from(document.querySelectorAll('.grp-usr-chk:checked')).map(c => c.value);
-                const allUsers = Array.from(document.querySelectorAll('.grp-usr-chk')).map(c => c.value);
+                e.preventDefault(); const grpId = el('grp-id').value.trim(); await setDoc(doc(db,"am_grupos",grpId),{nombre:el('grp-name').value.trim()}); 
+                const selectedUsers = Array.from(document.querySelectorAll('.grp-usr-chk:checked')).map(c => c.value); const allUsers = Array.from(document.querySelectorAll('.grp-usr-chk')).map(c => c.value);
                 const updates = allUsers.map(uid => {
-                    const userRef = doc(db, "am_usuarios", uid);
-                    const userDoc = cache.users.find(u => u.id === uid);
-                    let currentGroups = userDoc.grupos || [];
-                    let changed = false;
-                    if (selectedUsers.includes(uid)) { if (!currentGroups.includes(grpId)) { currentGroups.push(grpId); changed = true; } } 
-                    else { if (currentGroups.includes(grpId)) { currentGroups = currentGroups.filter(g => g !== grpId); changed = true; } }
+                    const userRef = doc(db, "am_usuarios", uid); const userDoc = cache.users.find(u => u.id === uid); let currentGroups = userDoc.grupos || []; let changed = false;
+                    if (selectedUsers.includes(uid)) { if (!currentGroups.includes(grpId)) { currentGroups.push(grpId); changed = true; } } else { if (currentGroups.includes(grpId)) { currentGroups = currentGroups.filter(g => g !== grpId); changed = true; } }
                     return changed ? updateDoc(userRef, { grupos: currentGroups }) : Promise.resolve();
                 });
-                await Promise.all(updates);
-                showToast("Grupo y Miembros Actualizados"); window.cancelEditGrp(); e.target.reset(); 
+                await Promise.all(updates); showToast("Grupo y Miembros Actualizados"); window.cancelEditGrp(); e.target.reset(); 
             });
 
             window.addMetaItem = () => { const i = el('meta-item-input').value.trim(); if(i) { currentMetaItemsBuilder.push(i); el('meta-items-list').innerHTML = currentMetaItemsBuilder.map((it, idx) => `<div class="bg-white border rounded px-2 py-1 small d-flex justify-content-between"><span>${it}</span><i class="bi bi-x text-danger pointer" onclick="currentMetaItemsBuilder.splice(${idx},1); el('meta-items-list').innerHTML=''; currentMetaItemsBuilder.forEach(x=>addMetaItem(x));"></i></div>`).join(''); el('meta-item-input').value=''; } };
-            el('form-meta').addEventListener('submit', async e => { e.preventDefault(); const tit = el('meta-titulo').value.trim(), f = el('meta-fecha').value, asig = el('meta-asignado').value; if(currentMetaItemsBuilder.length===0) return showToast("Agregue ítems a cumplir", "warning"); await addDoc(collection(db, "am_metas"), { titulo: tit, fechaLimite: f, asignadoA: asig, items: currentMetaItemsBuilder, completados: {}, autor: currentUser.id, timestamp: Date.now() }); showToast("Meta Mensual Creada"); e.target.reset(); currentMetaItemsBuilder=[]; el('meta-items-list').innerHTML=''; });
+            el('form-meta').addEventListener('submit', async e => { e.preventDefault(); const tit = el('meta-titulo').value.trim(), f = el('meta-fecha').value, asig = el('meta-asignado').value; if(currentMetaItemsBuilder.length===0) return showToast("Agregue ítems a cumplir", "warning"); await addDoc(collection(db, "am_metas"), { titulo: tit, fechaLimite: f, asignadoA: asig, items: currentMetaItemsBuilder, completados: {}, autor: currentUser.id, timestamp: Date.now() }); showToast("Meta Creada"); e.target.reset(); currentMetaItemsBuilder=[]; el('meta-items-list').innerHTML=''; });
 
             el('form-nuevo-tiquete').addEventListener('submit', async e => { e.preventDefault(); const asig = el('tq-man-asignado').value; await addDoc(collection(db, "am_tareas"), { titulo: el('tq-man-titulo').value, descripcion: el('tq-man-desc').value, asignadoA: asig, reportadoPor: currentUser.id, prioridad: el('tq-man-pri').value, fechaLimite: el('tq-man-sla').value.replace('T', ' '), estadoTarea: 'Abierto', eliminado: false, historial: [{ tipo: 'comentario', texto: 'Tiquete creado manualmente.', autor: currentUser.id, fecha: new Date().toLocaleString() }], timestamp: Date.now() }); showToast("Tiquete Creado"); e.target.reset(); bootstrap.Modal.getInstance(el('modalNuevoTiquete')).hide(); });
             
-            // EL BOTÓN PARA AÑADIR FILAS AHORA USA generarInputGrilla()
-            el('btn-add-row').addEventListener('click', () => { el('grid-body').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td>${generarInputGrilla(c)}</td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); });
+            // AÑADIR FILA EXCEL GRID
+            el('btn-add-row').addEventListener('click', () => { el('grid-body').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td>${generarInputGrilla(c)}</td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer fs-5" onclick="this.closest('tr').remove()"></i></td></tr>`); });
             
             el('dynamic-form').addEventListener('submit', procesarRegistro);
             el('btn-volver-interaccion').addEventListener('click', () => { window.navigateTo(interaccionActual.tipo==='tarea'?'mistareas':'historial'); });
@@ -548,40 +570,35 @@
                 await updateDoc(doc(db, "am_registros", interaccionActual.id), updatePayload); showToast("Datos actualizados exitosamente"); e.target.reset(); bootstrap.Modal.getInstance(el('modalEditarRegistro')).hide(); btn.disabled = false; btn.innerHTML = "Confirmar y Actualizar Base de Datos";
             });
 
-            // SUBIDA DE EVIDENCIA OPCIONAL A CLOUDINARY
+            // SUBIR EVIDENCIA CON MES EXACTO
             el('form-cumplir-meta').addEventListener('submit', async e => {
                 e.preventDefault(); const metaId = el('cump-meta-id').value, item = el('cump-meta-item').value, com = el('cump-comentario').value, btn = e.target.querySelector('button'); btn.disabled=true; btn.innerHTML="Procesando...";
                 try {
                     let fileUrl = "";
-                    if (el('cump-file').files[0]) {
-                        btn.innerHTML="Subiendo Archivo a la Nube...";
-                        fileUrl = await uploadFileToCloudinary(el('cump-file').files[0]);
-                    }
-                    
+                    if (el('cump-file').files[0]) { btn.innerHTML="Subiendo Archivo..."; fileUrl = await uploadFileToCloudinary(el('cump-file').files[0]); }
                     const mRef = doc(db, "am_metas", metaId);
-                    await updateDoc(mRef, { [`completados.${item}`]: { fecha: new Date().toLocaleString(), autor: currentUser.id, comentario: com, evidencia: fileUrl } });
+                    
+                    // Guardamos explícitamente el mes en el que se está cumpliendo
+                    const currentMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
+
+                    await updateDoc(mRef, { [`completados.${item}`]: { fecha: new Date().toLocaleString(), autor: currentUser.id, comentario: com, evidencia: fileUrl, mesCompletado: currentMonthStr } });
                     showToast("Ítem Reportado como Completado"); e.target.reset(); bootstrap.Modal.getInstance(el('modalCumplirMeta')).hide();
                 } catch(err) { console.log(err); showToast("Error al procesar", "danger"); }
                 btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Marcar como Completado';
             });
         }
 
-        window.editUser = (id) => { const u = cache.users.find(x=>x.id===id); if(!u)return; el('usr-id').value = u.id; el('usr-id').disabled = true; el('usr-pass').value = u.pass; el('usr-rol').value = u.rol; document.querySelectorAll('.perm-chk').forEach(c=>c.checked=u.accesos?.includes(c.value)); el('usr-edit-badge').classList.remove('d-none'); el('btn-cancel-usr-edit').classList.remove('d-none'); el('btn-save-usr').innerText = 'Actualizar Usuario'; };
+        window.editUser = (id) => { const u = cache.users.find(x=>x.id===id); if(!u)return; el('usr-id').value = u.id; el('usr-id').disabled = true; el('usr-pass').value = u.pass; el('usr-email').value = u.correo||''; el('usr-rol').value = u.rol; document.querySelectorAll('.perm-chk').forEach(c=>c.checked=u.accesos?.includes(c.value)); el('usr-edit-badge').classList.remove('d-none'); el('btn-cancel-usr-edit').classList.remove('d-none'); el('btn-save-usr').innerText = 'Actualizar Usuario'; };
         window.cancelEditUsr = () => { el('form-user').reset(); el('usr-id').disabled = false; el('usr-edit-badge').classList.add('d-none'); el('btn-cancel-usr-edit').classList.add('d-none'); el('btn-save-usr').innerText = 'Guardar Usuario'; };
         
-        window.editGroup = (id) => { 
-            const g = cache.groups.find(x=>x.id===id); if(!g)return; 
-            el('grp-id').value = g.id; el('grp-id').disabled = true; el('grp-name').value = g.nombre; 
-            document.querySelectorAll('.grp-usr-chk').forEach(chk => { const usr = cache.users.find(u => u.id === chk.value); chk.checked = usr && usr.grupos && usr.grupos.includes(id); });
-            el('grp-edit-badge').classList.remove('d-none'); el('btn-cancel-grp-edit').classList.remove('d-none'); el('btn-save-grp').innerText = 'Actualizar Grupo y Miembros'; 
-        };
+        window.editGroup = (id) => { const g = cache.groups.find(x=>x.id===id); if(!g)return; el('grp-id').value = g.id; el('grp-id').disabled = true; el('grp-name').value = g.nombre; document.querySelectorAll('.grp-usr-chk').forEach(chk => { const usr = cache.users.find(u => u.id === chk.value); chk.checked = usr && usr.grupos && usr.grupos.includes(id); }); el('grp-edit-badge').classList.remove('d-none'); el('btn-cancel-grp-edit').classList.remove('d-none'); el('btn-save-grp').innerText = 'Actualizar Grupo y Miembros'; };
         window.cancelEditGrp = () => { el('form-group').reset(); el('grp-id').disabled = false; el('grp-edit-badge').classList.add('d-none'); el('btn-cancel-grp-edit').classList.add('d-none'); el('btn-save-grp').innerText = 'Guardar Grupo y Miembros'; document.querySelectorAll('.grp-usr-chk').forEach(c=>c.checked=false); };
         
         window.editTpl = (id) => { const t = cache.templates.find(x=>x.id===id); if(!t)return; el('tpl-edit-id').value = t.id; el('tpl-name').value = t.nombre; el('tpl-sys-type').value = t.sysType; tempFields = [...t.campos]; renderBuilderFields(); document.querySelectorAll('.tpl-grp-chk').forEach(c=>c.checked=t.gruposPermitidos?.includes(c.value)); el('tpl-enable-tracking').checked = t.habilitarSeguimiento; if(t.flujoConfig) { el('flow-type').value = t.flujoConfig.tipo; el('flow-assignment-type').value = t.flujoConfig.asignacion; el('flow-fixed-user').value = t.flujoConfig.usuarioFijo||''; el('flow-config-details').classList.toggle('d-none', t.flujoConfig.tipo==='solo_registro'); el('flow-fixed-user-container').classList.toggle('d-none', t.flujoConfig.asignacion==='dinamico'); } el('tpl-edit-badge').classList.remove('d-none'); el('btn-cancel-tpl-edit').classList.remove('d-none'); el('btn-save-tpl').innerText = 'Actualizar Formato'; window.scrollTo(0,0); };
         window.cancelEditTpl = () => { el('tpl-edit-id').value = ''; el('tpl-name').value = ''; el('tpl-sys-type').value = 'formulario'; tempFields = []; renderBuilderFields(); document.querySelectorAll('.tpl-grp-chk').forEach(c=>c.checked=false); el('tpl-edit-badge').classList.add('d-none'); el('btn-cancel-tpl-edit').classList.add('d-none'); el('btn-save-tpl').innerText = 'PUBLICAR FORMATO Y FLUJO'; };
 
         window.delTareaConMotivo = async (id) => { const motivo = prompt("ADMINISTRADOR: Ingrese el motivo de la ELIMINACIÓN de este tiquete:"); if(!motivo) return; await updateDoc(doc(db,"am_tareas",id), { estadoTarea: 'Eliminado', eliminado: true, historial: arrayUnion({tipo:'sistema', texto:`❌ ELIMINADO GLOBALMENTE. Motivo: ${motivo}`, autor:currentUser.id, fecha:new Date().toLocaleString()}) }); };
-        window.delRegConMotivo = async (id) => { const motivo = prompt("ADMINISTRADOR: Ingrese el motivo para ELIMINAR este registro maestro:"); if(!motivo) return; await updateDoc(doc(db,"am_registros",id), { estado: 'Eliminado', eliminado: true, historial: arrayUnion({tipo:'sistema', texto:`❌ REGISTRO ELIMINADO. Motivo: ${motivo}`, autor:currentUser.id, fecha:new Date().toLocaleString()}) }); };
+        window.delRegConMotivo = async (id) => { const motivo = prompt("ADMINISTRADOR: Ingrese el motivo para ELIMINAR este registro:"); if(!motivo) return; await updateDoc(doc(db,"am_registros",id), { estado: 'Eliminado', eliminado: true, historial: arrayUnion({tipo:'sistema', texto:`❌ REGISTRO ELIMINADO. Motivo: ${motivo}`, autor:currentUser.id, fecha:new Date().toLocaleString()}) }); };
         window.delMeta = async (id) => { if(confirm("¿Eliminar esta meta de cumplimiento globalmente?")) await deleteDoc(doc(db,"am_metas",id)); };
         window.delUser = async (id) => { if(confirm("¿Eliminar usuario?")) await deleteDoc(doc(db,"am_usuarios",id)); };
         window.delGroup = async (id) => { if(confirm("¿Eliminar grupo?")) await deleteDoc(doc(db,"am_grupos",id)); };
@@ -615,42 +632,55 @@
 
         window.navigateTo = (sId) => { document.querySelectorAll(".content-section").forEach(e => e.classList.add("d-none")); document.querySelectorAll(".nav-link-menu").forEach(e => e.classList.remove("active")); const sectionMap = {dashboard:'sec-dashboard', cumplimiento:'sec-cumplimiento', registrar:'sec-registrar', mistareas:'sec-mistareas', historial:'sec-historial', admin:'sec-admin'}; el(sectionMap[sId])?.classList.remove("d-none"); el(`nav-${sId}`)?.classList.add("active"); if(window.innerWidth < 992) toggleMenu(); if(sId==='cumplimiento') { window.renderMetas(); window.renderResumenMeses(); } };
 
-        // --- CUMPLIMIENTO / CALENDARIO ---
+        // --- NUEVA LÓGICA DE MESES EXACTOS (SI LO HICE ANTES, VALE POR ESE MES) ---
         window.renderMetas = () => {
             const mesFilter = el('filtro-mes-meta').value;
-            let metasV = cache.metas;
-            if(currentUser.rol !== 'admin') metasV = metasV.filter(m => m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
+            let metasV = cache.metas.filter(m => currentUser.rol === 'admin' || m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
             
-            if(mesFilter !== 'ALL') metasV = metasV.filter(m => m.fechaLimite.split('-')[1] === mesFilter);
-
             let html = ''; let totalItems = 0, totalCompletados = 0;
 
             metasV.forEach(m => {
+                const mesLimite = m.fechaLimite.split('-')[1];
                 const asig = (m.asignadoA||'').replace('USR_','👤 ').replace('GRP_','👥 Equipo: ');
-                totalItems += m.items.length; totalCompletados += Object.keys(m.completados||{}).length;
-                const isFullComplete = Object.keys(m.completados||{}).length >= m.items.length;
-                
-                html += `<div class="meta-item rounded shadow-sm p-3 border mb-3 ${isFullComplete?'completada':''}">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0 text-dark">${m.titulo}</h6>
-                        <span class="badge ${isFullComplete?'bg-success':'bg-warning text-dark'}"><i class="bi bi-calendar"></i> Límite: ${m.fechaLimite}</span>
-                    </div>
-                    <div class="small text-muted mb-2">Asignado a: <b class="text-primary">${asig}</b></div>
-                    <div class="row g-2 mt-2">`;
-                
+                let itemsToRender = [];
+
                 m.items.forEach(it => {
                     const compData = (m.completados||{})[it];
-                    if(compData) {
-                        const btnEvidencia = compData.evidencia ? `<a href="${compData.evidencia}" target="_blank" class="badge bg-success mt-1 d-inline-block text-decoration-none"><i class="bi bi-box-arrow-up-right"></i> Ver Evidencia</a>` : '<span class="badge bg-secondary mt-1"><i class="bi bi-check2"></i> Validado sin doc</span>';
-                        html += `<div class="col-md-6"><div class="bg-success bg-opacity-10 border border-success rounded p-2 small"><div class="d-flex justify-content-between text-success fw-bold"><span class="text-truncate" style="max-width:120px">${it}</span> <span><i class="bi bi-check-circle-fill"></i> Ok</span></div><div class="text-muted" style="font-size:0.65rem">${compData.fecha} por ${compData.autor}</div>${btnEvidencia}</div></div>`;
-                    } else {
-                        html += `<div class="col-md-6"><div class="bg-white border rounded p-2 small d-flex justify-content-between align-items-center"><span class="fw-bold text-dark text-truncate" style="max-width:150px">${it}</span> <button class="btn btn-sm btn-outline-primary py-0 fw-bold" onclick="abrirModalCumplimiento('${m.id}','${it}')">Reportar Tarea</button></div></div>`;
+                    // ¿A qué mes pertenece este ítem para el filtro?
+                    // Si está completado, pertenece al mes en que se completó. Si no, al mes límite.
+                    const mesPertenece = compData ? (compData.mesCompletado || mesLimite) : mesLimite;
+                    
+                    if(mesFilter === 'ALL' || mesPertenece === mesFilter) {
+                        itemsToRender.push({ name: it, data: compData });
+                        totalItems++;
+                        if(compData) totalCompletados++;
                     }
                 });
-                html += `</div></div>`;
+
+                if(itemsToRender.length > 0) {
+                    const isFullComplete = m.items.length > 0 && Object.keys(m.completados||{}).length >= m.items.length;
+                    
+                    html += `<div class="meta-item rounded shadow-sm p-3 border mb-3 ${isFullComplete?'completada':''}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0 text-dark">${m.titulo}</h6>
+                            <span class="badge ${isFullComplete?'bg-success':'bg-warning text-dark'}"><i class="bi bi-calendar"></i> Límite Global: ${m.fechaLimite}</span>
+                        </div>
+                        <div class="small text-muted mb-2">Asignado a: <b class="text-primary">${asig}</b></div>
+                        <div class="row g-2 mt-2">`;
+                    
+                    itemsToRender.forEach(obj => {
+                        if(obj.data) {
+                            const btnEvidencia = obj.data.evidencia ? `<a href="${obj.data.evidencia}" target="_blank" class="badge bg-success mt-1 d-inline-block text-decoration-none"><i class="bi bi-box-arrow-up-right"></i> Ver Evidencia</a>` : '<span class="badge bg-secondary mt-1"><i class="bi bi-check2"></i> Validado sin doc</span>';
+                            html += `<div class="col-md-6"><div class="bg-success bg-opacity-10 border border-success rounded p-2 small"><div class="d-flex justify-content-between text-success fw-bold"><span class="text-truncate" style="max-width:120px">${obj.name}</span> <span><i class="bi bi-check-circle-fill"></i> Ok</span></div><div class="text-muted" style="font-size:0.65rem">${obj.data.fecha} por ${obj.data.autor}</div>${btnEvidencia}</div></div>`;
+                        } else {
+                            html += `<div class="col-md-6"><div class="bg-white border rounded p-2 small d-flex justify-content-between align-items-center"><span class="fw-bold text-dark text-truncate" style="max-width:150px">${obj.name}</span> <button class="btn btn-sm btn-outline-primary py-0 fw-bold" onclick="abrirModalCumplimiento('${m.id}','${obj.name}')">Reportar Tarea</button></div></div>`;
+                        }
+                    });
+                    html += `</div></div>`;
+                }
             });
             
-            el('lista-metas-container').innerHTML = html || '<div class="text-center text-muted p-4">No hay metas asignadas para este filtro.</div>';
+            el('lista-metas-container').innerHTML = html || '<div class="text-center text-muted p-4">No hay metas activas para este mes.</div>';
             actualizarGraficoCumplimiento(totalCompletados, totalItems - totalCompletados);
         };
 
@@ -665,29 +695,33 @@
             chartCumplimiento = new Chart(ctx, { type: 'doughnut', data: { labels: ['Completados', 'Pendientes'], datasets: [{ data: [completados, pendientes], backgroundColor: ['#16a34a', '#e2e8f0'], borderWidth: 0, cutout: '80%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateScale: true } } });
         }
 
-        // --- NUEVO: RESUMEN ANUAL EN GRID ---
         window.renderResumenMeses = () => {
             const nombresMeses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-            let metasV = cache.metas;
-            if(currentUser.rol !== 'admin') metasV = metasV.filter(m => m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
+            let metasV = cache.metas.filter(m => currentUser.rol === 'admin' || m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
 
             let html = '';
             for(let i = 1; i <= 12; i++) {
                 const mesStr = i.toString().padStart(2, '0');
-                const metasMes = metasV.filter(m => m.fechaLimite.split('-')[1] === mesStr);
-                
                 let totalItems = 0; let completados = 0;
-                metasMes.forEach(m => {
-                    totalItems += m.items.length;
-                    completados += Object.keys(m.completados||{}).length;
+                
+                metasV.forEach(m => {
+                    const mesLimite = m.fechaLimite.split('-')[1];
+                    m.items.forEach(it => {
+                        const comp = (m.completados || {})[it];
+                        const mesPertenece = comp ? (comp.mesCompletado || mesLimite) : mesLimite;
+                        if(mesPertenece === mesStr) {
+                            totalItems++;
+                            if(comp) completados++;
+                        }
+                    });
                 });
                 
                 const percent = totalItems === 0 ? 0 : Math.round((completados/totalItems)*100);
-                let colorClass = percent === 100 && totalItems > 0 ? 'border-success' : (totalItems > 0 ? 'border-primary' : 'border-secondary opacity-50');
+                let colorClass = percent === 100 && totalItems > 0 ? 'border-success bg-success bg-opacity-10' : (totalItems > 0 ? 'border-primary' : 'border-secondary opacity-50');
                 let bgProgress = percent === 100 ? 'bg-success' : 'bg-primary';
 
                 html += `<div class="col-6 col-md-4 col-lg-3">
-                    <div class="card-panel p-3 pointer hover-scale text-center ${colorClass}" style="border-width:2px; height:100%" onclick="verDetalleMes('${mesStr}', '${nombresMeses[i-1]}')">
+                    <div class="card-panel p-3 pointer hover-scale text-center ${colorClass}" style="border-width:2px; height:100%" onclick="window.navigateTo('cumplimiento'); document.getElementById('filtro-mes-meta').value='${mesStr}'; renderMetas();">
                         <h6 class="fw-bold mb-2 text-uppercase text-secondary" style="font-size:0.8rem">${nombresMeses[i-1]}</h6>
                         <div class="fs-3 fw-black mb-1 text-dark">${completados}/${totalItems}</div>
                         <div class="progress" style="height: 6px;"><div class="progress-bar ${bgProgress}" style="width: ${percent}%"></div></div>
@@ -697,43 +731,31 @@
             el('grid-meses-cumplimiento').innerHTML = html;
         };
 
-        // --- NUEVO: VER DETALLE EN MODAL ---
-        window.verDetalleMes = (mesStr, nombreMes) => {
-            el('titulo-mes-detalle').innerHTML = `<i class="bi bi-calendar-check text-success me-2"></i> Cumplimiento: ${nombreMes}`;
-            let metasV = cache.metas;
-            if(currentUser.rol !== 'admin') metasV = metasV.filter(m => m.asignadoA === `USR_${currentUser.id}` || (currentUser.grupos||[]).some(g => m.asignadoA === `GRP_${g}`));
-            
-            const metasMes = metasV.filter(m => m.fechaLimite.split('-')[1] === mesStr);
-            let html = '';
-            
-            metasMes.forEach(m => {
-                const compKeys = Object.keys(m.completados||{});
-                compKeys.forEach(k => {
-                    const compData = m.completados[k];
-                    const btnEvidencia = compData.evidencia ? `<a href="${compData.evidencia}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2 fw-bold"><i class="bi bi-link"></i> Abrir</a>` : '<span class="badge bg-secondary">Sin Archivo</span>';
-                    
-                    html += `<tr>
-                        <td class="ps-3"><b class="small text-dark d-block">${m.titulo}</b><span class="text-muted" style="font-size:0.7rem">Meta Principal</span></td>
-                        <td><span class="small fw-bold text-primary">${k}</span></td>
-                        <td><div class="small"><i class="bi bi-person-fill text-muted"></i> <b>${compData.autor}</b><br><span class="text-muted" style="font-size:0.75rem">${compData.fecha}</span></div></td>
-                        <td>${btnEvidencia}</td>
-                    </tr>`;
-                });
-            });
-
-            el('body-detalle-mes').innerHTML = html || '<tr><td colspan="4" class="text-center text-muted py-4 fw-bold">No se han registrado ítems completados en este mes.</td></tr>';
-            new bootstrap.Modal(el('modalDetalleMes')).show();
-        };
-
+        // --- PANTALLA EXCEL MAS COMPLETA ---
         window.seleccionarPlantilla = (id) => {
             const form = el('dynamic-form'); form.classList.remove('d-none'); el('template-selection-view').classList.add('d-none');
             const tpl = cache.templates.find(t => t.id === id); el('form-active-title').innerText = `Llenando: ${tpl.nombre}`;
             const std = el('standard-fields-container'), grid = el('grid-container');
+            
             if(tpl.sysType === 'excel') {
+                el('registro-card-panel').style.maxWidth = '100%'; // Hacemos la pantalla completa
                 std.innerHTML = ''; grid.classList.remove('d-none'); gridColumns = tpl.campos;
-                el('grid-header').innerHTML = `<tr>${tpl.campos.map(c=>`<th>${c.name}</th>`).join('')}<th width="40"></th></tr>`; el('grid-body').innerHTML = ''; el('btn-add-row').click();
+                
+                let headersExcel = tpl.campos.map(c=>`<th>${c.name}</th>`).join('');
+                el('grid-container').innerHTML = `
+                    <div class="table-responsive border rounded-3 bg-white shadow-sm" style="max-height: 65vh; overflow-y: auto;">
+                        <table class="table table-bordered grid-table mb-0" id="grid-table">
+                            <thead id="grid-header"><tr>${headersExcel}<th width="40"></th></tr></thead>
+                            <tbody id="grid-body"></tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-3 fw-bold bg-white" id="btn-add-row"><i class="bi bi-plus-lg"></i> Añadir Fila</button>
+                `;
+                el('btn-add-row').addEventListener('click', () => { el('grid-body').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td>${generarInputGrilla(c)}</td>`).join('')}<td class="text-center align-middle"><i class="bi bi-x-circle text-danger pointer fs-5" onclick="this.closest('tr').remove()"></i></td></tr>`); });
+                el('btn-add-row').click();
             } else {
-                grid.classList.add('d-none');
+                el('registro-card-panel').style.maxWidth = '1000px';
+                grid.classList.add('d-none'); grid.innerHTML = '';
                 std.innerHTML = tpl.campos.map(c => {
                     let inp = ''; const placeholder = placeHolders[c.type] || 'Complete el campo...';
                     const isReq = c.required !== false ? 'required' : ''; 
@@ -799,26 +821,71 @@
         };
         window.clearFileChat = () => { el('det-file-input').value = ""; currentChatFile = null; el('chat-file-preview').classList.add('d-none'); };
 
+        // --- PDF PROFESIONAL MEJORADO ---
         window.descargarPdfInteraccion = () => {
             const isTiquete = interaccionActual.tipo === 'tarea';
+            const docData = isTiquete ? cache.tickets.find(t=>t.id===interaccionActual.id) : cache.records.find(r=>r.id===interaccionActual.id);
+            
             const contenedorOculto = document.createElement('div');
-            contenedorOculto.style.padding = '30px';
-            contenedorOculto.style.fontFamily = 'Arial, sans-serif';
+            contenedorOculto.style.padding = '40px';
+            contenedorOculto.style.fontFamily = 'Helvetica, Arial, sans-serif';
+            contenedorOculto.style.color = '#333';
+            
+            let dataHtml = '<table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:20px;">';
+            if(isTiquete) {
+                dataHtml += `<tr><th style="padding:10px; border:1px solid #ddd; background:#f4f7f9; width:30%; text-align:left;">Asunto / Título</th><td style="padding:10px; border:1px solid #ddd;">${docData.titulo}</td></tr>`;
+                dataHtml += `<tr><th style="padding:10px; border:1px solid #ddd; background:#f4f7f9; text-align:left;">Descripción</th><td style="padding:10px; border:1px solid #ddd;">${docData.descripcion}</td></tr>`;
+                dataHtml += `<tr><th style="padding:10px; border:1px solid #ddd; background:#f4f7f9; text-align:left;">Prioridad</th><td style="padding:10px; border:1px solid #ddd;">${docData.prioridad.toUpperCase()}</td></tr>`;
+                dataHtml += `<tr><th style="padding:10px; border:1px solid #ddd; background:#f4f7f9; text-align:left;">Fecha Límite</th><td style="padding:10px; border:1px solid #ddd;">${docData.fechaLimite||'Sin definir'}</td></tr>`;
+            } else {
+                if(docData.sysType === 'excel') {
+                    dataHtml += `<thead><tr style="background:#0f172a; color:white;">`;
+                    Object.keys(docData.datosExcel[0]||{}).forEach(k => dataHtml += `<th style="padding:10px; border:1px solid #334155; text-align:left;">${k}</th>`);
+                    dataHtml += `</tr></thead><tbody>`;
+                    docData.datosExcel.forEach(row => {
+                        dataHtml += `<tr>`;
+                        Object.values(row).forEach(v => dataHtml += `<td style="padding:8px; border:1px solid #ddd;">${v}</td>`);
+                        dataHtml += `</tr>`;
+                    });
+                    dataHtml += `</tbody>`;
+                } else {
+                    Object.keys(docData.datos).forEach(k => {
+                        let val = docData.datos[k];
+                        if(val && val.toString().startsWith('data:image')) val = `<img src="${val}" style="max-height:60px;">`;
+                        else if(val && val.toString().startsWith('http')) val = "Archivo Adjunto en Nube";
+                        dataHtml += `<tr><th style="padding:10px; border:1px solid #ddd; background:#f4f7f9; width:40%; text-align:left;">${k}</th><td style="padding:10px; border:1px solid #ddd;">${val}</td></tr>`;
+                    });
+                }
+            }
+            dataHtml += '</table>';
+
             contenedorOculto.innerHTML = `
-                <h1 style="color:#0f62fe; text-align:center;">Compliance Record - Reporte Oficial</h1>
-                <hr>
-                <h2>${isTiquete ? 'Detalle de Tiquete / Tarea' : 'Registro de Datos'}</h2>
-                <p><strong>ID del Documento:</strong> ${el('det-id-doc').innerText}</p>
-                <p><strong>Asunto / Formato:</strong> ${el('det-titulo').innerText}</p>
-                <p><strong>Autor Original:</strong> ${el('det-autor').innerText}</p>
-                <p><strong>Estado Actual:</strong> ${el('det-estado').value}</p>
-                <br>
-                <h3>Información del Registro:</h3>
-                <div style="background:#f3f4f6; padding:15px; border-radius:5px; font-size:14px;">
-                    ${el('det-contexto-datos').innerHTML}
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #0f62fe; padding-bottom: 15px; margin-bottom: 25px;">
+                    <div>
+                        <h1 style="margin: 0; color: #0f172a; font-weight: 800; font-size:24px;">COMPLIANCE RECORD</h1>
+                        <p style="margin: 5px 0 0; font-size: 14px; color: #64748b; font-weight:bold;">Reporte Oficial y Control de Gestión</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <b style="font-size: 20px; color: #dc2626;">#${docData.id.substring(0,8).toUpperCase()}</b><br>
+                        <span style="font-size: 12px; color: #64748b;">Generado: ${new Date().toLocaleDateString()}</span>
+                    </div>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:20px; font-size:13px; border:1px solid #e2e8f0;">
+                    <div><b>Tipo de Documento:</b> ${isTiquete ? 'Tiquete / Ticket de Trabajo' : `Registro - ${docData.plantillaNombre}`}</div>
+                    <div><b>Estado de Gestión:</b> ${isTiquete ? docData.estadoTarea : docData.estado}</div>
+                    <div><b>Autor / Creador:</b> ${isTiquete ? docData.reportadoPor : docData.usuarioId}</div>
+                </div>
+                
+                <h3 style="font-size: 16px; margin-bottom:10px; color:#0f172a;">Detalles Extraídos de la Base de Datos</h3>
+                ${dataHtml}
+                
+                <div style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 10px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                    Documento generado electrónicamente por SkyControl OS - Compliance Record
                 </div>
             `;
-            html2pdf().set({margin:10, filename:`Reporte_${el('det-id-doc').innerText}.pdf`, image:{type:'jpeg',quality:0.98}}).from(contenedorOculto).save();
+            
+            html2pdf().set({margin:10, filename:`Reporte_${docData.id.substring(0,6).toUpperCase()}.pdf`, image:{type:'jpeg',quality:1}, html2canvas:{scale:2}, jsPDF:{unit:'mm', format:'a4', orientation:'portrait'}}).from(contenedorOculto).save();
         };
 
         window.abrirInteraccion = (tipo, id) => { interaccionActual = { tipo, id }; el('sec-mistareas').classList.add('d-none'); el('sec-historial').classList.add('d-none'); el('sec-interaccion-detalle').classList.remove('d-none'); renderizarPanelInteraccion(); };
@@ -911,17 +978,127 @@
         };
         window.addFilaEdicionExcel = () => { el('grid-body-edit').insertAdjacentHTML('beforeend', `<tr>${gridColumns.map(c => `<td>${generarInputGrilla(c)}</td>`).join('')}<td class="text-center"><i class="bi bi-x-circle text-danger pointer" onclick="this.closest('tr').remove()"></i></td></tr>`); };
 
+        // --- NUEVA BD MAESTRA EXPANDIDA (DESGLOSE TOTAL DE EXCEL Y FORMULARIOS) ---
         window.renderMasterData = () => {
             const formFilter = el('filter-form').value, textFilter = el('filter-text').value.toLowerCase(); let filtered = cache.records.filter(r => !r.eliminado);
-            if(formFilter && formFilter !== 'ALL') filtered = filtered.filter(r => r.plantillaId === formFilter);
-            if(textFilter) { filtered = filtered.filter(r => { const stringData = JSON.stringify(r.datos || {}).toLowerCase() + JSON.stringify(r.datosExcel || []).toLowerCase() + r.estado.toLowerCase() + r.plantillaNombre.toLowerCase(); return stringData.includes(textFilter); }); }
-            el('body-global').innerHTML = filtered.map(r => { let resumenStr = ''; if(r.sysType === 'excel') resumenStr = `<i class="bi bi-table text-success"></i> ${r.datosExcel?.length || 0} filas Excel`; else { const k = Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`<span class="text-muted">${key}:</span> <b class="text-dark">${r.datos[key] && (r.datos[key].toString().startsWith('data:')||r.datos[key].toString().includes('res.cloudinary.com'))?'[Archivo/Firma]':r.datos[key]}</b>`).join('<br>'); } let stClass = r.estado.includes('Pendiente') ? 'st-pendiente' : (r.estado==='Aprobado'?'st-aprobado':(r.estado==='Rechazado'?'st-rechazado':'st-registrado')); let btnAction = r.seguimiento ? `<button class="btn btn-sm btn-primary border-0 fw-bold shadow-sm" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-chat-text"></i> Evaluar</button>` : `<button class="btn btn-sm btn-light border" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i> Detalles</button>`; let delAction = currentUser.rol === 'admin' ? `<button class="btn btn-sm text-danger ms-2 border-0" onclick="delRegConMotivo('${r.id}')"><i class="bi bi-trash"></i></button>` : ''; return `<tr><td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td><td><span class="badge bg-primary bg-opacity-10 text-primary border">${(r.sysType||'FORM').toUpperCase()}</span><br><b class="small">${r.plantillaNombre}</b></td><td class="small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${resumenStr}</td><td><span class="status-badge ${stClass}">${r.estado}</span></td><td>${btnAction}${delAction}</td></tr>`; }).join('');
+            const tableHead = el('head-global');
+            
+            if(formFilter !== 'ALL') {
+                filtered = filtered.filter(r => r.plantillaId === formFilter);
+                if(textFilter) filtered = filtered.filter(r => (JSON.stringify(r.datos||{})+JSON.stringify(r.datosExcel||[])+r.estado+r.plantillaNombre).toLowerCase().includes(textFilter));
+                
+                const tpl = cache.templates.find(t=>t.id===formFilter);
+                if(tpl) {
+                    let html = '';
+                    if(tpl.sysType === 'excel') {
+                        // Armar cabeceras exactas para Excel
+                        tableHead.innerHTML = `<tr><th class="ps-4">Fecha</th><th>ID Doc</th><th>Estado</th>${tpl.campos.map(c=>`<th>${c.name}</th>`).join('')}<th>Gestión</th></tr>`;
+                        // Desenvolver cada fila del excel en una fila de la BD Maestra
+                        filtered.forEach(r => {
+                            if(r.datosExcel && r.datosExcel.length > 0) {
+                                r.datosExcel.forEach((rowEx, idx) => {
+                                    html += `<tr>
+                                        <td class="ps-4">${idx===0 ? `<span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span>` : ''}</td>
+                                        <td>${idx===0 ? `<b class="small text-primary">#${r.id.substring(0,6).toUpperCase()}</b>` : ''}</td>
+                                        <td>${idx===0 ? `<span class="status-badge ${r.estado==='Aprobado'?'st-aprobado':'st-registrado'}">${r.estado}</span>` : ''}</td>
+                                        ${tpl.campos.map(c=>`<td>${rowEx[c.name]||'-'}</td>`).join('')}
+                                        <td>${idx===0 ? `<button class="btn btn-sm btn-light border hover-scale" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i></button>` : ''}</td>
+                                    </tr>`;
+                                });
+                            }
+                        });
+                    } else {
+                        // Formulario normal expandido
+                        tableHead.innerHTML = `<tr><th class="ps-4">Fecha</th><th>ID Doc</th><th>Estado</th>${tpl.campos.map(c=>`<th>${c.name}</th>`).join('')}<th>Gestión</th></tr>`;
+                        filtered.forEach(r => {
+                            html += `<tr>
+                                <td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td>
+                                <td><b class="small text-primary">#${r.id.substring(0,6).toUpperCase()}</b></td>
+                                <td><span class="status-badge ${r.estado==='Aprobado'?'st-aprobado':'st-registrado'}">${r.estado}</span></td>
+                                ${tpl.campos.map(c=> {
+                                    let val = r.datos[c.name] || '-';
+                                    if(val.toString().startsWith('http') || val.toString().startsWith('data:')) val = '<span class="badge bg-secondary">Doc. Adjunto</span>';
+                                    return `<td>${val}</td>`;
+                                }).join('')}
+                                <td><button class="btn btn-sm btn-light border hover-scale" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i></button></td>
+                            </tr>`;
+                        });
+                    }
+                    el('body-global').innerHTML = html || '<tr><td colspan="100%" class="text-center text-muted py-4">No hay registros llenados para este formato.</td></tr>';
+                }
+            } else {
+                // VISTA RESUMIDA POR DEFECTO
+                if(textFilter) filtered = filtered.filter(r => (JSON.stringify(r.datos||{})+JSON.stringify(r.datosExcel||[])+r.estado+r.plantillaNombre).toLowerCase().includes(textFilter));
+                
+                tableHead.innerHTML = `<tr><th class="ps-4">Fecha</th><th>Formato</th><th>Datos Extraídos</th><th>Estado</th><th>Gestión / Ver</th></tr>`;
+                el('body-global').innerHTML = filtered.map(r => { let resumenStr = ''; if(r.sysType === 'excel') resumenStr = `<i class="bi bi-table text-success"></i> ${r.datosExcel?.length || 0} filas en Grilla Excel`; else { const k = Object.keys(r.datos); resumenStr = k.slice(0,2).map(key=>`<span class="text-muted">${key}:</span> <b class="text-dark">${r.datos[key] && (r.datos[key].toString().startsWith('data:')||r.datos[key].toString().includes('res.cloudinary.com'))?'[Archivo/Firma]':r.datos[key]}</b>`).join('<br>'); } let stClass = r.estado.includes('Pendiente') ? 'st-pendiente' : (r.estado==='Aprobado'?'st-aprobado':(r.estado==='Rechazado'?'st-rechazado':'st-registrado')); let btnAction = r.seguimiento ? `<button class="btn btn-sm btn-primary border-0 fw-bold shadow-sm" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-chat-text"></i> Evaluar</button>` : `<button class="btn btn-sm btn-light border" onclick="abrirInteraccion('registro','${r.id}')"><i class="bi bi-eye"></i> Detalles</button>`; let delAction = currentUser.rol === 'admin' ? `<button class="btn btn-sm text-danger ms-2 border-0 hover-scale" onclick="delRegConMotivo('${r.id}')"><i class="bi bi-trash"></i></button>` : ''; return `<tr><td class="ps-4"><span class="badge bg-light text-secondary border">${r.fecha.split(' ')[0]}</span></td><td><span class="badge bg-primary bg-opacity-10 text-primary border">${(r.sysType||'FORM').toUpperCase()}</span><br><b class="small">${r.plantillaNombre}</b></td><td class="small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${resumenStr}</td><td><span class="status-badge ${stClass}">${r.estado}</span></td><td>${btnAction}${delAction}</td></tr>`; }).join('');
+            }
+        };
+
+        // --- INTERCAMBIAR ÍTEMS DE METAS ---
+        window.abrirModalMoverItem = (metaId, itemNombre) => {
+            el('mover-origen-id').value = metaId;
+            el('mover-item-text').value = itemNombre;
+            el('mover-item-display').innerText = itemNombre;
+            
+            // Llenar el select con otras metas que NO sean la actual
+            const metasDisponibles = cache.metas.filter(m => m.id !== metaId);
+            if(metasDisponibles.length === 0) {
+                showToast("No hay otras metas creadas para mover este ítem", "warning");
+                return;
+            }
+            
+            el('mover-destino-id').innerHTML = metasDisponibles.map(m => `<option value="${m.id}">${m.titulo} (Mes: ${m.fechaLimite})</option>`).join('');
+            new bootstrap.Modal(el('modalMoverItem')).show();
+        };
+
+        window.confirmarMoverItem = async () => {
+            const origenId = el('mover-origen-id').value;
+            const itemText = el('mover-item-text').value;
+            const destinoId = el('mover-destino-id').value;
+            
+            if(!destinoId) return;
+
+            try {
+                // Eliminar de la meta origen
+                await updateDoc(doc(db, "am_metas", origenId), {
+                    items: arrayRemove(itemText)
+                });
+                // Añadir a la meta destino
+                await updateDoc(doc(db, "am_metas", destinoId), {
+                    items: arrayUnion(itemText)
+                });
+                
+                bootstrap.Modal.getInstance(el('modalMoverItem')).hide();
+                showToast("Ítem reasignado exitosamente");
+            } catch(e) {
+                console.error(e);
+                showToast("Error al mover el ítem", "danger");
+            }
         };
 
         function startRealtime() {
             onSnapshot(collection(db, "am_metas"), s => {
                 cache.metas = s.docs.map(d=>({id:d.id,...d.data()}));
-                el('list-metas-admin').innerHTML = cache.metas.map(m=>`<li class="list-group-item d-flex justify-content-between align-items-center"><div><b class="d-block text-dark">${m.titulo}</b><small class="text-muted">Asig: ${m.asignadoA} | Límite: ${m.fechaLimite}</small></div><i class="bi bi-trash text-danger pointer" onclick="delMeta('${m.id}')"></i></li>`).join('');
+                
+                // Mostrar items dentro de las metas para poder moverlos
+                el('list-metas-admin').innerHTML = cache.metas.map(m=>{
+                    const itemsHtml = (m.items||[]).map(it => `
+                        <div class="d-flex justify-content-between align-items-center bg-white p-1 px-2 border rounded mt-1 small">
+                            <span class="text-truncate">${it}</span>
+                            <button class="btn btn-sm text-primary py-0 border" onclick="abrirModalMoverItem('${m.id}', '${it.replace(/'/g, "\\'")}')" title="Mover a otra meta"><i class="bi bi-arrow-left-right"></i></button>
+                        </div>
+                    `).join('');
+                    
+                    return `<li class="list-group-item bg-light">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div><b class="d-block text-dark">${m.titulo}</b><small class="text-muted">Asig: ${m.asignadoA} | Límite: ${m.fechaLimite}</small></div>
+                            <i class="bi bi-trash text-danger pointer" onclick="delMeta('${m.id}')"></i>
+                        </div>
+                        ${itemsHtml}
+                    </li>`;
+                }).join('');
+                
                 if(!el('sec-cumplimiento').classList.contains('d-none')) { window.renderMetas(); window.renderResumenMeses(); }
                 procesarNotificacionesMetas();
             });
@@ -944,7 +1121,9 @@
 
             onSnapshot(collection(db, "am_usuarios"), s => {
                 cache.users = s.docs.map(d=>({id:d.id,...d.data()}));
-                el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between"><div><b>${u.id}</b> <span class="badge bg-light text-dark">${u.rol}</span></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delUser('${u.id}')"></i></div></li>`).join('');
+                // AHORA MUESTRA EL CORREO DEL USUARIO EN LA LISTA
+                el('list-users').innerHTML = cache.users.map(u=>`<li class="list-group-item d-flex justify-content-between align-items-center"><div><b class="text-dark d-block">${u.id}</b> <small class="text-muted"><i class="bi bi-envelope"></i> ${u.correo||'Sin correo'}</small></div> <div><span class="badge bg-light text-dark me-3">${u.rol}</span><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editUser('${u.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delUser('${u.id}')"></i></div></li>`).join('');
+                
                 if(cache.groups.length > 0) {
                     let usersHtml = cache.users.map(u => `<div class="col-6 col-md-4"><div class="border rounded p-2 bg-light"><input class="form-check-input grp-usr-chk" type="checkbox" value="${u.id}" id="chk-grp-usr-${u.id}"> <label class="small fw-bold text-secondary ms-1" for="chk-grp-usr-${u.id}">${u.id} (${u.rol})</label></div></div>`).join('');
                     el('grp-users-container').innerHTML = usersHtml;
@@ -961,7 +1140,7 @@
                 cache.templates = s.docs.map(d=>({id:d.id,...d.data()}));
                 const ms = currentUser.rol==='admin' ? cache.templates : cache.templates.filter(t => (t.gruposPermitidos||[]).some(g => (currentUser.grupos||[]).includes(g)));
                 
-                el('filter-form').innerHTML = '<option value="ALL">Mostrar Todos los Formularios</option>' + cache.templates.map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
+                el('filter-form').innerHTML = '<option value="ALL">Vista Resumida General</option>' + cache.templates.map(t=>`<option value="${t.id}">Ver expandido: ${t.nombre}</option>`).join('');
 
                 el('template-cards-container').innerHTML = ms.map(t => `<div class="col-md-4 col-sm-6"><div class="card-panel p-4 pointer hover-scale border-primary h-100 d-flex flex-column justify-content-center align-items-center text-center" onclick="seleccionarPlantilla('${t.id}')"><i class="bi ${t.sysType==='excel' ? 'bi-file-earmark-spreadsheet text-success' : 'bi-file-earmark-text text-primary'} fs-1 mb-2"></i><h6 class="fw-bold mb-1">${t.nombre}</h6><span class="badge bg-light text-dark border">${(t.sysType||'formulario').toUpperCase()}</span></div></div>`).join('');
                 el('list-templates').innerHTML = cache.templates.map(t=>`<li class="list-group-item d-flex justify-content-between"><div><b class="d-block">${t.nombre}</b><small class="text-primary">Sys: ${t.sysType||'form'} | Interactivo: ${t.habilitarSeguimiento?'Sí':'No'}</small></div> <div><i class="bi bi-pencil text-primary pointer me-3 hover-scale" onclick="editTpl('${t.id}')"></i><i class="bi bi-trash text-danger pointer hover-scale" onclick="delTpl('${t.id}')"></i></div></li>`).join('');
